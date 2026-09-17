@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+:root {
+  --background: #09090b;
+  --surface: #111113;
+  --surface-soft: #18181b;
+
+  --foreground: #fafafa;
+  --muted: #a1a1aa;
+
+  --brand-400: #a78bfa;
+  --brand-500: #8b5cf6;
+  --brand-600: #7c3aed;
+
+  --accent-400: #22d3ee;
+
+  --success: #34d399;
+  --warning: #fbbf24;
+
+  --border: #27272a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(
+      circle at 50% -15%,
+      rgba(124, 58, 237, 0.12),
+      transparent 35%
+    ),
+    var(--background);
+  color: var(--foreground);
+}
+
+::selection {
+  background: rgba(139, 92, 246, 0.35);
+  color: #ffffff;
+}
+
+a,
+button,
+input {
+  outline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-400);
+}
+
+.brand-glow {
+  background:
+    radial-gradient(
+      circle at 20% 30%,
+      rgba(139, 92, 246, 0.18),
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 80% 70%,
+      rgba(34, 211, 238, 0.08),
+      transparent 35%
+    );
+}
+
+.brand-text {
+  background: linear-gradient(90deg, #ffffff 0%, #c4b5fd 45%, #67e8f9 100%);
+  background-clip: text;
+  color: transparent;
+}
+
+.interactive-card {
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.interactive-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

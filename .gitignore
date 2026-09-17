@@ -1,0 +1,28 @@
+node_modules/
+.next/
+dist/
+coverage/
+.turbo/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Local DB / dumps / credentials
+*.dump
+*.backup
+**/*credentials*.csv
+**/*contrasenas*.csv
+**/*passwords*.csv
+
+# Generated certificates/uploads
+storage/
+uploads/
+
+# TypeScript build cache
+*.tsbuildinfo
