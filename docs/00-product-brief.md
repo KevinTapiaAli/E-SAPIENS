@@ -14,7 +14,7 @@ Centralizar y actualizar el acceso a material bibliográfico, cursos, clases y v
 
 ## Resultado esperado
 
-Una plataforma web publicada, con código fuente, documentación, administración, pruebas y despliegue profesional. Debe permitir una futura aplicación móvil sobre la misma API.
+Una plataforma web publicada, con código fuente, documentación, administración, pruebas y despliegue profesional. Por decisión del propietario del 01/10/2026, la aplicación móvil queda fuera del alcance hasta finalizar el proyecto web. No se presupone infraestructura de servidor ni presupuesto para servicios externos.
 
 ## Funciones núcleo
 

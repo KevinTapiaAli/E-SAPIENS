@@ -1,23 +1,29 @@
-# Árbol objetivo del repositorio
+# Árbol del repositorio
 
 ```text
 esapiens-lms/
 ├─ apps/
 │  ├─ web/
+│  │  └─ src/{app,features,shared}/
 │  ├─ api/
+│  │  ├─ src/{modules,common,infrastructure}/
+│  │  └─ test/
 │  └─ worker/
 ├─ packages/
 │  ├─ contracts/
+│  │  └─ index.d.ts
 │  ├─ ui/
 │  └─ config/
 ├─ database/
 │  ├─ migrations/
+│  ├─ seeds/
 │  └─ reference/
 ├─ docs/
 │  └─ adr/
 ├─ .github/
 │  └─ workflows/
 ├─ .env.example
+├─ .node-version
 ├─ .gitignore
 ├─ AGENTS.md
 ├─ CONTRIBUTING.md
@@ -26,8 +32,9 @@ esapiens-lms/
 ├─ docker-compose.dev.yml
 ├─ package.json
 ├─ pnpm-workspace.yaml
+├─ scripts/database.mjs
 ├─ tsconfig.base.json
 └─ turbo.json
 ```
 
-El código fuente real de `apps/*` se crea durante Sprint 0 siguiendo el prompt maestro; no se generan cientos de archivos vacíos por adelantado.
+`apps/web` y `apps/api` son ejecutables. `packages/contracts` es un paquete de tipos consumido por ambos. `apps/worker`, `packages/ui` y `packages/config` conservan únicamente documentación de su intención futura. El detalle de la entrega actual está en `docs/10-public-catalog.md`.

@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Web E-SAPIENS
 
-## Getting Started
+Next.js App Router + React + TypeScript. Las páginas públicas usan Server Components para consultar NestJS. Los componentes cliente se limitan a interacción como navegación adaptable y recuperación de errores.
 
-First, run the development server:
+## Desarrollo
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Crear `apps/web/.env.local` desde `.env.example` si todavía no existe. `API_URL=http://localhost:4000` es una variable del servidor; no lleva prefijo `NEXT_PUBLIC_`.
+
+Desde la raíz:
+
+```powershell
+pnpm.cmd dev
+pnpm.cmd --filter esapiens-web lint
+pnpm.cmd --filter esapiens-web typecheck
+pnpm.cmd --filter esapiens-web build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Rutas
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Ruta               | Función                                             |
+| ------------------ | --------------------------------------------------- |
+| `/`                | Presentación institucional y accesos                |
+| `/cursos`          | Catálogo público, búsqueda y paginación             |
+| `/cursos/[slug]`   | Ficha, objetivos y temario publicado                |
+| `/biblioteca`      | Búsqueda de fichas bibliográficas públicas          |
+| `/biblioteca/[id]` | Autoría, referencia y temas                         |
+| `/login`           | Información sobre la futura habilitación de cuentas |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`features/catalog` y `features/library` validan las respuestas antes de renderizar. `shared/api/public-api.ts` impone un timeout y distingue respuestas inválidas, indisponibilidad y recursos inexistentes. No hay acceso a `pg`, SQL ni credenciales de base de datos en la web.
 
-## Learn More
+Las listas conservan `q` en la URL y usan `cursor` para avanzar. Una búsqueda sin coincidencias presenta un estado vacío; una caída de la API presenta un error recuperable. Los detalles inexistentes muestran la página 404.
 
-To learn more about Next.js, take a look at the following resources:
+Para mantener visible una retirada de publicación, estas lecturas usan `cache: "no-store"`. La caché pública requerirá una política de invalidación explícita antes de incorporarse. Véase [ADR 0004](../../docs/adr/0004-public-catalog.md).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+La adaptación a pantallas pequeñas forma parte de la web. No se está desarrollando una aplicación móvil independiente.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Sistema visual
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+La interfaz usa tema claro institucional por defecto y tema oscuro seleccionable. Colores semánticos, tipografía Geist y componentes compartidos se describen en [el sistema visual](../../docs/12-visual-system.md). Usar esos tokens para las próximas pantallas. La portada presenta los accesos disponibles; el estado técnico de los servicios se consulta mediante la API de salud.

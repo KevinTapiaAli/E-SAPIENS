@@ -2,6 +2,8 @@
 
 Base: `/api/v1`
 
+Implementación vigente: salud, cursos públicos por `slug` y fichas bibliográficas por UUID. Véase [contrato del catálogo público](10-public-catalog.md). Las rutas de autenticación, matrícula y pagos de la lista siguiente son objetivos, no endpoints ya disponibles.
+
 ## Recursos ejemplo
 
 ```text
@@ -11,7 +13,7 @@ POST   /auth/logout
 POST   /auth/forgot-password
 POST   /auth/reset-password
 GET    /courses
-GET    /courses/:courseId
+GET    /courses/:slug
 GET    /me/enrollments
 POST   /lessons/:lessonId/complete
 POST   /evaluations/:evaluationId/attempts

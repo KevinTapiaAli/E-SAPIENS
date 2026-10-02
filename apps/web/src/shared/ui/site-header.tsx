@@ -1,137 +1,115 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { BrandMark } from "./brand-mark";
+import { ThemeToggle } from "./theme-toggle";
+import { Icon } from "./icon";
+
+const links = [
+  { href: "/", label: "Inicio" },
+  { href: "/cursos", label: "Cursos" },
+  { href: "/biblioteca", label: "Biblioteca" },
+];
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const menuRef = useRef<HTMLButtonElement>(null);
+  const active = (href: string) =>
+    pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 
-  const closeMenu = () => setMenuOpen(false);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const outside = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !headerRef.current?.contains(event.target)
+      )
+        setMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    return () => document.removeEventListener("pointerdown", outside);
+  }, [menuOpen]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-50 border-b border-line bg-surface"
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && menuOpen) {
+          setMenuOpen(false);
+          menuRef.current?.focus();
+        }
+      }}
+    >
+      <div className="page-shell flex min-h-20 items-center justify-between gap-3">
         <BrandMark />
-
-        {/* Navegación escritorio */}
-        <nav
-          aria-label="Navegación principal"
-          className="hidden items-center gap-2 text-sm text-zinc-300 md:flex"
-        >
-          <Link
-            href="/"
-            className="rounded-lg px-3 py-2 transition hover:bg-zinc-900 hover:text-white"
+        <div className="flex items-center gap-1 md:gap-3">
+          <nav
+            aria-label="Navegación principal"
+            className="hidden items-center gap-1 md:flex"
           >
-            Inicio
-          </Link>
-
-          <Link
-            href="/cursos"
-            className="rounded-lg px-3 py-2 transition hover:bg-zinc-900 hover:text-white"
-          >
-            Cursos
-          </Link>
-
-          <Link
-            href="/biblioteca"
-            className="rounded-lg px-3 py-2 transition hover:bg-zinc-900 hover:text-white"
-          >
-            Biblioteca
-          </Link>
-
-          <Link
-            href="/login"
-            className="ml-2 rounded-lg border border-zinc-700 px-4 py-2 font-medium transition hover:border-zinc-500 hover:bg-zinc-900"
-          >
-            Iniciar sesión
-          </Link>
-        </nav>
-
-        {/* Botón móvil */}
-        <button
-          type="button"
-          onClick={() => setMenuOpen((current) => !current)}
-          aria-expanded={menuOpen}
-          aria-controls="mobile-navigation"
-          aria-label={
-            menuOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"
-          }
-          className="flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-800 text-zinc-200 transition hover:bg-zinc-900 md:hidden"
-        >
-          {menuOpen ? (
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <path d="M6 6l12 12" />
-              <path d="M18 6L6 18" />
-            </svg>
-          ) : (
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <path d="M4 7h16" />
-              <path d="M4 12h16" />
-              <path d="M4 17h16" />
-            </svg>
-          )}
-        </button>
-      </div>
-
-      {/* Menú móvil */}
-      {menuOpen && (
-        <nav
-          id="mobile-navigation"
-          aria-label="Navegación móvil"
-          className="border-t border-zinc-800 bg-zinc-950 px-6 pb-6 pt-4 md:hidden"
-        >
-          <div className="mx-auto flex max-w-7xl flex-col gap-2">
-            <Link
-              href="/"
-              onClick={closeMenu}
-              className="rounded-xl px-4 py-3 text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-            >
-              Inicio
-            </Link>
-
-            <Link
-              href="/cursos"
-              onClick={closeMenu}
-              className="rounded-xl px-4 py-3 text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-            >
-              Cursos
-            </Link>
-
-            <Link
-              href="/biblioteca"
-              onClick={closeMenu}
-              className="rounded-xl px-4 py-3 text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-            >
-              Biblioteca
-            </Link>
-
+            {links.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active(href) ? "page" : undefined}
+                className="nav-link"
+              >
+                {label}
+              </Link>
+            ))}
             <Link
               href="/login"
-              onClick={closeMenu}
-              className="mt-2 rounded-xl bg-white px-4 py-3 text-center font-semibold text-zinc-950 transition hover:bg-zinc-200"
+              aria-current={active("/login") ? "page" : undefined}
+              className="nav-link ml-3 border border-input"
             >
-              Iniciar sesión
+              Acceso al aula
             </Link>
-          </div>
-        </nav>
-      )}
+          </nav>
+          <ThemeToggle />
+          <button
+            ref={menuRef}
+            type="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-navigation"
+            aria-label={
+              menuOpen
+                ? "Cerrar menú de navegación"
+                : "Abrir menú de navegación"
+            }
+            className="icon-button md:hidden"
+          >
+            <Icon name={menuOpen ? "close" : "menu"} />
+          </button>
+        </div>
+      </div>
+      <nav
+        id="mobile-navigation"
+        aria-label="Navegación móvil"
+        hidden={!menuOpen}
+        className="border-t border-line bg-surface md:hidden"
+      >
+        <div className="page-shell flex flex-col gap-1 py-4">
+          {[...links, { href: "/login", label: "Acceso al aula" }].map(
+            ({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active(href) ? "page" : undefined}
+                onClick={() => setMenuOpen(false)}
+                className="nav-link"
+              >
+                {label}
+              </Link>
+            ),
+          )}
+        </div>
+      </nav>
     </header>
   );
 }

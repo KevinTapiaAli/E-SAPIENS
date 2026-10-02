@@ -16,6 +16,9 @@ export class DatabaseService implements OnApplicationShutdown {
     this.pool = new Pool({
       connectionString,
       max: 10,
+      connectionTimeoutMillis: 3000,
+      statement_timeout: 5000,
+      query_timeout: 6000,
     });
   }
 
@@ -31,7 +34,9 @@ export class DatabaseService implements OnApplicationShutdown {
       database: string;
     }>('SELECT current_database() AS database');
 
-    return result.rows[0];
+    const database = result.rows[0];
+    if (!database) throw new Error('Database health query returned no result');
+    return database;
   }
 
   async onApplicationShutdown() {

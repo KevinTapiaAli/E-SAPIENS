@@ -6,6 +6,8 @@ import { APP_FILTER } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { GlobalExceptionFilter } from './common/http/filters/global-exception.filter';
 import { HealthModule } from './modules/health/health.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
+import { LibraryModule } from './modules/library/library.module';
 
 @Module({
   imports: [
@@ -63,6 +65,8 @@ import { HealthModule } from './modules/health/health.module';
     }),
 
     HealthModule,
+    CatalogModule,
+    LibraryModule,
   ],
 
   providers: [
