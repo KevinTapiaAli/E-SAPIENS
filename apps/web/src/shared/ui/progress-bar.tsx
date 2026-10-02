@@ -9,13 +9,13 @@ export function ProgressBar({ value, label }: ProgressBarProps) {
   return (
     <div>
       <div className="flex items-center justify-between gap-4 text-sm">
-        {label && <span className="text-zinc-400">{label}</span>}
+        {label && <span className="text-muted">{label}</span>}
 
-        <span className="ml-auto font-medium text-zinc-300">{safeValue}%</span>
+        <span className="ml-auto font-medium text-ink">{safeValue}%</span>
       </div>
 
       <div
-        className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-800"
+        className="mt-2 h-2 overflow-hidden rounded-full bg-surface-soft"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={100}
@@ -23,7 +23,7 @@ export function ProgressBar({ value, label }: ProgressBarProps) {
         aria-label={label ?? "Progreso"}
       >
         <div
-          className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-[width] duration-300"
+          className="h-full rounded-full bg-brand transition-[width] duration-150"
           style={{
             width: `${safeValue}%`,
           }}

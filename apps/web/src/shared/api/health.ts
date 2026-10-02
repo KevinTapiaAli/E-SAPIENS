@@ -23,6 +23,7 @@ export async function getSystemHealth(): Promise<HealthResponse | null> {
   try {
     const response = await fetch(`${apiUrl}/api/v1/health/ready`, {
       cache: "no-store",
+      signal: AbortSignal.timeout(4000),
     });
 
     if (!response.ok) {

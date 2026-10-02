@@ -1,6 +1,10 @@
 # Manifest
 
+Índice de archivos de configuración y documentación. El código de los módulos ejecutables se organiza según `TREE.md`; no se enumera aquí cada archivo fuente.
+
 - `.editorconfig`
+- `.gitattributes`
+- `.node-version`
 - `.env.example`
 - `.github/pull_request_template.md`
 - `.github/workflows/ci.yml`
@@ -13,9 +17,11 @@
 - `TREE.md`
 - `apps/api/README.md`
 - `apps/web/README.md`
+- `apps/web/.env.example`
 - `apps/worker/README.md`
 - `database/README.md`
 - `database/migrations/0001_initial_schema.sql`
+- `database/seeds/demo.sql`
 - `database/reference/03_pruebas.sql`
 - `database/reference/04_consultas.sql`
 - `docker-compose.dev.yml`
@@ -29,13 +35,21 @@
 - `docs/07-deployment.md`
 - `docs/08-roadmap.md`
 - `docs/09-decisions-summary.md`
+- `docs/10-public-catalog.md`
+- `docs/11-demo-2026-10-05.md`
+- `docs/12-visual-system.md`
+- `docs/13-laptop-setup.md`
 - `docs/adr/0001-modular-monolith.md`
 - `docs/adr/0002-nextjs.md`
 - `docs/adr/0003-private-media.md`
+- `docs/adr/0004-public-catalog.md`
 - `package.json`
 - `packages/config/README.md`
 - `packages/contracts/README.md`
+- `packages/contracts/package.json`
+- `packages/contracts/index.d.ts`
 - `packages/ui/README.md`
 - `pnpm-workspace.yaml`
+- `scripts/database.mjs`
 - `tsconfig.base.json`
 - `turbo.json`

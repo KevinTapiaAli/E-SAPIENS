@@ -5,7 +5,7 @@
 **Monolito modular + worker asíncrono + almacenamiento externo**, preparado para extracción futura de servicios.
 
 ```text
-Browser / Flutter
+Navegador web
       |
       v
   Next.js Web ----------------------+
@@ -20,6 +20,12 @@ Browser / Flutter
       +--> Email / WhatsApp
       +--> Meet / Zoom links
 ```
+
+## Implementación vigente (01/10/2026)
+
+Web Next.js, API NestJS con módulos de salud/catálogo/biblioteca, PostgreSQL mediante `pg` y Redis para readiness. Los contratos públicos se comparten como tipos de transporte. Worker, colas, almacenamiento y proveedores del diagrama son arquitectura objetivo, todavía no servicios implementados. La aplicación móvil está excluida del alcance actual.
+
+Las lecturas públicas simples usan servicios de módulo con SQL parametrizado; no se crean capas vacías ni se añade un ORM sin necesidad. Véase [ADR 0004](adr/0004-public-catalog.md). Las reglas de dominio y ports de las siguientes secciones se incorporarán cuando existan casos de negocio que los requieran.
 
 ## Por qué no microservicios ahora
 

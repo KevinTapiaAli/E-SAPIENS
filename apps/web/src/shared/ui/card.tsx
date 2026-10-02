@@ -14,7 +14,7 @@ export function Card({
   return (
     <div
       className={[
-        "rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6",
+        "ui-card p-6",
         interactive ? "interactive-card" : "",
         className,
       ].join(" ")}

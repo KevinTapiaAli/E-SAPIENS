@@ -1,13 +1,23 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [".env", "apps/web/.env.local"],
   "tasks": {
     "build": {
+      "env": ["API_URL"],
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": [
+        "DATABASE_URL",
+        "REDIS_URL",
+        "API_URL",
+        "PORT",
+        "APP_ENV",
+        "NODE_ENV"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -17,11 +27,11 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "outputs": []
     },
     "test:e2e": {
       "cache": false,
-      "env": ["DATABASE_URL", "REDIS_URL", "API_URL"]
+      "env": ["DATABASE_URL", "REDIS_URL", "API_URL", "APP_ENV", "NODE_ENV"]
     }
   }
 }

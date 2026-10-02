@@ -2,6 +2,8 @@
 
 ## Entornos
 
+Actualización 01/10/2026: la entrega vigente es una demo local. E-SAPIENS no tiene presupuesto económico asignado y su infraestructura aún no está inventariada. El diagrama AWS de este documento es una alternativa histórica del blueprint, no una contratación ni una selección para la primera entrega. No se ha desplegado a producción. Ver [roadmap vigente](08-roadmap.md) y [guion de reunión](11-demo-2026-10-05.md).
+
 - local
 - test/CI
 - staging

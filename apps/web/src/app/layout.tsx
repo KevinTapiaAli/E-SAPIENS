@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteHeader } from "@/shared/ui/site-header";
+import { SiteFooter } from "@/shared/ui/site-footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,13 +28,29 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html
+      lang="es"
+      data-scroll-behavior="smooth"
+      data-theme="light"
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{document.documentElement.dataset.theme=localStorage.getItem('esapiens-theme')==='dark'?'dark':'light'}catch{}`,
+          }}
+        />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} bg-zinc-950 text-white antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased`}
       >
+        <a href="#main-content" className="skip-link">
+          Saltar al contenido
+        </a>
         <SiteHeader />
 
         {children}
+        <SiteFooter />
       </body>
     </html>
   );
