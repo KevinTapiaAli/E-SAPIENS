@@ -30,7 +30,7 @@ export class HealthController {
   async readiness() {
     const [databaseResult, redisResult] = await Promise.allSettled([
       this.databaseService.ping(),
-      this.redisService.ping(),
+      this.redisService.readiness(),
     ]);
 
     const databaseUp = databaseResult.status === 'fulfilled';

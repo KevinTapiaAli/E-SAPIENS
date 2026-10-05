@@ -1,0 +1,2994 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Informe E-SAPIENS</title>
+    <style>
+      @page {
+        size: letter;
+        margin: 1in;
+      }
+      body {
+        font-family: "Times New Roman";
+        font-size: 12pt;
+        line-height: 2;
+        color: #000;
+      }
+      p {
+        margin: 0;
+        text-indent: 0.5in;
+        line-height: 2;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: "Times New Roman";
+        font-size: 12pt;
+        line-height: 2;
+        margin: 0;
+        page-break-after: avoid;
+      }
+      h1 {
+        font-weight: bold;
+        text-align: center;
+        page-break-before: always;
+      }
+      h2 {
+        font-weight: bold;
+        text-align: left;
+      }
+      h3 {
+        font-weight: bold;
+        font-style: italic;
+        text-align: left;
+      }
+      .indextitle {
+        font-weight: bold;
+        text-align: center;
+        text-indent: 0;
+        page-break-before: always;
+      }
+      .cover {
+        text-align: center;
+      }
+      .cover p {
+        text-align: center;
+        text-indent: 0;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 10.5pt;
+        line-height: 1.15;
+        border-top: 1px solid black;
+        border-bottom: 1px solid black;
+        margin-bottom: 6pt;
+      }
+      th {
+        border-bottom: 1px solid black;
+        text-align: left;
+        font-weight: bold;
+        padding: 5pt;
+      }
+      td {
+        vertical-align: top;
+        padding: 5pt;
+        word-break: normal;
+      }
+      tr {
+        page-break-inside: avoid;
+      }
+      td p,
+      th p {
+        line-height: 1.15;
+        text-indent: 0;
+      }
+      .caption {
+        text-indent: 0;
+        page-break-after: avoid;
+        margin-top: 12pt;
+      }
+      .tabletitle {
+        text-indent: 0;
+        page-break-after: avoid;
+      }
+      .note {
+        text-indent: 0;
+        font-size: 10.5pt;
+        line-height: 1.5;
+        margin-bottom: 12pt;
+      }
+      .figure {
+        text-indent: 0;
+        text-align: center;
+        line-height: 1;
+        page-break-inside: avoid;
+      }
+      img {
+        max-width: 100%;
+      }
+      .reference {
+        padding-left: 0.5in;
+        text-indent: -0.5in;
+        overflow-wrap: anywhere;
+      }
+      pre {
+        font-family: Consolas;
+        font-size: 9pt;
+        white-space: pre-wrap;
+        line-height: 1.2;
+        margin: 12pt 0;
+      }
+      a {
+        color: #000;
+        text-decoration: underline;
+      }
+      ol {
+        line-height: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cover">
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <p>
+        <b
+          >E-SAPIENS: análisis, arquitectura e implementación inicial de una
+          plataforma web de aprendizaje</b
+        >
+      </p>
+      <p>&nbsp;</p>
+      <p>Kevin Tapia Ali</p>
+      <p>Ingeniería de Sistemas, Universidad Católica Boliviana</p>
+      <p>Tecnologías Web II</p>
+      <p>Ing. Pacheco</p>
+      <p>3 de octubre de 2026</p>
+    </div>
+    <p class="indextitle">Índice</p>
+    <p>
+      Resumen<br />Introducción y método de revisión<br />1. Objetivo general<br />1.1.
+      Objetivos de rendimiento y escalabilidad<br />2. Alcance del proyecto<br />2.1.
+      Módulos funcionales incluidos<br />2.2. Exclusiones del alcance<br />2.3.
+      Viabilidad para un único desarrollador<br />3. Definición del dominio del
+      proyecto<br />3.1. Lenguaje ubicuo<br />3.2. Contextos delimitados<br />3.3.
+      Análisis de agregados<br />4. Arquitectura general<br />4.1. Diagrama
+      conceptual de arquitectura<br />4.2. Decisiones de diseño críticas<br />5.
+      Seguridad del sistema<br />5.1. Autenticación y gestión de sesiones<br />5.2.
+      Control de acceso basado en roles<br />5.3. Seguridad del contenido y
+      acceso a activos<br />5.4. Prevención de ataques comunes<br />6. Base de
+      datos<br />6.1. Esquema entidad–relación detallado<br />6.2. Estrategias
+      de optimización y migración<br />7. Implementación del núcleo de la API<br />7.1.
+      Server Actions y responsabilidad del backend<br />7.2. Servicio de carga:
+      análisis de la API REST auxiliar<br />7.3. Servicio de correo: API REST de
+      notificaciones<br />7.4. Pruebas, integración continua y evidencia<br />7.5.
+      Configuración y ejecución reproducible<br />8. Conclusiones y hoja de ruta
+      técnica<br />8.1. Conclusiones<br />8.2. Hoja de ruta priorizada<br />8.3.
+      Riesgos, dependencias y decisiones de la reunión<br />Referencias<br />Apéndice
+      A. Correspondencia con el índice proporcionado<br />Apéndice B. Inventario
+      del esquema relacional<br />Apéndice C. Guion de demostración y evidencias
+    </p>
+    <h1 id="section-1">Resumen</h1>
+    <p>
+      E-SAPIENS es un proyecto de plataforma web de aprendizaje orientado a
+      centralizar cursos, temarios y recursos bibliográficos, con una evolución
+      prevista hacia la gestión de usuarios, el aula virtual y los procesos
+      académicos y comerciales. Este informe analiza su primera entrega
+      funcional mediante la revisión del código fuente, el esquema relacional,
+      la documentación técnica, las pruebas y la integración continua. La
+      solución utiliza Next.js para la presentación, NestJS como API central,
+      PostgreSQL para persistencia, Redis para comprobación de disponibilidad y
+      un monorepositorio coordinado con pnpm y Turborepo. Al corte del 3 de
+      octubre de 2026, se encuentran implementados el catálogo público, los
+      detalles de cursos, la biblioteca, la búsqueda, la paginación y una
+      interfaz adaptable con temas claro y oscuro. La versión se publicó en
+      GitHub y superó las verificaciones automatizadas; las pruebas locales
+      registran dos casos unitarios y diecisiete de integración. El esquema
+      contiene 74 tablas y 26 funciones, aunque varios dominios todavía no
+      tienen casos de uso expuestos por la API. La principal conclusión es que
+      existe una base ejecutable y reproducible para continuar el desarrollo
+      individual, pero la operación empresarial requiere completar
+      autenticación, autorización, aula, seguridad operativa y validación de
+      carga. El informe propone prioridades y criterios de aceptación acordes
+      con la ausencia de presupuesto asignado y la infraestructura aún no
+      confirmada.
+    </p>
+    <p>
+      Palabras clave: plataforma educativa, LMS, monolito modular, Next.js,
+      NestJS, PostgreSQL.
+    </p>
+    <h1 id="section-2">Introducción y método de revisión</h1>
+    <p>
+      El proyecto responde a la necesidad de organizar la oferta formativa y los
+      materiales de E-SAPIENS mediante una aplicación web comprensible para
+      visitantes, estudiantes y personal académico. Su desarrollo también
+      permite demostrar competencias de Tecnologías Web II: comunicación
+      frontend–backend, diseño de API, persistencia relacional, validación,
+      pruebas y gestión del código fuente. Se distinguen dos interlocutores: el
+      Ing. Pacheco, en el ámbito académico, y el Ing. Pablo Rivero, como
+      interlocutor de los requisitos y de la presentación del avance.
+    </p>
+    <p>
+      Se utilizó una revisión técnica documental del repositorio
+      KevinTapiaAli/E-SAPIENS, complementada con la consulta de documentación
+      oficial y la evidencia de verificaciones realizadas. El corte de esta
+      edición es el 3 de octubre de 2026, en la zona horaria America/La_Paz. La
+      versión analizada corresponde al commit
+      cefb5a6423d8178e9e371a09ffb3a8b381150cd7 de develop. El pull request
+      número 1 se integró el 2 de octubre y la ejecución posterior de GitHub
+      Actions finalizó correctamente. Estos resultados respaldan la
+      reproducibilidad del avance, sin constituir una prueba de aceptación
+      empresarial o un estudio de capacidad (KevinTapiaAli, 2026a, 2026b).
+    </p>
+    <p>
+      Las fotografías entregadas presentan un índice temático, sin ponderaciones
+      ni descriptores de calificación visibles. Por ello, se conserva su
+      secuencia de ocho capítulos y se añade una matriz de correspondencia en el
+      apéndice A. Los nombres Server Actions, microservicio de carga y
+      microservicio de correo se analizan como criterios de comparación; no se
+      atribuyen al sistema componentes que todavía no existen. No se dispone de
+      evidencia para calcular una nota ni un porcentaje global de finalización.
+    </p>
+    <p>
+      En este documento, implementado significa que existe código ejecutable
+      asociado al flujo; definido en el esquema significa que existen tablas o
+      funciones SQL, pero no necesariamente una interfaz de aplicación; y
+      propuesto significa que la capacidad está documentada para una entrega
+      posterior. Se emplean citas autor–fecha, referencias y presentación de
+      tablas y figuras conforme a APA 7. Los capítulos numerados y el índice se
+      conservan para facilitar la correspondencia con la guía académica (Purdue
+      Online Writing Lab, s. f.-a, s. f.-b).
+    </p>
+    <h1 id="section-3">1. Objetivo general</h1>
+    <p>
+      Desarrollar progresivamente una plataforma web de aprendizaje para
+      E-SAPIENS que centralice la oferta de cursos y recursos bibliográficos, y
+      que evolucione hacia la administración segura del acceso académico, el
+      seguimiento del aprendizaje y la operación institucional, mediante una
+      arquitectura modular, pruebas verificables y documentación mantenible por
+      un único desarrollador.
+    </p>
+    <p>
+      Para la entrega actual, el objetivo verificable es ofrecer una experiencia
+      pública completa de exploración: acceder al catálogo, buscar cursos,
+      consultar un temario publicado y revisar fichas bibliográficas. La
+      aceptación de este alcance exige que la aplicación lea información de
+      PostgreSQL a través de NestJS y no exponga contenido privado, borradores
+      ni credenciales.
+    </p>
+    <h2 id="section-4">1.1. Objetivos de rendimiento y escalabilidad</h2>
+    <p>
+      La escalabilidad se plantea como una capacidad que debe medirse y
+      mejorarse de manera incremental. Todavía no se conoce la cantidad de
+      estudiantes simultáneos, el volumen final del catálogo, el hardware
+      disponible ni la demanda de video. Por tanto, no se afirma que el sistema
+      soporte una cifra determinada de usuarios. La tabla 1 separa las
+      decisiones implementadas de los objetivos propuestos para una evaluación
+      posterior.
+    </p>
+    <p class="caption"><b>Tabla 1</b></p>
+    <p class="tabletitle">
+      <i>Objetivos técnicos y criterios de evaluación</i>
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Dimensión</th>
+          <th>Base actual</th>
+          <th>Criterio posterior propuesto</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Respuesta de catálogo</td>
+          <td>
+            Listas de 12 elementos por defecto y máximo de 24; cursor UUID.
+          </td>
+          <td>
+            Medir latencia p50/p95/p99 con datos representativos; acordar
+            umbrales con la organización.
+          </td>
+        </tr>
+        <tr>
+          <td>Uso de PostgreSQL</td>
+          <td>Pool de hasta 10 conexiones por proceso de API.</td>
+          <td>
+            Dimensionar el total de conexiones según réplicas y capacidad real
+            de la base.
+          </td>
+        </tr>
+        <tr>
+          <td>Control de espera</td>
+          <td>
+            Conexión SQL: 3 s; sentencia: 5 s; consulta cliente: 6 s; petición
+            web: 8 s.
+          </td>
+          <td>
+            Tratar estos valores como límites de espera, no como resultados de
+            rendimiento.
+          </td>
+        </tr>
+        <tr>
+          <td>Concurrencia</td>
+          <td>No existe prueba de carga documentada.</td>
+          <td>
+            Definir N usuarios simultáneos y verificar carga sostenida, picos y
+            recuperación.
+          </td>
+        </tr>
+        <tr>
+          <td>Disponibilidad</td>
+          <td>Endpoints de salud y readiness.</td>
+          <td>
+            Acordar horario de servicio, monitoreo, responsable e indicadores de
+            recuperación.
+          </td>
+        </tr>
+        <tr>
+          <td>Accesibilidad</td>
+          <td>Contraste de tokens, foco y revisión adaptable.</td>
+          <td>
+            Auditar flujos completos con teclado y tecnologías de asistencia
+            antes de afirmar conformidad.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      La política propuesta es optimizar primero consultas y recursos del
+      monolito modular. Solo si una medición identifica un límite independiente
+      se evaluará separar un servicio, agregar caché o aumentar réplicas. La
+      extracción de microservicios exige un registro de decisión arquitectónica
+      que cuantifique beneficio y costo operativo. Esta restricción reduce la
+      complejidad para el desarrollo individual.
+    </p>
+    <h1 id="section-5">2. Alcance del proyecto</h1>
+    <h2 id="section-6">2.1. Módulos funcionales incluidos</h2>
+    <p>
+      El alcance general comprende identidad, autoría de contenido, aprendizaje
+      y operación comercial. La entrega pública representa una parte de ese
+      producto. La tabla 2 permite distinguir la existencia de soporte
+      relacional de la disponibilidad de un flujo funcional para una persona
+      usuaria.
+    </p>
+    <p class="caption"><b>Tabla 2</b></p>
+    <p class="tabletitle">
+      <i>Alcance funcional y estado de implementación</i>
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Módulo</th>
+          <th>Responsabilidad</th>
+          <th>Estado al corte</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Identidad y acceso (IAM)</td>
+          <td>Registro, aprobación, sesiones, roles y recuperación.</td>
+          <td>
+            Tablas y políticas previstas; API y pantallas funcionales
+            pendientes.
+          </td>
+        </tr>
+        <tr>
+          <td>Autoría y cursos (CMS educativo)</td>
+          <td>
+            Clasificación, publicación, módulos, lecciones y revisión editorial.
+          </td>
+          <td>
+            Lectura pública implementada; edición y administración pendientes.
+          </td>
+        </tr>
+        <tr>
+          <td>Biblioteca</td>
+          <td>Fichas, autoría, referencias, temas y acceso a versiones.</td>
+          <td>
+            Consulta pública implementada; carga y descarga privada pendientes.
+          </td>
+        </tr>
+        <tr>
+          <td>Experiencia de aprendizaje (LXP)</td>
+          <td>Matrícula, vigencia, progreso y navegación del aula.</td>
+          <td>
+            Modelo relacional y funciones existentes; flujo web pendiente.
+          </td>
+        </tr>
+        <tr>
+          <td>Evaluación y docencia</td>
+          <td>Exámenes, tareas, entregas y retroalimentación.</td>
+          <td>
+            Soporte SQL existente; casos de uso y controles de aplicación
+            pendientes.
+          </td>
+        </tr>
+        <tr>
+          <td>Finanzas y ventas</td>
+          <td>Planes, órdenes, pagos, comprobantes y reembolsos.</td>
+          <td>
+            Esquema y funciones existentes; proveedor y API comercial
+            pendientes.
+          </td>
+        </tr>
+        <tr>
+          <td>Clases y certificados</td>
+          <td>Enlaces de sesión, asistencia, grabaciones y certificación.</td>
+          <td>
+            Definidos en el esquema; implementación de aplicación pendiente.
+          </td>
+        </tr>
+        <tr>
+          <td>Comunicación y recomendaciones</td>
+          <td>Notificaciones, correo, WhatsApp y sugerencias.</td>
+          <td>
+            Diseño y tablas existentes; servicios y evaluación pendientes.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      El módulo IAM debe permitir que una cuenta pase por un estado de
+      aprobación controlado por personal autorizado. El módulo CMS deberá
+      separar la creación de materiales de su aprobación y publicación. El
+      módulo LXP asociará el avance a una matrícula concreta y a derechos
+      vigentes. El módulo financiero deberá conceder acceso únicamente después
+      de una confirmación verificable. Estas responsabilidades están
+      consideradas en el diseño, pero no se simulan como capacidades terminadas
+      en la interfaz.
+    </p>
+    <p>
+      El catálogo implementado permite consultar únicamente cursos publicados y
+      sus índices autorizados. La biblioteca muestra exclusivamente fichas
+      publicadas y marcadas como públicas. El buscador trabaja sobre título y
+      descripción; la navegación por páginas conserva el filtro mediante
+      parámetros de URL. El sitio incluye estados vacíos, carga, error y recurso
+      inexistente, de modo que una falla de infraestructura no se confunda con
+      ausencia de contenido.
+    </p>
+    <h2 id="section-7">2.2. Exclusiones del alcance</h2>
+    <p>
+      La aplicación móvil independiente queda excluida hasta finalizar el
+      proyecto web. El diseño adaptable para teléfonos sí pertenece al alcance
+      de la web. Tampoco forman parte de la entrega actual una plataforma propia
+      de videoconferencia, una pasarela bancaria, un sistema DRM, una red
+      neuronal validada o una operación multiempresa. Los enlaces a proveedores
+      externos de clases son una alternativa futura que debe confirmarse con la
+      organización.
+    </p>
+    <p>
+      La demostración utiliza tres cursos y dos fichas ficticias identificadas
+      como tales. No representa un catálogo comercial aprobado ni incluye
+      cuentas utilizables para iniciar sesión. La publicación del código en
+      GitHub permite recuperar y continuar el trabajo; no equivale al despliegue
+      del sistema en Internet. No se ha confirmado un servidor de E-SAPIENS ni
+      una disponibilidad permanente de sus computadoras.
+    </p>
+    <h2 id="section-8">2.3. Viabilidad para un único desarrollador</h2>
+    <p>
+      El presupuesto económico asignado es nulo según la información del
+      propietario. La viabilidad inmediata se sustenta en reutilizar el equipo
+      disponible, ejecutar la demostración localmente y evitar contratos de
+      infraestructura antes de conocer la demanda. Esto no demuestra que la
+      operación futura sea gratuita: deben considerarse conectividad, energía,
+      mantenimiento, almacenamiento, copias de seguridad y tiempo de soporte. La
+      rentabilidad no puede calcularse sin ingresos, gastos y uso esperado.
+    </p>
+    <p>
+      Para reducir riesgos se propone entregar casos de uso completos, conservar
+      un repositorio único y registrar las decisiones relevantes. La
+      documentación de instalación permite continuar en otra computadora sin
+      depender de archivos locales desconocidos. El costo operativo deberá
+      estimarse mediante un inventario real y un presupuesto de operación, antes
+      de comprometer niveles de servicio.
+    </p>
+    <h1 id="section-9">3. Definición del dominio del proyecto</h1>
+    <h2 id="section-10">3.1. Lenguaje ubicuo</h2>
+    <p>
+      El lenguaje compartido evita que los mismos conceptos cambien de
+      significado entre las reuniones, la interfaz y el esquema SQL. La tabla 3
+      normaliza los términos centrales y aclara diferencias que afectan las
+      reglas de negocio.
+    </p>
+    <p class="caption"><b>Tabla 3</b></p>
+    <p class="tabletitle"><i>Vocabulario del dominio E-SAPIENS</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Término</th>
+          <th>Definición operativa</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Curso</td>
+          <td>
+            Edición de una oferta académica, con objetivos, categoría, estado y
+            temario.
+          </td>
+        </tr>
+        <tr>
+          <td>Módulo</td>
+          <td>
+            Agrupación ordenada de lecciones dentro de un curso; puede tener
+            reglas de acceso.
+          </td>
+        </tr>
+        <tr>
+          <td>Lección</td>
+          <td>
+            Unidad de contenido y de seguimiento: video, lectura, actividad o
+            enlace.
+          </td>
+        </tr>
+        <tr>
+          <td>Ficha bibliográfica</td>
+          <td>
+            Descripción pública o restringida de una obra; no equivale al
+            archivo de la obra.
+          </td>
+        </tr>
+        <tr>
+          <td>Inscripción</td>
+          <td>
+            Relación entre estudiante y curso; su existencia no garantiza acceso
+            vigente.
+          </td>
+        </tr>
+        <tr>
+          <td>Acceso a módulo</td>
+          <td>
+            Concesión temporal, procedente de compra o autorización, sujeta a
+            revocación.
+          </td>
+        </tr>
+        <tr>
+          <td>Progreso</td>
+          <td>
+            Registro de avance por inscripción y lección, dentro del mismo
+            curso.
+          </td>
+        </tr>
+        <tr>
+          <td>Plan</td>
+          <td>Definición de cobertura y condiciones comerciales de acceso.</td>
+        </tr>
+        <tr>
+          <td>Orden y pago</td>
+          <td>
+            La orden expresa la intención y condiciones de compra; el pago
+            registra su confirmación o fallo.
+          </td>
+        </tr>
+        <tr>
+          <td>Publicación</td>
+          <td>
+            Estado que habilita exposición pública según las reglas aplicadas
+            por la API.
+          </td>
+        </tr>
+        <tr>
+          <td>Certificado</td>
+          <td>
+            Resultado verificable sujeto a requisitos académicos y autorización
+            de emisión.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <h2 id="section-11">3.2. Contextos delimitados</h2>
+    <p>
+      La organización por dominios limita el acoplamiento. El contexto de
+      catálogo y contenido controla la descripción de cursos, módulos y
+      biblioteca. El contexto de aprendizaje y progreso deberá aplicar
+      matrícula, vigencia y cumplimiento académico. El contexto de identidad
+      administrará cuentas y sesiones. El contexto comercial o de facturación
+      administrará planes, órdenes y pagos; no implica que exista emisión fiscal
+      implementada.
+    </p>
+    <p class="caption"><b>Tabla 4</b></p>
+    <p class="tabletitle"><i>Contextos y dependencias permitidas</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Contexto</th>
+          <th>Datos principales</th>
+          <th>Relación prevista</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Catálogo y contenido</td>
+          <td>cursos, modulos, lecciones, biblioteca_items.</td>
+          <td>Proporciona estructura académica y proyecciones públicas.</td>
+        </tr>
+        <tr>
+          <td>Aprendizaje y progreso</td>
+          <td>inscripciones, accesos_modulo, progreso_lecciones.</td>
+          <td>Consulta reglas académicas y derechos vigentes.</td>
+        </tr>
+        <tr>
+          <td>Identidad y autorización</td>
+          <td>usuarios, sesiones, roles, permisos.</td>
+          <td>
+            Proporciona identidad, estado y permisos validados por el servidor.
+          </td>
+        </tr>
+        <tr>
+          <td>Comercio</td>
+          <td>planes_acceso, ordenes, pagos, reembolsos.</td>
+          <td>
+            Concede derechos mediante una operación transaccional autorizada.
+          </td>
+        </tr>
+        <tr>
+          <td>Comunicación</td>
+          <td>notificaciones, envios_notificacion.</td>
+          <td>Procesa avisos después de un evento de negocio válido.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      Actualmente solo los módulos health, catalog y library están registrados
+      como funcionalidades de la API. Los contextos restantes son límites de
+      diseño. No se han creado clases vacías para aparentar implementación. Al
+      incorporar escrituras, los servicios de aplicación deberán controlar la
+      coordinación entre dominios sin permitir que un controlador modifique
+      arbitrariamente los datos de otro módulo.
+    </p>
+    <h2 id="section-12">3.3. Análisis de agregados</h2>
+    <p>
+      Un agregado se entiende aquí como una propuesta de frontera para proteger
+      invariantes de negocio, no como una afirmación de que ya existen clases de
+      agregados en el código. La implementación actual realiza lecturas
+      parametrizadas. La tabla 5 identifica los grupos de consistencia que
+      deberán guiar las futuras operaciones.
+    </p>
+    <p class="caption"><b>Tabla 5</b></p>
+    <p class="tabletitle"><i>Agregados propuestos e invariantes</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Raíz propuesta</th>
+          <th>Elementos relacionados</th>
+          <th>Invariante principal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Curso / edición</td>
+          <td>Módulos, lecciones y reglas.</td>
+          <td>
+            Una lección y su módulo deben pertenecer al mismo curso; el orden
+            debe ser válido.
+          </td>
+        </tr>
+        <tr>
+          <td>Inscripción</td>
+          <td>Progreso y concesiones de acceso.</td>
+          <td>El progreso no puede vincular entidades de cursos diferentes.</td>
+        </tr>
+        <tr>
+          <td>Orden</td>
+          <td>Detalles y cobertura adquirida.</td>
+          <td>
+            Conservar las condiciones de compra y evitar modificaciones
+            incompatibles con un pago confirmado.
+          </td>
+        </tr>
+        <tr>
+          <td>Cuenta</td>
+          <td>Estado y asignaciones de permisos.</td>
+          <td>
+            La aprobación y elevación de privilegios requieren autoridad
+            administrativa.
+          </td>
+        </tr>
+        <tr>
+          <td>Ficha bibliográfica</td>
+          <td>Autoría, secciones y versiones.</td>
+          <td>
+            Publicar la ficha no convierte automáticamente sus archivos en
+            públicos.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      Las sesiones y los eventos de pago requieren ciclos de vida propios; no
+      deben cargarse como colecciones ilimitadas dentro de un objeto usuario u
+      orden. La confirmación de una compra y la concesión de acceso deben
+      resolverse en una transacción local, mientras que el envío de correo puede
+      ocurrir después mediante una entrega reintentable. La existencia de
+      funciones SQL heredadas exige revisar sus reglas junto con el cliente
+      antes de exponerlas por HTTP.
+    </p>
+    <h1 id="section-13">4. Arquitectura general</h1>
+    <h2 id="section-14">4.1. Diagrama conceptual de arquitectura</h2>
+    <p>
+      La solución vigente combina dos aplicaciones en un monorepositorio:
+      Next.js entrega la experiencia web y NestJS concentra la API de negocio.
+      PostgreSQL es la fuente de persistencia. Redis dispone de conexión y
+      verificación de disponibilidad, pero todavía no realiza caché de negocio
+      ni procesa colas. La figura 1 representa componentes que sí están
+      presentes; las futuras integraciones no se dibujan como servicios activos.
+    </p>
+    <p class="caption"><b>Figura 1</b></p>
+    <p class="tabletitle"><i>Arquitectura implementada de E-SAPIENS</i></p>
+    <p class="figure">
+      <img src="assets/arquitectura-actual.png" width="624" height="374" />
+    </p>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia basada en apps/web, apps/api y
+      docker-compose.dev.yml. HTTP corresponde al entorno local; el despliegue
+      productivo deberá usar HTTPS. Las flechas de contratos indican dependencia
+      de tipos, no tráfico de red.
+    </p>
+    <p>
+      El monorepositorio comparte contratos TypeScript entre aplicaciones y
+      centraliza la ejecución de tareas. Los módulos de NestJS agrupan
+      controladores y proveedores, lo que facilita organizar responsabilidades
+      de forma explícita (NestJS, s. f.). La arquitectura de E-SAPIENS utiliza
+      esa estructura para catálogo, biblioteca y salud, sin introducir
+      distribución de servicios que no esté justificada.
+    </p>
+    <p class="caption"><b>Tabla 6</b></p>
+    <p class="tabletitle"><i>Tecnologías y función dentro de la entrega</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Tecnología</th>
+          <th>Versión o referencia del proyecto</th>
+          <th>Uso real</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Node.js</td>
+          <td>24.21.0 (.node-version).</td>
+          <td>Entorno de ejecución y herramientas.</td>
+        </tr>
+        <tr>
+          <td>Next.js / React</td>
+          <td>16.3.5 / 19.2.8.</td>
+          <td>Rutas públicas, renderizado e interacciones.</td>
+        </tr>
+        <tr>
+          <td>NestJS</td>
+          <td>12.x; núcleo resuelto 12.0.2.</td>
+          <td>API REST modular y validación.</td>
+        </tr>
+        <tr>
+          <td>PostgreSQL</td>
+          <td>Imagen postgres:18.</td>
+          <td>Persistencia relacional con el esquema lms.</td>
+        </tr>
+        <tr>
+          <td>Redis</td>
+          <td>Imagen redis:7.4-alpine.</td>
+          <td>Conexión y readiness.</td>
+        </tr>
+        <tr>
+          <td>pnpm / Turborepo</td>
+          <td>10.34.5 / 2.10.13.</td>
+          <td>Workspaces, lockfile y tareas coordinadas.</td>
+        </tr>
+        <tr>
+          <td>TypeScript</td>
+          <td>Estricto; versiones por workspace.</td>
+          <td>Contratos y comprobación estática.</td>
+        </tr>
+        <tr>
+          <td>Tailwind CSS / Geist</td>
+          <td>Tailwind 4; fuentes mediante next/font.</td>
+          <td>Sistema visual y tipografía.</td>
+        </tr>
+        <tr>
+          <td>pg / Swagger / Jest</td>
+          <td>Dependencias fijadas por pnpm-lock.yaml.</td>
+          <td>Acceso SQL, documentación y pruebas.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      La versión de TypeScript no es uniforme en todos los paquetes: el lockfile
+      resuelve 5.9.3 para web, 6.0.2 para API y 7.0.2 en la raíz. El informe
+      registra esta situación sin convertirla en una migración no solicitada.
+      Antes de una actualización se debe comprobar compatibilidad con los
+      respectivos frameworks y preservar el lockfile. Las etiquetas Docker
+      usadas tampoco equivalen a imágenes inmovilizadas por digest.
+    </p>
+    <p>
+      La organización física actual comprende apps/web, apps/api, database, docs
+      y packages/contracts. apps/worker, packages/ui y packages/config son
+      reservas documentadas, no procesos operativos. Los componentes de interfaz
+      reutilizables viven por ahora en apps/web/src/shared/ui. El ADR 0004
+      explica por qué las consultas de lectura utilizan pg y SQL explícito sin
+      añadir un ORM ni capas vacías.
+    </p>
+    <h2 id="section-15">4.2. Decisiones de diseño críticas</h2>
+    <h3 id="section-16">4.2.1. Renderizado en servidor y en cliente</h3>
+    <p>
+      Las páginas públicas utilizan componentes de servidor para obtener la
+      información desde NestJS. Los componentes de cliente se limitan a
+      interacciones como el menú y el cambio de tema. En Next.js, ambas
+      modalidades permiten distribuir el trabajo según la necesidad de datos e
+      interacción (Vercel, s. f.). Esta elección conserva las credenciales de la
+      API y la base fuera del navegador y evita descargar lógica de negocio en
+      el cliente.
+    </p>
+    <p>
+      El build distingue portada y páginas estáticas de catálogos y detalles
+      dinámicos. Las peticiones de lectura pública usan cache: no-store; retirar
+      una publicación se refleja en la próxima consulta. Esta decisión favorece
+      coherencia editorial, pero incrementa el trabajo del backend respecto a
+      una caché persistente. Una política de caché futura debe definir
+      invalidación, visibilidad y tolerancia a información desactualizada.
+    </p>
+    <h3 id="section-17">4.2.2. Gestión de estado</h3>
+    <p>
+      El filtro y el cursor se conservan en la URL. La búsqueda usa formularios
+      GET, por lo que puede compartirse un enlace y recorrerse el historial del
+      navegador. El estado del menú pertenece al componente de cabecera. La
+      preferencia visual se guarda en localStorage y se sincroniza entre
+      pestañas; ese almacenamiento no contiene credenciales. No se incorporó una
+      biblioteca global de estado ni TanStack Query porque las lecturas actuales
+      no requieren esa complejidad.
+    </p>
+    <h3 id="section-18">4.2.3. Estilos, interfaz y accesibilidad</h3>
+    <p>
+      El sistema visual adopta fondo claro, superficies blancas, tipografía azul
+      marino y violeta para acciones. El tema oscuro conserva la misma
+      jerarquía. Las decisiones se centralizan en tokens semánticos de CSS para
+      evitar colores divergentes por página. Se utilizan etiquetas visibles,
+      controles amplios, estados descriptivos y enlaces de navegación
+      comprensibles. La figura 2 muestra la portada de la entrega comprobada.
+    </p>
+    <p class="caption"><b>Figura 2</b></p>
+    <p class="tabletitle">
+      <i>Portada pública con el sistema visual institucional</i>
+    </p>
+    <p class="figure">
+      <img src="assets/inicio-claro.png" width="496" height="580" />
+    </p>
+    <p class="note">
+      <i>Nota.</i> Captura local del 2 de octubre de 2026. La ilustración y los
+      textos pertenecen a la interfaz implementada; los avisos identifican el
+      aula como pendiente.
+    </p>
+    <p>
+      La revisión registrada comprobó anchos de 320, 390, 768 y 1440 píxeles,
+      navegación por teclado, cierre del menú con Escape y salto al contenido
+      principal. El tema respeta movimiento reducido. Los tokens medidos
+      alcanzan 14,61:1 para texto principal sobre blanco y 6,31:1 para texto
+      secundario. La referencia WCAG establece 4,5:1 para texto normal, con
+      excepciones específicas (World Wide Web Consortium, s. f.). Las mediciones
+      de tokens y la inspección visual no certifican conformidad completa del
+      producto.
+    </p>
+    <h3 id="section-19">4.2.4. Escalabilidad y costo de mantenimiento</h3>
+    <p>
+      El monolito modular mantiene reglas y transacciones en un backend central.
+      Esto reduce la cantidad de despliegues y las fallas de comunicación
+      distribuidas que debe gestionar una sola persona. La separación web/API
+      permite evolucionar sus recursos de forma independiente, pero cada réplica
+      adicional de API multiplicaría las conexiones a PostgreSQL; ese efecto
+      debe presupuestarse. Redis y un worker podrán incorporarse a tareas
+      reintentables cuando existan casos reales, sin cambiar la autoridad de
+      negocio.
+    </p>
+    <h1 id="section-20">5. Seguridad del sistema</h1>
+    <p>
+      La seguridad se documenta como controles comprobados y trabajo pendiente.
+      El alcance público reduce la cantidad de operaciones mutables expuestas,
+      pero no garantiza por sí mismo una aplicación lista para producción. El
+      objetivo es minimizar exposición de datos y preparar pruebas negativas
+      antes de incorporar cuentas, pagos o archivos.
+    </p>
+    <h2 id="section-21">5.1. Autenticación y gestión de sesiones</h2>
+    <p>
+      No existe actualmente un flujo funcional de registro o login. La ruta
+      /login comunica ese estado. Las tablas usuarios, sesiones y tokens_cuenta
+      proporcionan soporte relacional para aprobación, revocación y
+      recuperación, pero deben conectarse con servicios, políticas y pruebas. La
+      cuenta técnica del seed está suspendida y no contiene un hash utilizable
+      como contraseña de demostración.
+    </p>
+    <p>
+      La propuesta para la web es una sesión revocable con cookies HttpOnly,
+      Secure y una política SameSite adecuada, acompañada de protección CSRF
+      donde corresponda. La recuperación requiere tokens de un solo uso,
+      persistidos como digest y con vencimiento. Se prevé Argon2id para nuevas
+      contraseñas y compatibilidad evaluada con datos heredados; OWASP
+      recomienda funciones adaptativas de hashing y contempla Argon2id para este
+      propósito (OWASP Foundation, s. f.-b). Esta recomendación no equivale a un
+      login ya implementado.
+    </p>
+    <h2 id="section-22">5.2. Control de acceso basado en roles</h2>
+    <p>
+      El esquema incorpora roles, permisos, rol_permisos y usuario_roles. La
+      tabla 7 presenta la matriz de actores propuesta. La autorización futura
+      debe combinar permiso, estado de cuenta, propiedad o asignación del
+      recurso, inscripción y vigencia. Una condición aislada de rol no permite
+      resolver el acceso académico. La política propuesta es denegar por defecto
+      y verificar cada operación en el servidor, de acuerdo con la orientación
+      de OWASP sobre autorización (OWASP Foundation, s. f.-a).
+    </p>
+    <p class="caption"><b>Tabla 7</b></p>
+    <p class="tabletitle"><i>Matriz propuesta de autorización por actor</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Actor</th>
+          <th>Acceso esperado</th>
+          <th>Estado actual</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Visitante</td>
+          <td>Consultar cursos, temarios y fichas públicas.</td>
+          <td>Implementado mediante filtros de publicación.</td>
+        </tr>
+        <tr>
+          <td>Estudiante aprobado</td>
+          <td>Acceder a cursos autorizados y registrar su propio progreso.</td>
+          <td>Pendiente de identidad, matrícula y políticas.</td>
+        </tr>
+        <tr>
+          <td>Docente asignado</td>
+          <td>
+            Gestionar contenido y revisar actividades de cursos asignados.
+          </td>
+          <td>Pendiente de API administrativa y autorización.</td>
+        </tr>
+        <tr>
+          <td>Administrador</td>
+          <td>Aprobar cuentas y gestionar la operación según permisos.</td>
+          <td>
+            Pendiente; no existen credenciales públicas de administración.
+          </td>
+        </tr>
+        <tr>
+          <td>Administrador general</td>
+          <td>Asignar privilegios y configurar políticas institucionales.</td>
+          <td>Pendiente de inicialización segura y auditoría.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <h2 id="section-23">5.3. Seguridad del contenido y acceso a activos</h2>
+    <p>
+      Una ficha pública no permite descargar sus versiones. La API actual
+      selecciona campos bibliográficos e índices del temario; excluye contenido
+      de lecciones, claves de objetos, archivos, enlaces de clase y grabaciones.
+      Un recurso inexistente y uno no publicable devuelven el mismo tipo de
+      respuesta 404, evitando confirmar datos restringidos mediante el detalle
+      público.
+    </p>
+    <p>
+      Para los materiales privados se propone autorización previa en NestJS y
+      acceso temporal desde almacenamiento privado. S3 y CloudFront figuran como
+      opción del diseño original, no como infraestructura contratada. Antes de
+      elegir proveedor se deben confirmar volumen, retención y costos. Las URL
+      firmadas no deberían persistirse como enlaces permanentes. No se promete
+      impedir por completo la copia o captura de pantalla de contenido que una
+      persona puede visualizar.
+    </p>
+    <h2 id="section-24">5.4. Prevención de ataques comunes</h2>
+    <p class="caption"><b>Tabla 8</b></p>
+    <p class="tabletitle">
+      <i>Controles comprobados y brechas de seguridad</i>
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Riesgo</th>
+          <th>Control existente</th>
+          <th>Trabajo pendiente</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Inyección SQL</td>
+          <td>
+            Consultas con parámetros $1, $2 y $3; selección de campos
+            explícitos.
+          </td>
+          <td>
+            Mantener el patrón en escrituras y revisar consultas dinámicas
+            futuras.
+          </td>
+        </tr>
+        <tr>
+          <td>Exposición de datos</td>
+          <td>
+            Filtro de publicación y exclusión de campos privados; pruebas
+            negativas.
+          </td>
+          <td>Autorización por recurso cuando se incorporen rutas privadas.</td>
+        </tr>
+        <tr>
+          <td>Entradas inválidas</td>
+          <td>
+            DTO y ValidationPipe con whitelist y rechazo de parámetros extra.
+          </td>
+          <td>Validaciones específicas de cada nuevo caso de uso.</td>
+        </tr>
+        <tr>
+          <td>Errores y trazabilidad</td>
+          <td>
+            Códigos estables, request ID y ocultamiento del error interno al
+            cliente.
+          </td>
+          <td>Revisar logs completos, retención y datos personales.</td>
+        </tr>
+        <tr>
+          <td>Robo de sesión / CSRF</td>
+          <td>No existe sesión activa que proteger todavía.</td>
+          <td>Cookies seguras, revocación, CSRF y pruebas de autenticación.</td>
+        </tr>
+        <tr>
+          <td>Abuso y denegación de servicio</td>
+          <td>Paginación y límites de espera.</td>
+          <td>Rate limiting, límites de carga y pruebas de abuso.</td>
+        </tr>
+        <tr>
+          <td>Configuración web</td>
+          <td>Secretos fuera de Git y comunicación servidor a servidor.</td>
+          <td>HTTPS, cabeceras de seguridad, CSP y CORS cuando aplique.</td>
+        </tr>
+        <tr>
+          <td>Dependencias / credenciales</td>
+          <td>Lockfile, revisión previa a publicación y rama protegida.</td>
+          <td>
+            Automatizar auditoría de dependencias, SAST y detección de secretos
+            en CI.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      La tabla 8 sintetiza los controles y sus brechas. El logger oculta
+      cabeceras de autorización y cookies, pero la política de registros debe
+      ampliarse al introducir datos personales. Las credenciales de ejemplo de
+      Docker son exclusivas del entorno local. La cuenta de base usada por la
+      demo no demuestra cumplimiento de mínimo privilegio en producción. Las
+      funciones financieras y de acceso presentes en SQL también requieren
+      revisión de permisos de ejecución antes de utilizarse desde un backend
+      productivo.
+    </p>
+    <h1 id="section-25">6. Base de datos</h1>
+    <p>
+      PostgreSQL mantiene el esquema lms, con 74 tablas y 26 funciones en la
+      base local verificada el 2 de octubre. La migración inicial utiliza UUID,
+      citext, timestamptz, claves foráneas, restricciones y dominios numéricos.
+      El dominio dinero es numeric(14,2) no negativo y nota_100 restringe
+      valores entre 0 y 100. El almacenamiento monetario evita tipos de punto
+      flotante. La comprobación en CI volvió a instalar correctamente el esquema
+      sobre una base vacía.
+    </p>
+    <h2 id="section-26">6.1. Esquema entidad–relación detallado</h2>
+    <p>
+      La figura 3 resume las relaciones académicas y su conexión con acceso y
+      compra. La notación 1:N expresa una relación uno a muchos. Para conservar
+      legibilidad se agrupan orden y detalles, y se omiten relaciones
+      secundarias como autoría editorial y auditoría. El apéndice B inventaría
+      las 74 tablas. La definición íntegra de columnas y restricciones permanece
+      versionada en database/migrations/0001_initial_schema.sql.
+    </p>
+    <p class="caption"><b>Figura 3</b></p>
+    <p class="tabletitle">
+      <i>Relaciones principales del modelo académico y de acceso</i>
+    </p>
+    <p class="figure">
+      <img src="assets/modelo-relacional.png" width="570" height="467" />
+    </p>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir de la migración inicial. Las
+      entidades de matrícula, progreso y compra existen en SQL, pero sus flujos
+      de aplicación están pendientes. Las relaciones de compra incluyen tablas
+      intermedias, detalladas en el texto.
+    </p>
+    <p>
+      Las claves compuestas evitan mezclar entidades de diferentes cursos. Por
+      ejemplo, lecciones referencia el par (modulo_id, curso_id), y
+      progreso_lecciones enlaza inscripción y lección con un mismo curso. Las
+      restricciones declarativas ayudan a preservar integridad incluso ante
+      errores de la aplicación, aunque no sustituyen la autorización del usuario
+      (PostgreSQL Global Development Group, s. f.-a). Las tablas 9 a 16
+      presentan los siguientes diccionarios, que agrupan campos para su lectura;
+      todos los nombres corresponden a la migración real.
+    </p>
+    <h3 id="section-27">6.1.1. User: tabla usuarios</h3>
+    <p class="caption"><b>Tabla 9</b></p>
+    <p class="tabletitle"><i>Diccionario resumido de usuarios</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Campos</th>
+          <th>Tipo y condición</th>
+          <th>Propósito</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>id</td>
+          <td>uuid, clave primaria, generación por defecto.</td>
+          <td>Identificador interno.</td>
+        </tr>
+        <tr>
+          <td>email; username</td>
+          <td>citext, obligatorios y únicos; email con validación básica.</td>
+          <td>Identificación sin distinción de mayúsculas.</td>
+        </tr>
+        <tr>
+          <td>nombres; apellidos; telefono</td>
+          <td>text; teléfono opcional.</td>
+          <td>Datos personales.</td>
+        </tr>
+        <tr>
+          <td>password_hash</td>
+          <td>text obligatorio; longitud mínima de 50 caracteres.</td>
+          <td>Persistencia del hash; la restricción no valida el algoritmo.</td>
+        </tr>
+        <tr>
+          <td>estado</td>
+          <td>pendiente, aprobado, rechazado o suspendido.</td>
+          <td>Estado administrativo de la cuenta.</td>
+        </tr>
+        <tr>
+          <td>aprobado_por; aprobado_en</td>
+          <td>FK opcional a usuarios; timestamptz.</td>
+          <td>Responsable y fecha; una cuenta aprobada requiere fecha.</td>
+        </tr>
+        <tr>
+          <td>email_verificado_en; ultimo_acceso_en; motivo_estado</td>
+          <td>Instantes opcionales y texto.</td>
+          <td>Verificación y seguimiento.</td>
+        </tr>
+        <tr>
+          <td>zona_horaria; created_at; updated_at</td>
+          <td>text; timestamptz.</td>
+          <td>
+            Presentación temporal y trazabilidad; zona inicial America/La_Paz.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <h3 id="section-28">6.1.2. Course: tabla cursos</h3>
+    <p class="caption"><b>Tabla 10</b></p>
+    <p class="tabletitle"><i>Diccionario resumido de cursos</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Campos</th>
+          <th>Tipo y condición</th>
+          <th>Propósito</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>id; categoria_id</td>
+          <td>UUID; PK y FK obligatoria a categorias_curso.</td>
+          <td>Identidad y clasificación.</td>
+        </tr>
+        <tr>
+          <td>titulo; slug; descripcion; objetivos; nivel</td>
+          <td>text obligatorio; slug único.</td>
+          <td>Información académica.</td>
+        </tr>
+        <tr>
+          <td>version; edicion_anterior_id</td>
+          <td>integer positivo; FK opcional a cursos.</td>
+          <td>Evolución por edición.</td>
+        </tr>
+        <tr>
+          <td>idioma; portada_url</td>
+          <td>text; idioma predeterminado es; portada opcional.</td>
+          <td>Presentación.</td>
+        </tr>
+        <tr>
+          <td>duracion_horas</td>
+          <td>numeric(7,2), mayor que cero.</td>
+          <td>Duración estimada.</td>
+        </tr>
+        <tr>
+          <td>estado</td>
+          <td>borrador, revision, publicado o archivado.</td>
+          <td>Ciclo editorial.</td>
+        </tr>
+        <tr>
+          <td>creado_por; aprobado_por; aprobado_en</td>
+          <td>
+            FK a usuarios y timestamptz; publicación exige aprobador y fecha.
+          </td>
+          <td>Responsabilidad editorial.</td>
+        </tr>
+        <tr>
+          <td>created_at; updated_at</td>
+          <td>timestamptz.</td>
+          <td>Trazabilidad de registro.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <h3 id="section-29">6.1.3. Category: tabla categorias_curso</h3>
+    <p class="caption"><b>Tabla 11</b></p>
+    <p class="tabletitle"><i>Diccionario resumido de categorias_curso</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Campo</th>
+          <th>Restricción</th>
+          <th>Uso</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>id</td>
+          <td>uuid, PK.</td>
+          <td>Identificador.</td>
+        </tr>
+        <tr>
+          <td>nombre</td>
+          <td>text obligatorio.</td>
+          <td>Nombre visible de categoría.</td>
+        </tr>
+        <tr>
+          <td>slug</td>
+          <td>text obligatorio y único.</td>
+          <td>Referencia textual estable.</td>
+        </tr>
+        <tr>
+          <td>created_at; updated_at</td>
+          <td>timestamptz con valor inicial now().</td>
+          <td>Fechas de registro y modificación.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <h3 id="section-30">6.1.4. Attachment: archivos y recursos_leccion</h3>
+    <p class="caption"><b>Tabla 12</b></p>
+    <p class="tabletitle"><i>Equivalencia del adjunto en el esquema real</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Campos / relación</th>
+          <th>Definición</th>
+          <th>Implicación</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>archivos.id; propietario_id</td>
+          <td>PK y FK obligatoria a usuarios.</td>
+          <td>Cada objeto tiene responsable.</td>
+        </tr>
+        <tr>
+          <td>nombre; proveedor; clave_objeto</td>
+          <td>
+            text; proveedor enumerado por CHECK; par proveedor/clave único.
+          </td>
+          <td>Referencia al almacenamiento, no al binario en PostgreSQL.</td>
+        </tr>
+        <tr>
+          <td>mime_type; tamano_bytes; sha256</td>
+          <td>Tipo, tamaño no negativo opcional y hash opcional.</td>
+          <td>Metadatos para validación e integridad.</td>
+        </tr>
+        <tr>
+          <td>privado; escaneo</td>
+          <td>Privado por defecto; escaneo pendiente, limpio o rechazado.</td>
+          <td>Estado previsto para publicación segura.</td>
+        </tr>
+        <tr>
+          <td>recursos_leccion</td>
+          <td>Relaciona lecciones y archivos con metadatos de recurso.</td>
+          <td>La asociación no implica autorización de descarga.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      El índice proporcionado usa Attachment, pero no existe una tabla con ese
+      nombre en E-SAPIENS. El equivalente se distribuye entre archivos y
+      recursos_leccion, además de las relaciones específicas para biblioteca,
+      comprobantes y entregas. Los campos de escaneo no significan que exista un
+      antivirus integrado.
+    </p>
+    <h3 id="section-31">6.1.5. Chapter: tabla modulos</h3>
+    <p class="caption"><b>Tabla 13</b></p>
+    <p class="tabletitle"><i>Diccionario resumido de modulos</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Campos</th>
+          <th>Restricción</th>
+          <th>Uso</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>id; curso_id</td>
+          <td>PK UUID; FK obligatoria a cursos.</td>
+          <td>Pertenencia al curso.</td>
+        </tr>
+        <tr>
+          <td>titulo; descripcion</td>
+          <td>text obligatorio.</td>
+          <td>Descripción académica.</td>
+        </tr>
+        <tr>
+          <td>orden</td>
+          <td>integer positivo; único por curso.</td>
+          <td>Secuencia del temario.</td>
+        </tr>
+        <tr>
+          <td>publicado</td>
+          <td>boolean, false por defecto.</td>
+          <td>Visibilidad editorial.</td>
+        </tr>
+        <tr>
+          <td>(id, curso_id)</td>
+          <td>Restricción UNIQUE compuesta.</td>
+          <td>Destino de claves foráneas que preservan coherencia de curso.</td>
+        </tr>
+        <tr>
+          <td>created_at; updated_at</td>
+          <td>timestamptz.</td>
+          <td>Trazabilidad.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <h3 id="section-32">6.1.6. Lesson: tabla lecciones</h3>
+    <p class="caption"><b>Tabla 14</b></p>
+    <p class="tabletitle"><i>Diccionario resumido de lecciones</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Campos</th>
+          <th>Restricción</th>
+          <th>Uso</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>id; curso_id; modulo_id</td>
+          <td>UUID; PK y FK compuesta hacia módulo/curso.</td>
+          <td>Integridad académica.</td>
+        </tr>
+        <tr>
+          <td>titulo; tipo</td>
+          <td>text; tipo video, lectura, actividad o enlace.</td>
+          <td>Identificación y naturaleza.</td>
+        </tr>
+        <tr>
+          <td>contenido</td>
+          <td>text opcional.</td>
+          <td>Contenido excluido de la respuesta pública.</td>
+        </tr>
+        <tr>
+          <td>orden; obligatoria</td>
+          <td>Orden positivo y único por módulo; boolean.</td>
+          <td>Secuencia y requisito académico.</td>
+        </tr>
+        <tr>
+          <td>duracion_minutos; publicada</td>
+          <td>Entero no negativo; boolean false por defecto.</td>
+          <td>Duración y visibilidad.</td>
+        </tr>
+        <tr>
+          <td>(id, curso_id); fechas</td>
+          <td>UNIQUE compuesta; created_at y updated_at.</td>
+          <td>Referencia coherente desde progreso y trazabilidad.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <h3 id="section-33">6.1.7. UserProgress: progreso_lecciones</h3>
+    <p class="caption"><b>Tabla 15</b></p>
+    <p class="tabletitle"><i>Diccionario resumido de progreso_lecciones</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Campos</th>
+          <th>Restricción</th>
+          <th>Uso</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>id</td>
+          <td>uuid, PK.</td>
+          <td>Identificador de progreso.</td>
+        </tr>
+        <tr>
+          <td>inscripcion_id; curso_id</td>
+          <td>FK compuesta a inscripciones.</td>
+          <td>Asocia el avance a una matrícula real.</td>
+        </tr>
+        <tr>
+          <td>leccion_id; curso_id</td>
+          <td>FK compuesta a lecciones.</td>
+          <td>Impide registrar avance entre cursos diferentes.</td>
+        </tr>
+        <tr>
+          <td>segundos_vistos</td>
+          <td>integer no negativo, inicial 0.</td>
+          <td>Tiempo acumulado.</td>
+        </tr>
+        <tr>
+          <td>iniciado_en; completado_en</td>
+          <td>timestamptz; finalización no anterior al inicio.</td>
+          <td>Secuencia temporal.</td>
+        </tr>
+        <tr>
+          <td>(inscripcion_id, leccion_id)</td>
+          <td>UNIQUE.</td>
+          <td>Una fila por matrícula y lección.</td>
+        </tr>
+        <tr>
+          <td>created_at; updated_at</td>
+          <td>timestamptz.</td>
+          <td>Trazabilidad.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      La función registrar_progreso existe en el esquema, pero el frontend no
+      ofrece todavía un botón que registre avance. Antes de exponerla, el
+      backend deberá derivar la identidad de la sesión, comprobar propiedad de
+      la matrícula y validar acceso vigente. Un identificador enviado por el
+      cliente no será suficiente para autorizar la operación.
+    </p>
+    <h3 id="section-34">6.1.8. Purchase: órdenes, detalles y pagos</h3>
+    <p class="caption"><b>Tabla 16</b></p>
+    <p class="tabletitle">
+      <i>Correspondencia de Purchase con el modelo comercial</i>
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Tabla</th>
+          <th>Campos y restricciones relevantes</th>
+          <th>Responsabilidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ordenes</td>
+          <td>
+            usuario_id; numero generado; moneda BOB/USD; estado; vence_en.
+          </td>
+          <td>Cabecera de la intención de compra.</td>
+        </tr>
+        <tr>
+          <td>orden_detalles</td>
+          <td>
+            orden_id; plan_id; precio y descuento en dominio dinero;
+            dias_acceso.
+          </td>
+          <td>
+            Snapshot de las condiciones adquiridas; descuento no mayor al
+            precio.
+          </td>
+        </tr>
+        <tr>
+          <td>orden_detalle_modulos</td>
+          <td>detalle_id; curso_id; modulo_id y FK compuesta.</td>
+          <td>Cobertura concreta por módulo.</td>
+        </tr>
+        <tr>
+          <td>eventos_pago</td>
+          <td>proveedor_id + evento_externo únicos; firma_validada; fechas.</td>
+          <td>Registro inicial de eventos externos.</td>
+        </tr>
+        <tr>
+          <td>pagos</td>
+          <td>orden_id; proveedor y referencia; monto; moneda; estado.</td>
+          <td>
+            Intento de cobro; índice parcial limita a un pago confirmado por
+            orden.
+          </td>
+        </tr>
+        <tr>
+          <td>accesos_modulo</td>
+          <td>inscripción, curso, módulo, origen y vigencia.</td>
+          <td>Derecho temporal derivado de compra o autorización.</td>
+        </tr>
+        <tr>
+          <td>reembolsos</td>
+          <td>pago_id; monto positivo; referencia única; responsable.</td>
+          <td>Devolución con control de saldo en funciones SQL.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      Separar estos conceptos permite distinguir una orden pendiente de un pago
+      confirmado y de un acceso concedido. El esquema contiene eventos_pago como
+      base específica de idempotencia y envios_notificacion como soporte de
+      entrega de avisos. Esto no equivale a una integración de webhook operativa
+      ni a un transactional outbox genérico terminado. La ampliación debe
+      evaluar primero estas estructuras para evitar duplicación y definir la
+      transacción de confirmación, el evento posterior y la recuperación ante
+      fallos.
+    </p>
+    <h2 id="section-35">6.2. Estrategias de optimización y migración</h2>
+    <p>
+      La búsqueda vigente utiliza strpos(lower(titulo || descripción),
+      lower(q)). El índice GIN de búsqueda de cursos presente en la migración
+      usa to_tsvector; por tanto, no debe afirmarse que acelera automáticamente
+      esa consulta de subcadena. La decisión entre búsqueda de texto completo,
+      índices de trigramas o una búsqueda simple debe tomarse con consultas
+      representativas y planes de ejecución. EXPLAIN permite observar el plan,
+      mientras que ANALYZE ejecuta la consulta y añade mediciones; su uso debe
+      planificarse en un entorno apropiado (PostgreSQL Global Development Group,
+      s. f.-b).
+    </p>
+    <p>
+      La paginación por UUID evita utilizar desplazamientos crecientes, pero no
+      ordena por fecha ni relevancia. Solicita un elemento adicional para
+      determinar si existe próxima página. Una publicación concurrente puede
+      modificar el conjunto visible entre peticiones. No se promete una
+      instantánea estable de todo el catálogo durante una navegación prolongada.
+    </p>
+    <p>
+      La migración 0001_initial_schema.sql se conserva sin cambios. db:init solo
+      admite un entorno local o test y rechaza un esquema lms existente. El seed
+      se ejecuta separadamente, dentro de una transacción, y evita sobrescribir
+      sus registros existentes. El script actual no constituye un gestor
+      completo de historial de migraciones incrementales; antes de introducir
+      cambios compartidos deberá registrarse su aplicación, checksum, orden y
+      estrategia de recuperación.
+    </p>
+    <p>
+      La evolución productiva exige nuevas migraciones revisadas, pruebas en una
+      copia controlada y un respaldo restaurable. No se utilizará un reinicio de
+      base como mecanismo de actualización. Los instantes persistidos se
+      representan con timestamptz y las respuestas temporales de la API usan
+      ISO/UTC; la presentación debe aplicar la zona del usuario. Esta separación
+      evita confundir la hora del servidor con la hora institucional.
+    </p>
+    <h1 id="section-36">7. Implementación del núcleo de la API</h1>
+    <h2 id="section-37">7.1. Server Actions y responsabilidad del backend</h2>
+    <p>
+      La referencia académica propone Server Actions como backend. E-SAPIENS
+      adopta otra decisión: Next.js presenta la información y NestJS es la
+      autoridad de negocio. Las páginas no acceden directamente a PostgreSQL. No
+      se han implementado Server Actions para mutaciones ni rutas paralelas que
+      reproduzcan las reglas del API. La diferencia es arquitectónica y se
+      sustenta en mantener un punto central de validación y autorización,
+      documentado en los ADR del repositorio.
+    </p>
+    <p>
+      El arranque de NestJS registra la configuración HTTP, el logger, el manejo
+      de excepciones, los módulos y Swagger. configureHttp establece el prefijo
+      api/v1 y un ValidationPipe con transformación, whitelist y rechazo de
+      propiedades no admitidas. La configuración se comparte con las pruebas E2E
+      para que la validación del servidor probado corresponda al arranque real.
+      El puerto predeterminado de la API es 4000.
+    </p>
+    <p class="caption"><b>Tabla 17</b></p>
+    <p class="tabletitle"><i>Contratos HTTP implementados</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Método y ruta</th>
+          <th>Función</th>
+          <th>Resultado principal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>GET /api/v1/health</td>
+          <td>Comprobar proceso de API.</td>
+          <td>Estado, servicio y fecha.</td>
+        </tr>
+        <tr>
+          <td>GET /api/v1/health/ready</td>
+          <td>Comprobar PostgreSQL y Redis.</td>
+          <td>200 si ambos responden; 503 si falla una dependencia.</td>
+        </tr>
+        <tr>
+          <td>GET /api/v1/courses</td>
+          <td>Listar cursos publicados.</td>
+          <td>items y nextCursor.</td>
+        </tr>
+        <tr>
+          <td>GET /api/v1/courses/:slug</td>
+          <td>Obtener curso y temario público.</td>
+          <td>Datos, objetivos y módulos publicados.</td>
+        </tr>
+        <tr>
+          <td>GET /api/v1/library</td>
+          <td>Listar fichas públicas publicadas.</td>
+          <td>items y nextCursor.</td>
+        </tr>
+        <tr>
+          <td>GET /api/v1/library/:id</td>
+          <td>Obtener detalle bibliográfico.</td>
+          <td>Autoría, editorial, referencias y temas.</td>
+        </tr>
+        <tr>
+          <td>GET /api/docs; /api/docs-json</td>
+          <td>Consultar documentación y contrato OpenAPI.</td>
+          <td>Interfaz Swagger y documento JSON.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      La tabla 17 identifica los endpoints implementados. Los listados aceptan q
+      opcional, recortado y limitado a 100 caracteres; limit entero entre 1 y
+      24, con valor inicial 12; y cursor con formato UUID. La búsqueda literal
+      no convierte % y _ en comodines, no elimina acentos y no busca por autor.
+      Las consultas desconocidas se rechazan. La figura 4 resume el recorrido
+      completo de una búsqueda implementada.
+    </p>
+    <p class="caption"><b>Figura 4</b></p>
+    <p class="tabletitle"><i>Flujo operativo de una consulta pública</i></p>
+    <p class="figure">
+      <img src="assets/flujo-consulta.png" width="624" height="266" />
+    </p>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia basada en PublicListQueryDto,
+      CatalogService y readPublicApi. La lógica de visibilidad se aplica en
+      NestJS, antes del renderizado.
+    </p>
+    <p>
+      El servicio de catálogo aplica estado = publicado y selecciona campos
+      explícitos. El detalle obtiene curso y temario mediante un único SELECT,
+      de modo que su visibilidad y contenido corresponden a la misma instantánea
+      de consulta. La biblioteca exige simultáneamente publicado y
+      ficha_publica. El consumidor web valida la forma del JSON recibido,
+      diferencia error y ausencia y limita la espera a ocho segundos.
+    </p>
+    <pre>
+GET /api/v1/courses?q=ciencias&amp;limit=12
+
+Forma de respuesta:
+{ &quot;items&quot;: [ /* cursos públicos */ ], &quot;nextCursor&quot;: null }
+
+Error de detalle no disponible:
+{ &quot;error&quot;: { &quot;code&quot;: &quot;COURSE_NOT_FOUND&quot;,
+  &quot;message&quot;: &quot;El curso no está disponible.&quot;,
+  &quot;details&quot;: {}, &quot;requestId&quot;: &quot;identificador-de-petición&quot; } }</pre>
+    <p>
+      Los tipos de packages/contracts permiten compartir las formas de
+      transporte sin incluir SQL ni reglas de negocio. Los validadores de
+      ejecución del frontend y los modelos Swagger se mantienen de forma
+      explícita; todavía no se generan automáticamente desde una única
+      especificación. Las pruebas ayudan a detectar divergencias, pero la
+      sincronización entre estas representaciones permanece como responsabilidad
+      de mantenimiento.
+    </p>
+    <h2 id="section-38">
+      7.2. Servicio de carga: análisis de la API REST auxiliar
+    </h2>
+    <h3 id="section-39">7.2.1. Resumen ejecutivo y alcance</h3>
+    <p>
+      No existe un microservicio de carga ni un endpoint de upload implementado.
+      El análisis cubre cómo incorporar esa capacidad dentro de la arquitectura
+      acordada. La primera opción es un módulo de archivos en NestJS; una
+      extracción a servicio independiente solo se justificaría mediante carga,
+      aislamiento o necesidades operativas medibles. El propósito será permitir
+      carga controlada de materiales por usuarios autorizados y preservar la
+      privacidad del almacenamiento.
+    </p>
+    <h3 id="section-40">7.2.2. Stack tecnológico y arquitectura propuestos</h3>
+    <p>
+      Se propone reutilizar NestJS para autenticación y autorización, PostgreSQL
+      para metadatos y un proveedor de objetos mediante un adaptador. El
+      procesamiento lento, como escaneo o conversión, podrá ejecutarse en un
+      worker cuando ese componente exista. La selección de almacenamiento debe
+      ajustarse al volumen y al presupuesto confirmado; la mención de
+      proveedores en la plantilla de entorno no los convierte en servicios
+      activos.
+    </p>
+    <h3 id="section-41">
+      7.2.3. Configuración de entrada, módulos y controladores
+    </h3>
+    <p>
+      El punto de entrada main.ts ya inicializa la API central, pero no registra
+      un módulo de carga. Su incorporación deberá reutilizar el prefijo y los
+      errores existentes, definir DTOs de solicitud y una política por
+      propietario y curso, y limitar el tamaño antes de procesar el cuerpo. La
+      asignación del propietario se derivará de la sesión validada, no de un
+      usuario_id enviado como autoridad por el navegador.
+    </p>
+    <h3 id="section-42">7.2.4. Flujo operativo propuesto</h3>
+    <ol>
+      <li>
+        Autenticar al actor y verificar su asignación o permiso sobre el
+        recurso.
+      </li>
+      <li>
+        Validar extensión, MIME, tamaño y contexto académico; generar un
+        identificador seguro.
+      </li>
+      <li>
+        Recibir el objeto en ubicación privada o autorizar una carga temporal
+        controlada.
+      </li>
+      <li>
+        Registrar metadatos y estado pendiente; ejecutar el escaneo requerido.
+      </li>
+      <li>
+        Habilitar su asociación o publicación solo cuando termine la validación.
+      </li>
+      <li>
+        Autorizar cada descarga según matrícula, vigencia y propiedad; registrar
+        la operación cuando corresponda.
+      </li>
+    </ol>
+    <h3 id="section-43">7.2.5. Interfaz: health check y carga de archivos</h3>
+    <p>
+      La comprobación de salud actualmente disponible es la de la API central.
+      No verifica almacenamiento de objetos porque no hay proveedor conectado.
+      Las rutas de la tabla 18 son una propuesta de contrato para discusión y no
+      pueden utilizarse en la demo. No se presenta documentación OpenAPI
+      ficticia para estas capacidades.
+    </p>
+    <p class="caption"><b>Tabla 18</b></p>
+    <p class="tabletitle">
+      <i>Contrato preliminar de archivos: no implementado</i>
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Operación propuesta</th>
+          <th>Entrada mínima</th>
+          <th>Respuesta y condición</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>POST /api/v1/files/upload-intents</td>
+          <td>Metadatos y recurso académico objetivo.</td>
+          <td>
+            Identificador temporal si el actor tiene permiso y cumple límites.
+          </td>
+        </tr>
+        <tr>
+          <td>POST /api/v1/files/:id/complete</td>
+          <td>
+            Identificador de carga; verificación del objeto por el servidor.
+          </td>
+          <td>Estado de procesamiento, sin publicar automáticamente.</td>
+        </tr>
+        <tr>
+          <td>GET /api/v1/files/:id/access</td>
+          <td>Sesión válida y recurso solicitado.</td>
+          <td>
+            Acceso breve tras verificar autorización; denegación en otro caso.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Propuesta de diseño para una entrega futura; no corresponde a
+      endpoints existentes.
+    </p>
+    <h3 id="section-44">7.2.6. Persistencia e infraestructura</h3>
+    <p>
+      archivos registra propietario, proveedor, clave de objeto, tipo, tamaño,
+      hash y estado de escaneo. recursos_leccion y biblioteca_versiones vinculan
+      los objetos con su contexto. Los binarios deben mantenerse fuera de la
+      base. Se requiere una estrategia para reconciliar cargas incompletas: una
+      transacción SQL no puede confirmar atómicamente una escritura en un
+      proveedor externo. La limpieza debe respetar referencias y retención, sin
+      borrar materiales todavía utilizados.
+    </p>
+    <h3 id="section-45">7.2.7. Seguridad y limitaciones</h3>
+    <p>
+      Los criterios de aceptación incluyen rechazar cargas excesivas y tipos no
+      autorizados, impedir acceso cruzado, mantener objetos privados y probar
+      fallos parciales. La validación debe inspeccionar contenido cuando
+      corresponda; el nombre o MIME declarado por el cliente no basta. El
+      proveedor, las cuotas y la política de conservación están pendientes. La
+      demo pública no requiere esta capacidad para mostrar fichas y temarios.
+    </p>
+    <h2 id="section-46">7.3. Servicio de correo: API REST de notificaciones</h2>
+    <h3 id="section-47">7.3.1. Resumen ejecutivo</h3>
+    <p>
+      No existe un microservicio de email ni envío transaccional implementado.
+      El esquema y el diseño contemplan notificaciones, preferencias y entregas.
+      El objetivo futuro es desacoplar la entrega de mensajes de la respuesta al
+      usuario para evitar que la indisponibilidad del proveedor interrumpa una
+      operación académica válida.
+    </p>
+    <h3 id="section-48">7.3.2. Propósito y alcance</h3>
+    <p>
+      Los primeros casos previstos son aprobación de cuenta, recuperación de
+      acceso, recordatorios y avisos académicos. Antes de habilitarlos se deben
+      confirmar correo institucional, remitente, consentimiento o base
+      aplicable, política de retención y responsable operativo. WhatsApp es una
+      integración posterior sujeta a proveedor y costos; no debe confundirse con
+      una notificación interna ya disponible.
+    </p>
+    <h3 id="section-49">7.3.3. Arquitectura, tecnologías y componentes</h3>
+    <p>
+      La propuesta combina un módulo de notificaciones en NestJS, tablas de
+      persistencia, una cola BullMQ sobre Redis y un worker. Redis por sí solo
+      no implementa esos procesos: hoy se limita a conectividad y readiness. El
+      backend generaría la intención de notificación al completar un caso de
+      uso; el worker renderizaría la plantilla y utilizaría un adaptador de
+      proveedor.
+    </p>
+    <p>
+      Los componentes mínimos serían NotificationService, plantillas
+      versionadas, un registro de entrega y un adaptador de correo. Son nombres
+      conceptuales para la propuesta, no clases ya presentes. La cola
+      transportaría referencias de trabajo; los datos sensibles se recuperarían
+      de forma autorizada y se limitarían en los logs.
+    </p>
+    <h3 id="section-50">7.3.4. Flujo de ejecución e interfaz de aplicación</h3>
+    <p>
+      Una aprobación autorizada debería guardar su cambio y el aviso pendiente
+      dentro de una misma transacción local. Un despachador detectaría entregas
+      pendientes y las programaría. El worker ejecutaría el envío, registraría
+      el identificador del proveedor y resolvería reintentos con espera
+      progresiva. Debe definirse qué ocurre si el proveedor acepta el mensaje
+      pero la confirmación se pierde; no se promete entrega exactamente una vez
+      sin soporte de idempotencia y reconciliación.
+    </p>
+    <p>
+      La API futura podría exponer GET /api/v1/notifications para la cuenta
+      autenticada y PATCH /api/v1/notifications/:id/read para marcar sus avisos.
+      Son contratos propuestos. No se plantea un endpoint público para enviar
+      mensajes a cualquier destinatario. Los comandos internos de envío
+      requieren permisos y validación del origen de negocio.
+    </p>
+    <h3 id="section-51">7.3.5. Configuración y despliegue</h3>
+    <p>
+      Se deberán proporcionar credenciales del proveedor mediante configuración
+      privada, verificar el dominio remitente cuando aplique, definir cuotas y
+      ejecutar el worker como proceso supervisado. Las variables de email
+      incluidas en .env.example son referencias de configuración, no evidencia
+      de una cuenta contratada. Un entorno de pruebas deberá utilizar un destino
+      controlado para evitar envíos a personas reales.
+    </p>
+    <h3 id="section-52">7.3.6. Limitaciones y seguridad</h3>
+    <p>
+      envios_notificacion ya registra canal, estado, intentos, próximo intento y
+      referencia del proveedor. Esta base puede evolucionar hacia una entrega
+      durable, pero requiere diseñar concurrencia, reservas de trabajo y
+      recuperación. Se deben separar mensajes transaccionales y promocionales,
+      limitar datos personales y evitar que un correo revele información privada
+      del curso o de terceros. El restablecimiento de contraseña también exige
+      tokens de un solo uso y límites de intentos.
+    </p>
+    <h3 id="section-53">7.3.7. Conclusión del componente</h3>
+    <p>
+      La decisión actual es posponer su despliegue hasta completar identidad y
+      definir el canal real. El modelo permite incorporar notificaciones sin
+      reescribir el catálogo, pero la existencia de tablas no debe presentarse
+      como prueba de entrega de mensajes. La aceptación futura debe incluir
+      reintento, no duplicación razonable, trazabilidad y recuperación de
+      fallos.
+    </p>
+    <h2 id="section-54">7.4. Pruebas, integración continua y evidencia</h2>
+    <p>
+      La verificación local del 2 de octubre registró dos pruebas unitarias y
+      diecisiete casos E2E de API, además de formato, lint, TypeScript y build
+      aprobados. Las pruebas de catálogo usan PostgreSQL real, insertan sus
+      fixtures en una transacción y ejecutan rollback. No requieren reiniciar la
+      base ni eliminar datos existentes. El informe distingue estos resultados
+      del alcance previsto para futuras pruebas de autorización y pagos.
+    </p>
+    <p class="caption"><b>Tabla 19</b></p>
+    <p class="tabletitle">
+      <i>Evidencia de calidad de la versión publicada</i>
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Comprobación</th>
+          <th>Resultado registrado</th>
+          <th>Límite de la evidencia</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Formato, lint y TypeScript</td>
+          <td>Aprobados localmente y en CI.</td>
+          <td>No prueban por sí solos reglas de negocio.</td>
+        </tr>
+        <tr>
+          <td>Pruebas unitarias</td>
+          <td>2 casos aprobados de salud.</td>
+          <td>
+            Cobertura funcional acotada; no se declara porcentaje de cobertura.
+          </td>
+        </tr>
+        <tr>
+          <td>API E2E</td>
+          <td>
+            17 casos aprobados: salud, publicación, paginación, validación y
+            privacidad.
+          </td>
+          <td>No cubren autenticación, pagos ni aula aún inexistentes.</td>
+        </tr>
+        <tr>
+          <td>Build de API y web</td>
+          <td>Aprobado.</td>
+          <td>Compilación correcta; no equivale a despliegue empresarial.</td>
+        </tr>
+        <tr>
+          <td>Migración en CI</td>
+          <td>Instalada en PostgreSQL efímero vacío.</td>
+          <td>No acredita una restauración de respaldo productivo.</td>
+        </tr>
+        <tr>
+          <td>Revisión del navegador</td>
+          <td>Búsquedas, detalles, temas, teclado y pantallas adaptables.</td>
+          <td>
+            Revisión manual/automatizada puntual; no suite E2E web versionada
+            completa.
+          </td>
+        </tr>
+        <tr>
+          <td>GitHub develop</td>
+          <td>Commit cefb5a6; PR #1 integrado; CI posterior aprobado.</td>
+          <td>Sin despliegue automático a producción.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      La ejecución 37007190392 de GitHub Actions corresponde al commit integrado
+      en develop y terminó con estado success. Se volvió a consultar esa
+      evidencia el 3 de octubre de 2026. El workflow usa instalación con
+      lockfile congelado, servicios PostgreSQL/Redis y un control Quality Gate.
+      La rama exige pull request y dicho control antes de integrar; las reglas
+      observadas no exigían una aprobación humana adicional. Se conserva la
+      evidencia de la ejecución para trazabilidad (KevinTapiaAli, 2026b).
+    </p>
+    <p>
+      Todavía no se han medido capacidad concurrente, tasas de error bajo carga
+      o tiempos de recuperación. Tampoco se ha ejecutado una auditoría completa
+      de accesibilidad o seguridad. Se recomienda añadir pruebas por cada nueva
+      frontera de autorización, un flujo web automatizado de extremo a extremo y
+      una prueba de restauración antes de operar con estudiantes reales.
+    </p>
+    <h2 id="section-55">7.5. Configuración y ejecución reproducible</h2>
+    <p>
+      La preparación de la laptop se documenta en docs/13-laptop-setup.md.
+      Requiere Node.js 24.21.0, pnpm 10.34.5, Git y Docker con Compose. Las
+      plantillas crean configuración local sin subir secretos. El procedimiento
+      resumido siguiente se aplica a una instalación nueva; db:init debe
+      omitirse si el esquema lms ya existe.
+    </p>
+    <pre>
+git clone --branch develop https://github.com/KevinTapiaAli/E-SAPIENS.git
+cd E-SAPIENS
+# Crear .env y apps/web/.env.local desde sus ejemplos si no existen.
+pnpm.cmd install --frozen-lockfile
+docker compose -f docker-compose.dev.yml up -d --wait
+# Solo en una base local nueva y vacía:
+pnpm.cmd db:init
+pnpm.cmd db:seed:demo
+pnpm.cmd db:check
+pnpm.cmd dev</pre>
+    <p>
+      La web se abre en localhost:3000 y Swagger en localhost:4000/api/docs.
+      PostgreSQL se publica localmente en el puerto 5433 y Redis en 6379. El
+      volumen conserva la base entre reinicios; GitHub no sincroniza datos entre
+      computadoras. Para detener los servicios preservando el volumen se utiliza
+      docker compose -f docker-compose.dev.yml stop. El código y la
+      documentación permiten reproducir la demo sin copiar la base original.
+    </p>
+    <h1 id="section-56">8. Conclusiones y hoja de ruta técnica</h1>
+    <h2 id="section-57">8.1. Conclusiones</h2>
+    <p>
+      La primera entrega de E-SAPIENS constituye una aplicación pública
+      ejecutable: frontend, API y persistencia trabajan de manera integrada para
+      explorar cursos y biblioteca. La separación de responsabilidades es
+      verificable en el código, y la visibilidad pública se decide en NestJS.
+      Las pruebas y el control de integración continua aportan evidencia de que
+      el avance puede compilarse y comprobarse fuera de la computadora original.
+    </p>
+    <p>
+      La arquitectura elegida es coherente con un desarrollador individual y una
+      organización sin presupuesto asignado: concentra la lógica en un backend
+      modular, comparte contratos y evita servicios distribuidos prematuros.
+      Esta coherencia técnica no demuestra rentabilidad ni capacidad ilimitada.
+      La infraestructura, los costos y la concurrencia deben confirmarse para
+      convertir el avance local en un servicio institucional.
+    </p>
+    <p>
+      El esquema de datos ofrece una base amplia para la evolución, pero su
+      tamaño no mide la terminación del producto. Identidad, autorización,
+      matrícula, aula, pagos, correo y carga privada siguen siendo entregas
+      pendientes. Las propuestas de los capítulos de seguridad y servicios
+      auxiliares delimitan el trabajo necesario y evitan confundir planificación
+      con funcionalidad operativa.
+    </p>
+    <h2 id="section-58">8.2. Hoja de ruta priorizada</h2>
+    <p class="caption"><b>Tabla 20</b></p>
+    <p class="tabletitle">
+      <i>Entregas siguientes y criterios de aceptación</i>
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Prioridad</th>
+          <th>Entrega</th>
+          <th>Condición para considerarla terminada</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Identidad y aprobación.</td>
+          <td>
+            Registro pendiente, aprobación autorizada, login/logout, sesiones
+            revocables y pruebas negativas.
+          </td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Administración mínima.</td>
+          <td>
+            Crear y revisar contenido con permisos y trazabilidad; publicar y
+            retirar de forma controlada.
+          </td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>Aula, matrícula y progreso.</td>
+          <td>
+            Acceso según propiedad y vigencia; progreso persistido; pruebas de
+            cursos cruzados y vencimiento.
+          </td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>Archivos y clases.</td>
+          <td>
+            Almacenamiento privado, validación de cargas, acceso temporal y
+            proveedor de sesiones confirmado.
+          </td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>Evaluaciones y tareas.</td>
+          <td>
+            Reglas de intentos, notas, entregas y retroalimentación acordadas y
+            probadas.
+          </td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>Comercio y certificados.</td>
+          <td>
+            Confirmación de pago verificable, transacciones, idempotencia y
+            emisión sujeta a requisitos.
+          </td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>Comunicación.</td>
+          <td>
+            Proveedor operativo, reintentos controlados, trazabilidad y
+            protección de datos.
+          </td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td>Preparación para producción.</td>
+          <td>
+            Carga, seguridad, respaldos restaurados, monitoreo, responsable y
+            aceptación institucional.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      La tabla 20 organiza las entregas por prioridad y la tabla 21 identifica
+      sus riesgos. Estas prioridades son una secuencia de trabajo y no
+      compromisos de duración. El calendario debe definirse después de confirmar
+      alcance y disponibilidad del desarrollador. La demostración prevista para
+      el lunes 5 de octubre de 2026 tiene el propósito de revisar el avance y
+      cerrar decisiones con Pablo Rivero; no representa una fecha de lanzamiento
+      del LMS completo.
+    </p>
+    <h2 id="section-59">
+      8.3. Riesgos, dependencias y decisiones de la reunión
+    </h2>
+    <p class="caption"><b>Tabla 21</b></p>
+    <p class="tabletitle"><i>Riesgos principales y respuesta propuesta</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Riesgo</th>
+          <th>Efecto posible</th>
+          <th>Medida o decisión pendiente</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Infraestructura no inventariada</td>
+          <td>Interrupciones y dimensionamiento incorrecto.</td>
+          <td>
+            Confirmar CPU, RAM, disco, sistema, conexión y horario de operación.
+          </td>
+        </tr>
+        <tr>
+          <td>Concurrencia desconocida</td>
+          <td>Promesas de capacidad sin sustento.</td>
+          <td>
+            Obtener alumnos simultáneos y escenarios de uso antes de medir
+            carga.
+          </td>
+        </tr>
+        <tr>
+          <td>Presupuesto sin asignación</td>
+          <td>Servicios externos sin sostenibilidad.</td>
+          <td>
+            Estimar operación y definir responsable de costos recurrentes.
+          </td>
+        </tr>
+        <tr>
+          <td>Desarrollo individual</td>
+          <td>Dependencia de una sola persona.</td>
+          <td>Documentar instalación, decisiones, pruebas y recuperación.</td>
+        </tr>
+        <tr>
+          <td>Reglas académicas abiertas</td>
+          <td>Rehacer evaluaciones y certificados.</td>
+          <td>
+            Acordar presentar/aprobar, intentos, nota, renovación y vigencia.
+          </td>
+        </tr>
+        <tr>
+          <td>Datos y materiales no aprobados</td>
+          <td>Exposición inadecuada o catálogo incorrecto.</td>
+          <td>
+            Validar derechos, textos, privacidad y responsables editoriales.
+          </td>
+        </tr>
+        <tr>
+          <td>Demostración confundida con lanzamiento</td>
+          <td>Expectativas superiores a la entrega.</td>
+          <td>
+            Mostrar alcance implementado, pendientes y condiciones de
+            producción.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia a partir del repositorio E-SAPIENS,
+      versión cefb5a6 (KevinTapiaAli, 2026a).
+    </p>
+    <p>
+      La reunión debe producir decisiones concretas: quién aprueba las cuentas y
+      el contenido; qué equipo y conexión estarán disponibles; cuántos
+      estudiantes utilizarán simultáneamente el sistema; qué cuentas de clases,
+      correo y almacenamiento existen; y quién responderá por respaldos y
+      soporte. Con estas respuestas será posible planificar un despliegue
+      viable. La selección final de servicios debe mantenerse subordinada a esos
+      requisitos y a pruebas, no al atractivo de una tecnología.
+    </p>
+    <h1 id="section-60">Referencias</h1>
+    <p class="reference">
+      KevinTapiaAli. (2026a). <i>E-SAPIENS</i> (versión cefb5a6) [Código
+      fuente]. GitHub.
+      <a
+        href="https://github.com/KevinTapiaAli/E-SAPIENS/tree/cefb5a6423d8178e9e371a09ffb3a8b381150cd7"
+        >https://github.com/KevinTapiaAli/E-SAPIENS/tree/cefb5a6423d8178e9e371a09ffb3a8b381150cd7</a
+      >
+    </p>
+    <p class="reference">
+      KevinTapiaAli. (2026b, 2 de octubre).
+      <i>Quality Gate: Ejecución 37007190392</i> [Registro de integración
+      continua]. GitHub Actions.
+      <a
+        href="https://github.com/KevinTapiaAli/E-SAPIENS/actions/runs/37007190392"
+        >https://github.com/KevinTapiaAli/E-SAPIENS/actions/runs/37007190392</a
+      >
+    </p>
+    <p class="reference">
+      NestJS. (s. f.). <i>Modules</i>.
+      <a href="https://docs.nestjs.com/modules"
+        >https://docs.nestjs.com/modules</a
+      >
+    </p>
+    <p class="reference">
+      OWASP Foundation. (s. f.-a). <i>Authorization cheat sheet</i>. OWASP Cheat
+      Sheet Series.
+      <a
+        href="https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+        >https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html</a
+      >
+    </p>
+    <p class="reference">
+      OWASP Foundation. (s. f.-b). <i>Password storage cheat sheet</i>. OWASP
+      Cheat Sheet Series.
+      <a
+        href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html"
+        >https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html</a
+      >
+    </p>
+    <p class="reference">
+      PostgreSQL Global Development Group. (s. f.-a). <i>Constraints</i>.
+      PostgreSQL 18 documentation.
+      <a href="https://www.postgresql.org/docs/18/ddl-constraints.html"
+        >https://www.postgresql.org/docs/18/ddl-constraints.html</a
+      >
+    </p>
+    <p class="reference">
+      PostgreSQL Global Development Group. (s. f.-b). <i>Using EXPLAIN</i>.
+      PostgreSQL 18 documentation.
+      <a href="https://www.postgresql.org/docs/18/using-explain.html"
+        >https://www.postgresql.org/docs/18/using-explain.html</a
+      >
+    </p>
+    <p class="reference">
+      Purdue Online Writing Lab. (s. f.-a). <i>General format</i>. Purdue
+      University.
+      <a
+        href="https://owl.purdue.edu/owl/research_and_citation/apa_style/apa_formatting_and_style_guide/general_format.html"
+        >https://owl.purdue.edu/owl/research_and_citation/apa_style/apa_formatting_and_style_guide/general_format.html</a
+      >
+    </p>
+    <p class="reference">
+      Purdue Online Writing Lab. (s. f.-b). <i>Tables and figures</i>. Purdue
+      University.
+      <a
+        href="https://owl.purdue.edu/owl/research_and_citation/apa_style/apa_formatting_and_style_guide/apa_tables_and_figures.html"
+        >https://owl.purdue.edu/owl/research_and_citation/apa_style/apa_formatting_and_style_guide/apa_tables_and_figures.html</a
+      >
+    </p>
+    <p class="reference">
+      Vercel. (s. f.). <i>Server and client components</i>. Next.js
+      documentation.
+      <a
+        href="https://nextjs.org/docs/app/getting-started/server-and-client-components"
+        >https://nextjs.org/docs/app/getting-started/server-and-client-components</a
+      >
+    </p>
+    <p class="reference">
+      World Wide Web Consortium. (s. f.).
+      <i>Understanding SC 1.4.3: Contrast (minimum) (Level AA)</i>. Web
+      Accessibility Initiative.
+      <a
+        href="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html"
+        >https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html</a
+      >
+    </p>
+    <h1 id="section-61">
+      Apéndice A. Correspondencia con el índice proporcionado
+    </h1>
+    <p>
+      La tabla A1 relaciona la guía fotografiada con el contenido del informe.
+      Las páginas de las fotografías pertenecen al documento de referencia y no
+      se trasladan a esta edición; el índice de este informe se genera a partir
+      de sus propios encabezados.
+    </p>
+    <p class="caption"><b>Tabla A1</b></p>
+    <p class="tabletitle"><i>Matriz de correspondencia temática</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Apartado de referencia</th>
+          <th>Ubicación en este informe</th>
+          <th>Tratamiento</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Objetivo y rendimiento</td>
+          <td>1 y 1.1</td>
+          <td>Objetivo general, criterios propuestos y límites de medición.</td>
+        </tr>
+        <tr>
+          <td>Alcance e IAM/CMS/LXP/ventas</td>
+          <td>2.1 y 2.2</td>
+          <td>Estado de cada módulo y exclusiones.</td>
+        </tr>
+        <tr>
+          <td>Lenguaje, contextos y agregados</td>
+          <td>3.1–3.3</td>
+          <td>Vocabulario, límites y consistencia.</td>
+        </tr>
+        <tr>
+          <td>Arquitectura, SSR/CSR, estado y UI</td>
+          <td>4.1 y 4.2</td>
+          <td>Diagrama de componentes reales y decisiones.</td>
+        </tr>
+        <tr>
+          <td>Sesiones, RBAC, DRM y ataques</td>
+          <td>5.1–5.4</td>
+          <td>Controles existentes y propuestas explícitas.</td>
+        </tr>
+        <tr>
+          <td>User, Course, Category y Attachment</td>
+          <td>6.1.1–6.1.4</td>
+          <td>Equivalencias con las tablas reales.</td>
+        </tr>
+        <tr>
+          <td>Chapter, Lesson y UserProgress</td>
+          <td>6.1.5–6.1.7</td>
+          <td>Módulos, lecciones y progreso por matrícula.</td>
+        </tr>
+        <tr>
+          <td>Purchase y optimización</td>
+          <td>6.1.8 y 6.2</td>
+          <td>Modelo comercial distribuido y migraciones.</td>
+        </tr>
+        <tr>
+          <td>Server Actions / API Core</td>
+          <td>7.1</td>
+          <td>Justificación de NestJS como autoridad central.</td>
+        </tr>
+        <tr>
+          <td>Microservicio de carga: 7.2.1–7.2.7</td>
+          <td>7.2.1–7.2.7</td>
+          <td>
+            Alcance, stack, entrada, flujo, interfaz, persistencia y límites.
+          </td>
+        </tr>
+        <tr>
+          <td>Microservicio de email: 7.3.1–7.3.7</td>
+          <td>7.3.1–7.3.7</td>
+          <td>Diseño futuro y ausencia de servicio activo.</td>
+        </tr>
+        <tr>
+          <td>Conclusiones y hoja de ruta</td>
+          <td>8</td>
+          <td>Resultados, prioridades y decisiones pendientes.</td>
+        </tr>
+        <tr>
+          <td>Fuentes citadas</td>
+          <td>Referencias</td>
+          <td>Fuentes técnicas y evidencia primaria del proyecto.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia basada en las dos fotografías facilitadas
+      el 3 de octubre de 2026. No se recibieron pesos ni criterios de
+      puntuación.
+    </p>
+    <h1 id="section-62">Apéndice B. Inventario del esquema relacional</h1>
+    <p>
+      La tabla B1 enumera las tablas de la migración y sus comentarios
+      originales. Es un inventario estructural, no un listado de módulos
+      funcionales terminados. El diccionario completo de columnas, claves y
+      restricciones puede consultarse en la migración versionada referenciada en
+      el capítulo 6.
+    </p>
+    <p class="caption"><b>Tabla B1</b></p>
+    <p class="tabletitle"><i>Inventario de las 74 tablas del esquema lms</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>N.º</th>
+          <th>Tabla</th>
+          <th>Descripción registrada</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>roles</td>
+          <td>Roles de aplicación; no son usuarios de PostgreSQL.</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>permisos</td>
+          <td>Operaciones autorizables por dominio.</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>rol_permisos</td>
+          <td>Asignación N:M de permisos a roles.</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>usuarios</td>
+          <td>Cuentas aprobadas, pendientes, rechazadas o suspendidas.</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>usuario_roles</td>
+          <td>Una persona puede ejercer múltiples roles.</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>perfiles_docentes</td>
+          <td>Perfil público del capacitador.</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>historial_estado_usuario</td>
+          <td>Historial de aprobación y suspensión con responsable.</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td>sesiones</td>
+          <td>
+            Sesiones revocables; guardar digest del token aleatorio, no el
+            token.
+          </td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td>tokens_cuenta</td>
+          <td>Verificación de correo y recuperación; tokens de un solo uso.</td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td>identidades_externas</td>
+          <td>Vínculo opcional con Google u otro proveedor de identidad.</td>
+        </tr>
+        <tr>
+          <td>11</td>
+          <td>consentimientos</td>
+          <td>Aceptaciones versionadas de términos, privacidad y analítica.</td>
+        </tr>
+        <tr>
+          <td>12</td>
+          <td>categorias_curso</td>
+          <td>Áreas temáticas del catálogo.</td>
+        </tr>
+        <tr>
+          <td>13</td>
+          <td>cursos</td>
+          <td>
+            Edición académica; crear otro ID para cambiar un temario ya usado.
+          </td>
+        </tr>
+        <tr>
+          <td>14</td>
+          <td>curso_docentes</td>
+          <td>Docentes asignados: la API limita su edición a estos cursos.</td>
+        </tr>
+        <tr>
+          <td>15</td>
+          <td>prerrequisitos_curso</td>
+          <td>Requisito de completar cursos previos; se impiden ciclos.</td>
+        </tr>
+        <tr>
+          <td>16</td>
+          <td>reglas_curso</td>
+          <td>Política de avance y certificado, configurable por edición.</td>
+        </tr>
+        <tr>
+          <td>17</td>
+          <td>modulos</td>
+          <td>
+            Temario secuencial; el orden define el bloqueo de módulos
+            posteriores.
+          </td>
+        </tr>
+        <tr>
+          <td>18</td>
+          <td>lecciones</td>
+          <td>
+            Unidad de progreso y contenido; una lección pertenece a un curso.
+          </td>
+        </tr>
+        <tr>
+          <td>19</td>
+          <td>archivos</td>
+          <td>
+            Metadatos de almacenamiento externo; nunca almacenar binarios ni
+            URLs firmadas.
+          </td>
+        </tr>
+        <tr>
+          <td>20</td>
+          <td>recursos_leccion</td>
+          <td>Videos y documentos revisados con período de disponibilidad.</td>
+        </tr>
+        <tr>
+          <td>21</td>
+          <td>revisiones_contenido</td>
+          <td>
+            Aprobación de un curso, recurso, lección o módulo; referencias
+            verificables.
+          </td>
+        </tr>
+        <tr>
+          <td>22</td>
+          <td>autores</td>
+          <td>Autores bibliográficos, independientes de las cuentas.</td>
+        </tr>
+        <tr>
+          <td>23</td>
+          <td>biblioteca_items</td>
+          <td>
+            Libros y referencias; los metadatos públicos no otorgan acceso al
+            archivo.
+          </td>
+        </tr>
+        <tr>
+          <td>24</td>
+          <td>biblioteca_versiones</td>
+          <td>Historial de actualizaciones del material bibliográfico.</td>
+        </tr>
+        <tr>
+          <td>25</td>
+          <td>biblioteca_autores</td>
+          <td>Relación N:M entre obras y autores.</td>
+        </tr>
+        <tr>
+          <td>26</td>
+          <td>biblioteca_categorias</td>
+          <td>Etiquetas bibliográficas.</td>
+        </tr>
+        <tr>
+          <td>27</td>
+          <td>biblioteca_item_categorias</td>
+          <td>Clasificación múltiple de biblioteca.</td>
+        </tr>
+        <tr>
+          <td>28</td>
+          <td>biblioteca_secciones</td>
+          <td>Índice desglosado de capítulos, temas y páginas.</td>
+        </tr>
+        <tr>
+          <td>29</td>
+          <td>modulo_biblioteca</td>
+          <td>
+            Bibliografía autorizada por módulo, con cita y obligatoriedad.
+          </td>
+        </tr>
+        <tr>
+          <td>30</td>
+          <td>planes_acceso</td>
+          <td>Producto comercial versionable: curso, paquete o suscripción.</td>
+        </tr>
+        <tr>
+          <td>31</td>
+          <td>plan_modulos</td>
+          <td>
+            Cobertura explícita: cada módulo incluido debe figurar en el plan.
+          </td>
+        </tr>
+        <tr>
+          <td>32</td>
+          <td>suscripciones</td>
+          <td>
+            Contrato; cada renovación genera otra orden, no un cobro implícito.
+          </td>
+        </tr>
+        <tr>
+          <td>33</td>
+          <td>ordenes</td>
+          <td>
+            Orden de compra en una moneda; importes provienen de sus detalles.
+          </td>
+        </tr>
+        <tr>
+          <td>34</td>
+          <td>orden_detalles</td>
+          <td>
+            Snapshot del precio y duración: cambios de plan no cambian compras.
+          </td>
+        </tr>
+        <tr>
+          <td>35</td>
+          <td>orden_detalle_modulos</td>
+          <td>Snapshot de módulos comprados, separado del plan mutable.</td>
+        </tr>
+        <tr>
+          <td>36</td>
+          <td>proveedores_pago</td>
+          <td>
+            Configuración no secreta del banco/proveedor; claves fuera de la BD.
+          </td>
+        </tr>
+        <tr>
+          <td>37</td>
+          <td>eventos_pago</td>
+          <td>Bandeja idempotente de webhooks verificados por el backend.</td>
+        </tr>
+        <tr>
+          <td>38</td>
+          <td>pagos</td>
+          <td>
+            Intentos de pago; se admite un pago confirmado completo por orden.
+          </td>
+        </tr>
+        <tr>
+          <td>39</td>
+          <td>comprobantes_pago</td>
+          <td>
+            Comprobante privado, visible a su dueño y personal autorizado.
+          </td>
+        </tr>
+        <tr>
+          <td>40</td>
+          <td>reembolsos</td>
+          <td>
+            Devoluciones registradas por función con control de saldo
+            concurrente.
+          </td>
+        </tr>
+        <tr>
+          <td>41</td>
+          <td>inscripciones</td>
+          <td>
+            Relación estudiante-curso; acceso efectivo depende además de
+            concesiones y vigencia.
+          </td>
+        </tr>
+        <tr>
+          <td>42</td>
+          <td>accesos_modulo</td>
+          <td>
+            Derechos temporales de compra o cortesía; una renovación añade otra
+            fila.
+          </td>
+        </tr>
+        <tr>
+          <td>43</td>
+          <td>progreso_lecciones</td>
+          <td>
+            Avance persistente por lección; nunca mezcla cursos diferentes.
+          </td>
+        </tr>
+        <tr>
+          <td>44</td>
+          <td>historial_acceso</td>
+          <td>
+            Eventos de acceso para actividad y análisis; aplicar retención.
+          </td>
+        </tr>
+        <tr>
+          <td>45</td>
+          <td>evaluaciones</td>
+          <td>
+            Diagnóstico level test y exámenes de módulo; no confundir con
+            requisito de acceso.
+          </td>
+        </tr>
+        <tr>
+          <td>46</td>
+          <td>preguntas</td>
+          <td>Banco reutilizable de preguntas de la edición del curso.</td>
+        </tr>
+        <tr>
+          <td>47</td>
+          <td>opciones_pregunta</td>
+          <td>
+            Opciones y clave correcta; no exponer es_correcta al estudiante.
+          </td>
+        </tr>
+        <tr>
+          <td>48</td>
+          <td>evaluacion_preguntas</td>
+          <td>Pregunta asignada a evaluación con peso y orden.</td>
+        </tr>
+        <tr>
+          <td>49</td>
+          <td>intentos_evaluacion</td>
+          <td>
+            Intento numerado bajo bloqueo; conserva nota y marcas de tiempo.
+          </td>
+        </tr>
+        <tr>
+          <td>50</td>
+          <td>respuestas_estudiante</td>
+          <td>
+            Respuesta a una pregunta incluida en el examen, con snapshot del
+            enunciado.
+          </td>
+        </tr>
+        <tr>
+          <td>51</td>
+          <td>respuesta_opciones</td>
+          <td>
+            Selección múltiple; ninguna opción puede pertenecer a otra pregunta.
+          </td>
+        </tr>
+        <tr>
+          <td>52</td>
+          <td>tareas</td>
+          <td>Trabajos por módulo con fecha límite.</td>
+        </tr>
+        <tr>
+          <td>53</td>
+          <td>entregas_tarea</td>
+          <td>Repositorio de versiones de trabajos entregados.</td>
+        </tr>
+        <tr>
+          <td>54</td>
+          <td>archivos_entrega</td>
+          <td>Archivos privados de cada entrega.</td>
+        </tr>
+        <tr>
+          <td>55</td>
+          <td>retroalimentaciones</td>
+          <td>Devoluciones docentes sobre trabajos.</td>
+        </tr>
+        <tr>
+          <td>56</td>
+          <td>sesiones_clase</td>
+          <td>
+            Programación Meet/Zoom y duración real separada de la prevista.
+          </td>
+        </tr>
+        <tr>
+          <td>57</td>
+          <td>asistencias</td>
+          <td>
+            Asistencia de estudiantes y docentes; intervalos conservan
+            reconexiones.
+          </td>
+        </tr>
+        <tr>
+          <td>58</td>
+          <td>asistencia_intervalos</td>
+          <td>
+            Entradas y salidas por participante; el backend debe unir intervalos
+            superpuestos.
+          </td>
+        </tr>
+        <tr>
+          <td>59</td>
+          <td>grabaciones_clase</td>
+          <td>
+            Grabaciones con acceso temporal y sin permiso de descarga por
+            defecto.
+          </td>
+        </tr>
+        <tr>
+          <td>60</td>
+          <td>plantillas_certificado</td>
+          <td>
+            Versiones de plantilla, firma gráfica y texto; no implican firma
+            digital legal.
+          </td>
+        </tr>
+        <tr>
+          <td>61</td>
+          <td>certificados</td>
+          <td>
+            Repositorio verificable; datos históricos congelados y revocación.
+          </td>
+        </tr>
+        <tr>
+          <td>62</td>
+          <td>preferencias_notificacion</td>
+          <td>Preferencias por canal, con consentimiento externo separado.</td>
+        </tr>
+        <tr>
+          <td>63</td>
+          <td>notificaciones</td>
+          <td>Avisos internos, incluyendo vencimiento, clases y revisión.</td>
+        </tr>
+        <tr>
+          <td>64</td>
+          <td>envios_notificacion</td>
+          <td>
+            Cola outbox para correo y WhatsApp; un worker realiza los envíos.
+          </td>
+        </tr>
+        <tr>
+          <td>65</td>
+          <td>comentarios_curso</td>
+          <td>Preguntas y comentarios con respuestas del mismo curso.</td>
+        </tr>
+        <tr>
+          <td>66</td>
+          <td>valoraciones_curso</td>
+          <td>Una valoración por inscripción, de 1 a 5 estrellas.</td>
+        </tr>
+        <tr>
+          <td>67</td>
+          <td>favoritos_curso</td>
+          <td>Cursos guardados por cada usuario.</td>
+        </tr>
+        <tr>
+          <td>68</td>
+          <td>paginas_publicas</td>
+          <td>Contenido administrable para inicio, nosotros y contacto.</td>
+        </tr>
+        <tr>
+          <td>69</td>
+          <td>preguntas_frecuentes</td>
+          <td>FAQ pública administrable.</td>
+        </tr>
+        <tr>
+          <td>70</td>
+          <td>solicitudes_contacto</td>
+          <td>Mensajes recibidos por el formulario público.</td>
+        </tr>
+        <tr>
+          <td>71</td>
+          <td>configuraciones</td>
+          <td>
+            Parámetros públicos o internos no secretos y versionables por
+            auditoría.
+          </td>
+        </tr>
+        <tr>
+          <td>72</td>
+          <td>modelos_recomendacion</td>
+          <td>
+            Registro de modelos y reglas; el seed NO representa una red
+            entrenada.
+          </td>
+        </tr>
+        <tr>
+          <td>73</td>
+          <td>recomendaciones</td>
+          <td>Sugerencias de lecciones explicadas y basadas en desempeño.</td>
+        </tr>
+        <tr>
+          <td>74</td>
+          <td>auditoria</td>
+          <td>
+            Registro append-only sin contraseñas, tokens ni contenido sensible.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Transcripción del inventario de
+      database/migrations/0001_initial_schema.sql, commit cefb5a6. Algunos
+      comentarios expresan reglas previstas para la API; no acreditan que dichas
+      rutas estén implementadas.
+    </p>
+    <h1 id="section-63">Apéndice C. Guion de demostración y evidencias</h1>
+    <p>
+      Para el Ing. Pablo Rivero se propone una demostración breve centrada en
+      valor de uso: abrir la portada, buscar un curso, consultar objetivos y
+      temario, abrir una ficha bibliográfica y revisar la adaptación de la
+      interfaz. Cerrar con las decisiones requeridas para identidad, contenido
+      real e infraestructura. La figura C1 muestra el detalle de curso usado
+      como evidencia de la entrega.
+    </p>
+    <p class="caption"><b>Figura C1</b></p>
+    <p class="tabletitle">
+      <i>Detalle de curso y temario público de demostración</i>
+    </p>
+    <p class="figure">
+      <img src="assets/curso-temario.png" width="560" height="401" />
+    </p>
+    <p class="note">
+      <i>Nota.</i> Captura local del 2 de octubre de 2026. El contenido ficticio
+      se identifica como demostración; no acredita una oferta académica oficial.
+    </p>
+    <p>
+      La tabla C1 ubica los archivos que respaldan la exposición. Para el Ing.
+      Pacheco se propone recorrer el flujo técnico de la figura 4: mostrar la
+      ruta Next.js, el DTO de consulta, el controlador NestJS, el SQL
+      parametrizado, la respuesta JSON y su renderizado. Después, abrir Swagger
+      y explicar una prueba que rechaza un borrador o una ficha privada. Mostrar
+      el workflow y su ejecución aprobada permite justificar la verificación
+      fuera del equipo local.
+    </p>
+    <p class="caption"><b>Tabla C1</b></p>
+    <p class="tabletitle"><i>Ubicación de la evidencia técnica</i></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Evidencia</th>
+          <th>Ubicación en el repositorio</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Versión publicada</td>
+          <td>Commit cefb5a6 en develop; pull request #1.</td>
+        </tr>
+        <tr>
+          <td>API y proyección pública</td>
+          <td>apps/api/src/modules/catalog y modules/library.</td>
+        </tr>
+        <tr>
+          <td>Validación y errores</td>
+          <td>apps/api/src/common/http.</td>
+        </tr>
+        <tr>
+          <td>Contratos compartidos</td>
+          <td>packages/contracts/index.d.ts.</td>
+        </tr>
+        <tr>
+          <td>Pruebas de privacidad y consulta</td>
+          <td>apps/api/test/public-catalog.e2e-spec.ts.</td>
+        </tr>
+        <tr>
+          <td>Esquema original y seed separado</td>
+          <td>
+            database/migrations/0001_initial_schema.sql;
+            database/seeds/demo.sql.
+          </td>
+        </tr>
+        <tr>
+          <td>Sistema visual y mediciones</td>
+          <td>docs/12-visual-system.md.</td>
+        </tr>
+        <tr>
+          <td>Preparación de la laptop</td>
+          <td>docs/13-laptop-setup.md.</td>
+        </tr>
+        <tr>
+          <td>CI reproducible</td>
+          <td>.github/workflows/ci.yml y ejecución 37007190392.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <i>Nota.</i> Elaboración propia. Las capturas documentan una revisión
+      local; la evidencia remota de GitHub fue consultada nuevamente el 3 de
+      octubre de 2026.
+    </p>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 # Roadmap de ejecución
 
-Actualizado el 01/10/2026 para un único desarrollador, sin presupuesto económico asignado y con infraestructura y concurrencia pendientes de confirmar. Estas etapas sustituyen las fechas orientativas del blueprint; no son compromisos de lanzamiento.
+Actualizado el 04/10/2026 para un único desarrollador, sin presupuesto económico asignado y con infraestructura y concurrencia pendientes de confirmar. Estas etapas sustituyen las fechas orientativas del blueprint; no son compromisos de lanzamiento.
 
 ## Entrega 1 — Demostración web del 05/10/2026
 
@@ -10,11 +10,11 @@ Actualizado el 01/10/2026 para un único desarrollador, sin presupuesto económi
 - Contratos compartidos, Swagger, validación y pruebas de visibilidad con PostgreSQL.
 - Datos ficticios identificados y guion para presentar negocio y arquitectura.
 
-El login, la aprobación de cuentas y el aula no forman parte de esta primera demo. La interfaz lo comunica explícitamente. No se contrata hosting para esta entrega.
+La entrega pública inicial no incluía login ni aprobación; se añadieron el 04/10/2026 como entrega 2. El aula sigue pendiente. No se contrata hosting para esta demostración.
 
 ## Entrega 2 — Identidad y aprobación
 
-Siguiente módulo de desarrollo después de cerrar las verificaciones de la entrega 1:
+Implementación inicial añadida el 04/10/2026; operación y límites en [identidad y perfiles](14-identity-and-workspaces.md):
 
 1. Registrar una cuenta pendiente, sin confiar en roles enviados por el navegador.
 2. Autenticar con hash seguro y sesiones revocables; limitar intentos.
@@ -22,11 +22,17 @@ Siguiente módulo de desarrollo después de cerrar las verificaciones de la entr
 4. Proteger rutas y mostrar el estado de aprobación al usuario.
 5. Probar usuarios pendientes, suspendidos, sesiones revocadas y acceso cruzado.
 
-Definir primero quién administra la primera cuenta, cómo se recupera el acceso sin proveedor de correo confirmado y qué datos personales son indispensables. No crear credenciales públicas de administrador.
+La primera cuenta administrativa y los docentes se crean mediante CLI interactiva, sin credenciales públicas. Incluye paneles iniciales por perfil. Quedan pendientes recuperación de contraseña, verificación de correo y gestión web completa de cuentas/permisos antes de operar con estudiantes reales.
 
 ## Entrega 3 — Aula y operación del contenido
 
-Administración mínima de cursos/biblioteca, asignación de docentes, matrículas, acceso temporal, navegación de lecciones y progreso persistido. Cada acción se autoriza en NestJS. Incorporar archivos privados solo con almacenamiento y permisos definidos.
+Avance del 04/10/2026: [portal privado](15-private-portal.md) con navegación independiente, métricas reales, consulta de usuarios/cursos, matrícula administrativa, asignación de docentes y consulta de progreso persistido. Cada acción se autoriza en NestJS y las escrituras conservan auditoría.
+
+Ampliación codificada el 05/10/2026, pendiente de pruebas del propietario: solicitudes
+de inscripción, acceso institucional por módulos/plazo, revocación, aula de lectura
+y registro de avance. Preparación en la [guía del aula](16-enrollment-classroom.md).
+
+Pendientes: edición de cursos/biblioteca, video y archivos privados. Incorporar archivos privados solo con almacenamiento y permisos definidos. La matrícula manual no simula pagos ni concede acceso a módulos privados: requiere una autorización separada.
 
 ## Entrega 4 — Flujos de la guía de reunión
 

@@ -42,7 +42,7 @@ El símbolo de libro de `BrandMark` representa el espacio educativo. Puede susti
 
 ## Interacción y tema
 
-La portada prioriza cursos y biblioteca, que funcionan actualmente. El acceso al aula permanece identificado como próximo; no contiene un formulario de autenticación simulado. La portada ya no depende de readiness ni muestra estado técnico de infraestructura; los endpoints de salud existentes siguen disponibles.
+La portada prioriza cursos y biblioteca. Desde el 04/10/2026 el acceso incluye autenticación real, solicitud de cuenta y paneles iniciales de estudiante/docente/administración según [la guía de identidad](14-identity-and-workspaces.md); reutilizan la misma paleta, estados y tipografía. La portada no depende de readiness ni muestra estado técnico de infraestructura; los endpoints de salud siguen disponibles.
 
 El botón de tema permite elegir claro u oscuro. La preferencia `esapiens-theme` se guarda localmente y se sincroniza entre pestañas. Si el navegador bloquea almacenamiento, el cambio funciona durante la visita. Un script estático inicial aplica el tema antes de pintar; `suppressHydrationWarning` se limita al elemento `html`, cuyo atributo cambia. Si se incorpora CSP, este script requerirá el hash o nonce correspondiente.
 

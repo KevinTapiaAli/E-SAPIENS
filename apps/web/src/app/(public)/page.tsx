@@ -176,10 +176,11 @@ export default function Home() {
             <Icon name="info" className="mt-1 h-5 w-5 text-accent" />
             <div>
               <h2 className="text-base font-semibold">
-                Estamos preparando tu aula
+                Un espacio para cada perfil
               </h2>
               <p className="mt-1 text-sm leading-6 text-muted">
-                El acceso a cuentas y clases se habilitará en una próxima etapa.
+                Ingresa como estudiante, docente o administrador con tu cuenta
+                aprobada.
               </p>
             </div>
           </div>

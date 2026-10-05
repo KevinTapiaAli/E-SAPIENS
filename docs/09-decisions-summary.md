@@ -1,6 +1,6 @@
 # Resumen de decisiones técnicas
 
-La tabla conserva la arquitectura objetivo del blueprint. Implementado al 01/10/2026: web, API de lectura pública/salud, PostgreSQL por `pg`, conexión Redis y contratos TypeScript. El [ADR 0004](adr/0004-public-catalog.md) documenta esta entrega. Worker, autenticación, pagos, video y proveedores externos siguen pendientes; no hay hosting contratado. La aplicación móvil queda fuera de alcance hasta finalizar la web.
+La tabla conserva la arquitectura objetivo del blueprint. Al 04/10/2026 funcionan web, API pública/salud, PostgreSQL por `pg`, Redis, contratos TypeScript, identidad con aprobación y portal privado con matrículas/asignaciones. Véanse [ADR 0004](adr/0004-public-catalog.md), [ADR 0005](adr/0005-web-identity.md) y [ADR 0006](adr/0006-private-portal.md). Worker, pagos, video y proveedores externos siguen pendientes; no hay hosting contratado. La aplicación móvil queda fuera de alcance hasta finalizar la web.
 
 | Área          | Decisión                                                |
 | ------------- | ------------------------------------------------------- |

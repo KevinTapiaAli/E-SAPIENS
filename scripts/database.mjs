@@ -8,8 +8,8 @@ if (existsSync(envPath)) process.loadEnvFile(envPath);
 const require = createRequire(new URL("apps/api/package.json", root));
 const { Client } = require("pg");
 const command = process.argv[2];
-if (!["check", "init", "seed-demo"].includes(command))
-  throw new Error("Uso: database.mjs check|init|seed-demo");
+if (!["check", "init", "seed-demo", "seed-classroom"].includes(command))
+  throw new Error("Uso: database.mjs check|init|seed-demo|seed-classroom");
 if (!process.env.DATABASE_URL)
   throw new Error("Falta DATABASE_URL. Revisa .env.example.");
 
@@ -57,16 +57,26 @@ try {
       ),
     );
     console.log("Esquema inicial instalado en la base local vacía.");
-  } else if (command === "seed-demo") {
+  } else if (command === "seed-demo" || command === "seed-classroom") {
     await client.query("BEGIN");
     await client.query("SELECT pg_advisory_xact_lock(712410)");
     await client.query("SET LOCAL app.allow_demo_seed = 'enabled'");
     await client.query(
-      readFileSync(new URL("database/seeds/demo.sql", root), "utf8"),
+      readFileSync(
+        new URL(
+          command === "seed-demo"
+            ? "database/seeds/demo.sql"
+            : "database/seeds/classroom-demo.sql",
+          root,
+        ),
+        "utf8",
+      ),
     );
     await client.query("COMMIT");
     console.log(
-      "Contenido de demostración disponible. Los registros existentes no se sobrescribieron.",
+      command === "seed-demo"
+        ? "Contenido de demostración disponible. Los registros existentes no se sobrescribieron."
+        : "Lecturas demo preparadas. Se conservaron los textos no vacíos y las reglas ya existentes.",
     );
   }
   const result = await client.query(`SELECT

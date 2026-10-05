@@ -1,6 +1,38 @@
 import type { ReactNode } from "react";
 
 const paths: Record<IconName, ReactNode> = {
+  dashboard: (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </>
+  ),
+  users: (
+    <>
+      <circle cx="9" cy="8" r="3" />
+      <path d="M3 21v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 4v2" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
+    </>
+  ),
+  clipboard: (
+    <>
+      <rect x="5" y="4" width="14" height="18" rx="2" />
+      <rect x="9" y="2" width="6" height="4" rx="1" />
+      <path d="M9 11h6m-6 5h6" />
+    </>
+  ),
+  chart: (
+    <>
+      <path d="M3 3v18h18M7 16v-5m5 5V7m5 9V4" />
+    </>
+  ),
   book: (
     <>
       <path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1Z" />
@@ -50,6 +82,11 @@ const paths: Record<IconName, ReactNode> = {
 };
 
 export type IconName =
+  | "dashboard"
+  | "users"
+  | "user"
+  | "clipboard"
+  | "chart"
   | "book"
   | "library"
   | "arrow"
