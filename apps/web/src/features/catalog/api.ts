@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type {
   PublicCourse,
   PublicCourseDetail,
@@ -49,6 +50,6 @@ export function getCourses(query: string) {
     (value): value is PublicPage<PublicCourse> => isPublicPage(value, isCourse),
   );
 }
-export function getCourse(slug: string) {
+export const getCourse = cache(async (slug: string) => {
   return readPublicApi(`/courses/${encodeURIComponent(slug)}`, isCourseDetail);
-}
+});

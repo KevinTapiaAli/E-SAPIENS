@@ -12,6 +12,7 @@ export async function readPublicApi<T>(
   try {
     const response = await fetch(`${apiUrl.replace(/\/$/, "")}/api/v1${path}`, {
       cache: "no-store",
+      redirect: "error",
       signal: AbortSignal.timeout(8000),
       headers: { Accept: "application/json" },
     });

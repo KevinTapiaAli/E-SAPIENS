@@ -1,6 +1,6 @@
 # E-SAPIENS LMS
 
-Plataforma educativa web en desarrollo. La primera entrega funcional permite explorar cursos, consultar sus temarios publicados y buscar fichas bibliográficas. Los datos se leen desde PostgreSQL a través de NestJS; Next.js presenta la información sin conectarse directamente a la base.
+Plataforma educativa web en desarrollo. Permite explorar cursos, temarios y fichas bibliográficas, solicitar una cuenta de estudiante e ingresar a espacios de estudiante, docente y administración. NestJS comprueba identidad y permisos sobre PostgreSQL; Next.js presenta la información sin conectarse directamente a la base.
 
 ## Estado actual
 
@@ -8,7 +8,12 @@ Plataforma educativa web en desarrollo. La primera entrega funcional permite exp
 - API: salud, disponibilidad de PostgreSQL/Redis y cuatro endpoints públicos documentados en OpenAPI.
 - Contratos TypeScript compartidos, validación de entradas, consultas SQL parametrizadas y pruebas de integración contra PostgreSQL.
 - Demo local: tres cursos y dos fichas ficticias. No contiene credenciales de acceso utilizables.
-- Pendiente: registro, aprobación, autenticación, aula, administración, progreso, pagos, evaluaciones, certificados y publicación en producción. `/login` informa que el acceso está en preparación.
+- Identidad: registro de estudiante pendiente, aprobación administrativa y login/logout. Alta de docentes y administradores mediante CLI controlada. [Guía de acceso](docs/14-identity-and-workspaces.md).
+- Portal privado: dashboards por perfil, solicitudes, consulta de usuarios/cursos, matrícula administrativa, asignación docente y consulta del progreso persistido. [Guía del portal](docs/15-private-portal.md).
+- Calendario deslizable por perfil: administrador, docente y estudiante, con clases, recordatorios privados y avisos solo de próximos pendientes. [Agenda y arranque local](docs/20-calendar-and-local-start.md).
+- Mejoras del 06/10: carrusel institucional cada 5 segundos, consultas optimizadas, limpieza de recursos sin uso y refuerzo de seguridad. Revisión manual, sin ejecutar pruebas por indicación del propietario. [Detalle de cambios](docs/21-professional-experience.md).
+- Ampliación del 05/10: solicitudes de inscripción a materias, autorizaciones por módulo y plazo, aula de lectura y registro de avance. Código pendiente de comprobación por el propietario; requiere migración 0004. [Preparación y recorrido de prueba](docs/16-enrollment-classroom.md).
+- Pendiente: recuperación/verificación de correo, recursos y video privados, edición de contenidos, pagos, evaluaciones, certificados y publicación en producción.
 
 El alcance vigente es **web**. La aplicación móvil queda fuera del trabajo hasta completar el proyecto web. Infraestructura, concurrencia y financiación de la operación todavía deben confirmarse con E-SAPIENS.
 
@@ -16,7 +21,7 @@ El alcance vigente es **web**. La aplicación móvil queda fuera del trabajo has
 
 ```text
 Navegador → Next.js (apps/web) → NestJS REST (apps/api) → PostgreSQL
-                                    └→ Redis (comprobación de disponibilidad)
+                                    └→ Redis (disponibilidad y límites de autenticación)
           ↖ contratos TypeScript compartidos ↗
 ```
 
@@ -34,21 +39,27 @@ Crear los archivos de entorno **solo si no existen**:
 if (!(Test-Path .env)) { Copy-Item .env.example .env }
 if (!(Test-Path apps/web/.env.local)) { Copy-Item apps/web/.env.example apps/web/.env.local }
 pnpm.cmd install --frozen-lockfile
-docker compose -f docker-compose.dev.yml up -d
+pnpm.cmd infra:up
+pnpm.cmd db:prepare
+pnpm.cmd dev
 ```
 
 La configuración local usa PostgreSQL en `localhost:5433`, Redis en `localhost:6379`, API en `localhost:4000` y web en `localhost:3000`. Los valores de ejemplo de Docker son exclusivamente locales. No copiar estas credenciales a producción.
 
-Si la base está **vacía y no tiene esquema `lms`**:
+`db:prepare` instala el esquema inicial únicamente si no existe y aplica las migraciones pendientes hasta incluir agenda, tareas y perfiles. Conserva los datos existentes. Sirve tanto para el clon nuevo como para continuar con la base local. Si un comando falla, resolverlo antes de ejecutar el siguiente.
+
+Como alternativa manual, si la base está **vacía y no tiene esquema `lms`**:
 
 ```powershell
 pnpm.cmd db:init
+pnpm.cmd db:migrate
 ```
 
-Si ya tiene el esquema, conservarlo y ejecutar únicamente:
+Si ya tiene el esquema, conservarlo. Verificar y aplicar las migraciones incrementales:
 
 ```powershell
 pnpm.cmd db:check
+pnpm.cmd db:migrate
 ```
 
 Para añadir contenido ficticio local, sin sobrescribir registros existentes:
@@ -83,6 +94,9 @@ Las pruebas de catálogo insertan sus propios datos dentro de una transacción y
 - [API y comportamiento del catálogo público](docs/10-public-catalog.md).
 - [Sistema visual, temas y accesibilidad](docs/12-visual-system.md).
 - [Instalación y trabajo desde otra computadora](docs/13-laptop-setup.md).
+- [Acceso, aprobación y creación de las primeras cuentas](docs/14-identity-and-workspaces.md).
+- [Portal privado, matrículas y asignación de docentes](docs/15-private-portal.md).
+- [Inscripción a materias, módulos autorizados y aula](docs/16-enrollment-classroom.md).
 - [Arquitectura](docs/01-architecture.md), [roadmap vigente](docs/08-roadmap.md) y [decisiones técnicas](docs/09-decisions-summary.md).
 - [Reglas de colaboración](AGENTS.md), [prompt maestro](PROMPT_MAESTRO.md) y [árbol del repositorio](TREE.md).
 

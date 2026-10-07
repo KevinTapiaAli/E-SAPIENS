@@ -14,6 +14,7 @@ jobs:
 
     env:
       APP_ENV: test
+      APP_URL: http://localhost:3000
       DATABASE_URL: postgresql://esapiens:local_only_change_me@localhost:5432/esapiens
       REDIS_URL: redis://localhost:6379
       API_URL: http://localhost:4000
@@ -66,6 +67,9 @@ jobs:
 
       - name: Validate initial schema on empty PostgreSQL
         run: pnpm db:init
+
+      - name: Validate incremental identity migration
+        run: pnpm db:migrate
 
       - name: Lint
         run: pnpm lint

@@ -1,5 +1,33 @@
 @import "tailwindcss";
 
+@layer components {
+  .portal-mobile-dialog {
+    margin: 0;
+    width: min(300px, 90vw);
+    max-width: none;
+    height: 100dvh;
+    overscroll-behavior: contain;
+    max-height: none;
+    border: 0;
+    padding: 0;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .portal-mobile-dialog::backdrop {
+    background: rgb(10 20 40 / 50%);
+  }
+  .form-label {
+    @apply block text-sm font-semibold text-ink;
+  }
+  .form-input {
+    @apply mt-2 block min-h-12 w-full rounded-xl border border-input bg-surface px-4 py-3 text-base font-normal text-ink placeholder:text-muted;
+  }
+  .form-input:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+
 :root {
   color-scheme: light;
   --canvas: #f6f7fb;
@@ -93,6 +121,10 @@ body {
   color: var(--ink);
   font-family: var(--font-geist-sans), Arial, sans-serif;
   line-height: 1.65;
+  overflow-wrap: break-word;
+}
+body:has(.portal-mobile-dialog[open]) {
+  overflow: hidden;
 }
 h1,
 h2,
@@ -114,6 +146,13 @@ p {
 button,
 summary {
   cursor: pointer;
+}
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 button,
 input,

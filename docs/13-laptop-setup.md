@@ -1,6 +1,6 @@
 # Ejecutar E-SAPIENS en otra computadora
 
-Actualizado: 02/10/2026. Guía para Windows con PowerShell, desarrollo y demostración local. El repositorio contiene la web y API del catálogo público; el aula y la autenticación siguen pendientes. Publicar el código en GitHub permite continuar el trabajo desde otra computadora, pero no publica automáticamente un sitio en Internet.
+Actualizado: 04/10/2026. Guía para Windows con PowerShell, desarrollo y demostración local. Incluye catálogo público, autenticación y paneles iniciales por perfil; el aula sigue pendiente. Publicar código en GitHub no publica automáticamente un sitio en Internet. Después de preparar la base, ejecutar `pnpm.cmd db:migrate` y seguir la [guía de primeras cuentas](14-identity-and-workspaces.md).
 
 ## 1. Preparar la laptop
 

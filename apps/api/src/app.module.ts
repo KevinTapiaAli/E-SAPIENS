@@ -8,6 +8,8 @@ import { GlobalExceptionFilter } from './common/http/filters/global-exception.fi
 import { HealthModule } from './modules/health/health.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { LibraryModule } from './modules/library/library.module';
+import { IdentityModule } from './modules/identity/identity.module';
+import { AcademicModule } from './modules/academic/academic.module';
 
 @Module({
   imports: [
@@ -31,7 +33,7 @@ import { LibraryModule } from './modules/library/library.module';
 
               const requestId =
                 typeof incomingRequestId === 'string' &&
-                incomingRequestId.length <= 128
+                /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/.test(incomingRequestId)
                   ? incomingRequestId
                   : randomUUID();
 
@@ -41,7 +43,12 @@ import { LibraryModule } from './modules/library/library.module';
             },
 
             redact: {
-              paths: ['req.headers.authorization', 'req.headers.cookie'],
+              paths: [
+                'req.headers.authorization',
+                'req.headers.cookie',
+                'res.headers["set-cookie"]',
+                'req.body.password',
+              ],
               censor: '[REDACTED]',
             },
 
@@ -67,6 +74,8 @@ import { LibraryModule } from './modules/library/library.module';
     HealthModule,
     CatalogModule,
     LibraryModule,
+    IdentityModule,
+    AcademicModule,
   ],
 
   providers: [

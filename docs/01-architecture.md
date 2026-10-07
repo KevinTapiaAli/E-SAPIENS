@@ -21,13 +21,18 @@ Navegador web
       +--> Meet / Zoom links
 ```
 
-## Implementación vigente (01/10/2026)
+## Implementación vigente (04/10/2026)
 
-Web Next.js, API NestJS con módulos de salud/catálogo/biblioteca, PostgreSQL mediante `pg` y Redis para readiness. Los contratos públicos se comparten como tipos de transporte. Worker, colas, almacenamiento y proveedores del diagrama son arquitectura objetivo, todavía no servicios implementados. La aplicación móvil está excluida del alcance actual.
+Web Next.js, API NestJS con módulos de salud/catálogo/biblioteca/identidad/gestión académica, PostgreSQL mediante `pg` y Redis para readiness y límites de autenticación. Contratos compartidos públicos, de identidad y académicos. Sesiones opacas y aprobación según [ADR 0005](adr/0005-web-identity.md). El [portal privado](15-private-portal.md) usa layout propio dentro de Next.js y consulta métricas, matrículas y asignaciones autorizadas por NestJS según [ADR 0006](adr/0006-private-portal.md). Worker, colas, almacenamiento y proveedores del diagrama siguen siendo arquitectura objetivo. La aplicación móvil está excluida del alcance actual.
 
 Las lecturas públicas simples usan servicios de módulo con SQL parametrizado; no se crean capas vacías ni se añade un ORM sin necesidad. Véase [ADR 0004](adr/0004-public-catalog.md). Las reglas de dominio y ports de las siguientes secciones se incorporarán cuando existan casos de negocio que los requieran.
 
 ## Por qué no microservicios ahora
+
+Ampliación codificada el 05/10/2026, pendiente de validación: el módulo académico
+incorpora servicios de inscripción/autorizaciones y aula. Reutiliza las funciones
+SQL de acceso efectivo y progreso; Next.js añade solicitudes de materias, gestión
+de plazos y lectura de lecciones. [ADR 0007](adr/0007-enrollment-classroom.md).
 
 Microservicios añadirían despliegues, redes, observabilidad distribuida, consistencia eventual, contratos y fallos parciales antes de tener carga que lo justifique. La separación por módulos deja límites claros y facilita una extracción posterior.
 

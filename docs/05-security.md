@@ -1,5 +1,9 @@
 # Seguridad
 
+Implementación de identidad del 04/10/2026: [acceso y perfiles](14-identity-and-workspaces.md)
+y [ADR 0005](adr/0005-web-identity.md). La lista siguiente describe el objetivo global;
+recuperación/verificación de correo, archivos privados y pagos todavía están pendientes.
+
 ## Auth
 
 - Web: cookie de sesión/refresh `HttpOnly`, `Secure`, `SameSite` apropiado.
