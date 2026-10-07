@@ -33,7 +33,7 @@ import { AcademicModule } from './modules/academic/academic.module';
 
               const requestId =
                 typeof incomingRequestId === 'string' &&
-                incomingRequestId.length <= 128
+                /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/.test(incomingRequestId)
                   ? incomingRequestId
                   : randomUUID();
 

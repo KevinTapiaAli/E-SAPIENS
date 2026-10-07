@@ -10,6 +10,8 @@ Plataforma educativa web en desarrollo. Permite explorar cursos, temarios y fich
 - Demo local: tres cursos y dos fichas ficticias. No contiene credenciales de acceso utilizables.
 - Identidad: registro de estudiante pendiente, aprobación administrativa y login/logout. Alta de docentes y administradores mediante CLI controlada. [Guía de acceso](docs/14-identity-and-workspaces.md).
 - Portal privado: dashboards por perfil, solicitudes, consulta de usuarios/cursos, matrícula administrativa, asignación docente y consulta del progreso persistido. [Guía del portal](docs/15-private-portal.md).
+- Calendario deslizable por perfil: administrador, docente y estudiante, con clases, recordatorios privados y avisos solo de próximos pendientes. [Agenda y arranque local](docs/20-calendar-and-local-start.md).
+- Mejoras del 06/10: carrusel institucional cada 5 segundos, consultas optimizadas, limpieza de recursos sin uso y refuerzo de seguridad. Revisión manual, sin ejecutar pruebas por indicación del propietario. [Detalle de cambios](docs/21-professional-experience.md).
 - Ampliación del 05/10: solicitudes de inscripción a materias, autorizaciones por módulo y plazo, aula de lectura y registro de avance. Código pendiente de comprobación por el propietario; requiere migración 0004. [Preparación y recorrido de prueba](docs/16-enrollment-classroom.md).
 - Pendiente: recuperación/verificación de correo, recursos y video privados, edición de contenidos, pagos, evaluaciones, certificados y publicación en producción.
 
@@ -37,15 +39,20 @@ Crear los archivos de entorno **solo si no existen**:
 if (!(Test-Path .env)) { Copy-Item .env.example .env }
 if (!(Test-Path apps/web/.env.local)) { Copy-Item apps/web/.env.example apps/web/.env.local }
 pnpm.cmd install --frozen-lockfile
-docker compose -f docker-compose.dev.yml up -d
+pnpm.cmd infra:up
+pnpm.cmd db:prepare
+pnpm.cmd dev
 ```
 
 La configuración local usa PostgreSQL en `localhost:5433`, Redis en `localhost:6379`, API en `localhost:4000` y web en `localhost:3000`. Los valores de ejemplo de Docker son exclusivamente locales. No copiar estas credenciales a producción.
 
-Si la base está **vacía y no tiene esquema `lms`**:
+`db:prepare` instala el esquema inicial únicamente si no existe y aplica las migraciones pendientes hasta incluir agenda, tareas y perfiles. Conserva los datos existentes. Sirve tanto para el clon nuevo como para continuar con la base local. Si un comando falla, resolverlo antes de ejecutar el siguiente.
+
+Como alternativa manual, si la base está **vacía y no tiene esquema `lms`**:
 
 ```powershell
 pnpm.cmd db:init
+pnpm.cmd db:migrate
 ```
 
 Si ya tiene el esquema, conservarlo. Verificar y aplicar las migraciones incrementales:

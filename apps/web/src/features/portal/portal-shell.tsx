@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import type { SessionUser, WorkspaceRole } from "@esapiens/contracts";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
 import { Icon } from "@/shared/ui/icon";
@@ -23,6 +23,14 @@ export function PortalShell({
   const pathname = usePathname();
   const dialog = useRef<HTMLDialogElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => {
+      if (desktop.matches) dialog.current?.close();
+    };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
   const items = portalNavigation(role, user);
   const groups = [
     ...new Set(items.map((item) => portalSectionGroup(role, item.section))),
@@ -50,6 +58,7 @@ export function PortalShell({
           </Link>
           {mobile && (
             <button
+              type="button"
               className="icon-button"
               onClick={() => dialog.current?.close()}
               aria-label="Cerrar navegación"
@@ -145,7 +154,10 @@ export function PortalShell({
       <dialog
         ref={dialog}
         aria-label="Navegación del portal"
-        onClose={() => menuButton.current?.focus()}
+        onClose={() => {
+          if (menuButton.current?.getClientRects().length)
+            menuButton.current.focus();
+        }}
         onClick={(event) => {
           if (event.target === event.currentTarget) dialog.current?.close();
         }}
@@ -156,6 +168,7 @@ export function PortalShell({
       <header className="sticky top-0 z-30 flex min-h-20 items-center justify-between gap-3 border-b border-line bg-surface px-5 sm:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <button
+            type="button"
             ref={menuButton}
             className="icon-button lg:hidden"
             onClick={() => dialog.current?.showModal()}

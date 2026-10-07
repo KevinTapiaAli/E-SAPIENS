@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type {
   PublicLibraryDetail,
   PublicLibraryItem,
@@ -39,6 +40,6 @@ export function getLibrary(query: string) {
       isPublicPage(value, isLibraryItem),
   );
 }
-export function getLibraryItem(id: string) {
+export const getLibraryItem = cache(async (id: string) => {
   return readPublicApi(`/library/${encodeURIComponent(id)}`, isLibraryDetail);
-}
+});

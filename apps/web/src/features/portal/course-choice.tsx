@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { WorkspaceRole } from "@esapiens/contracts";
 
 export function CourseChoice({
@@ -14,25 +14,32 @@ export function CourseChoice({
   const [selected, setSelected] = useState(value);
   const [label, setLabel] = useState(value ? "Materia seleccionada" : "");
   const [search, setSearch] = useState("");
+  const [loadedSearch, setLoadedSearch] = useState("");
   const [items, setItems] = useState<
     { id: string; title: string; category: string }[]
   >([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const current = useRef(0);
+  const controller = useRef<AbortController | null>(null);
+  useEffect(() => () => controller.current?.abort(), []);
   async function find(next?: string) {
-    const id = ++current.current;
+    controller.current?.abort();
+    const current = new AbortController();
+    controller.current = current;
+    const term = next ? loadedSearch : search;
     setBusy(true);
     setMessage("");
+    if (!next) setCursor(null);
     try {
       const query = new URLSearchParams({
         role,
-        q: search,
+        q: term,
         ...(next ? { cursor: next } : {}),
       });
       const r = await fetch(`/api/academic/courses?${query}`, {
         cache: "no-store",
+        signal: AbortSignal.any([current.signal, AbortSignal.timeout(10000)]),
       });
       if (!r.ok) throw new Error();
       const data: unknown = await r.json();
@@ -54,8 +61,9 @@ export function CourseChoice({
           "category" in v &&
           typeof v.category === "string",
       );
-      if (current.current !== id) return;
+      if (current.signal.aborted) return;
       setItems(choices);
+      setLoadedSearch(term);
       setCursor(
         "nextCursor" in data && typeof data.nextCursor === "string"
           ? data.nextCursor
@@ -63,14 +71,17 @@ export function CourseChoice({
       );
       if (!choices.length) setMessage("No hay materias para esta búsqueda.");
     } catch {
-      if (current.current === id)
+      if (!current.signal.aborted) {
+        setItems([]);
+        setCursor(null);
         setMessage("No se pudieron consultar las materias. Vuelve a buscar.");
+      }
     } finally {
-      if (current.current === id) setBusy(false);
+      if (!current.signal.aborted) setBusy(false);
     }
   }
   return (
-    <fieldset className="min-w-0 space-y-3">
+    <fieldset className="min-w-0 space-y-3" aria-busy={busy}>
       <legend className="form-label mb-2">
         {required ? "1. Elige una materia" : "Materia"}
       </legend>
@@ -132,6 +143,8 @@ export function CourseChoice({
               <button
                 className={`w-full px-4 py-3 text-left text-sm hover:bg-brand-soft ${selected === item.id ? "bg-brand-soft" : ""}`}
                 type="button"
+                disabled={busy}
+                aria-pressed={selected === item.id}
                 onClick={() => {
                   setSelected(item.id);
                   setLabel(item.title);

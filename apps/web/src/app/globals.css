@@ -6,6 +6,7 @@
     width: min(300px, 90vw);
     max-width: none;
     height: 100dvh;
+    overscroll-behavior: contain;
     max-height: none;
     border: 0;
     padding: 0;
@@ -120,6 +121,10 @@ body {
   color: var(--ink);
   font-family: var(--font-geist-sans), Arial, sans-serif;
   line-height: 1.65;
+  overflow-wrap: break-word;
+}
+body:has(.portal-mobile-dialog[open]) {
+  overflow: hidden;
 }
 h1,
 h2,
@@ -141,6 +146,13 @@ p {
 button,
 summary {
   cursor: pointer;
+}
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 button,
 input,

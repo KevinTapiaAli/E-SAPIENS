@@ -5,7 +5,19 @@ import { getLibraryItem } from "@/features/library/api";
 import { Badge } from "@/shared/ui/badge";
 import { StatePanel } from "@/shared/ui/state-panel";
 
-export const metadata: Metadata = { title: "Ficha bibliográfica" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const result = await getLibraryItem(id);
+  if (result.status !== "ok") return { title: "Ficha bibliográfica" };
+  return {
+    title: result.data.title,
+    description: result.data.description.slice(0, 160),
+  };
+}
 export default async function LibraryItemPage({
   params,
 }: {

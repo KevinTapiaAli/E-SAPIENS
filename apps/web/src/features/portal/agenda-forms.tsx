@@ -1,11 +1,18 @@
 "use client";
 import { useRef } from "react";
+import type { WorkspaceRole } from "@esapiens/contracts";
 import {
   ActionFeedback,
   useAcademicAction,
 } from "@/features/classroom/academic-action";
-export function ReminderForm({ day }: { day: string }) {
-  const action = useAcademicAction("agenda");
+export function ReminderForm({
+  day,
+  role,
+}: {
+  day: string;
+  role: WorkspaceRole;
+}) {
+  const action = useAcademicAction(`agenda?role=${role}`);
   const operation = useRef<{ key: string; id: string } | null>(null);
   return (
     <form
@@ -37,7 +44,7 @@ export function ReminderForm({ day }: { day: string }) {
         <input
           name="title"
           className="form-input"
-          placeholder="Ej.: revisar matrículas pendientes"
+          placeholder="Ej.: preparar la próxima clase"
           required
           minLength={3}
           maxLength={180}
@@ -64,8 +71,16 @@ export function ReminderForm({ day }: { day: string }) {
     </form>
   );
 }
-export function ReminderToggle({ id, done }: { id: string; done: boolean }) {
-  const action = useAcademicAction(`agenda/${id}`);
+export function ReminderToggle({
+  id,
+  done,
+  role,
+}: {
+  id: string;
+  done: boolean;
+  role: WorkspaceRole;
+}) {
+  const action = useAcademicAction(`agenda/${id}?role=${role}`);
   return (
     <div>
       <button

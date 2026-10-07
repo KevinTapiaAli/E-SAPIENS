@@ -19,6 +19,7 @@
     "db:migrate": "node scripts/migrate.mjs",
     "account:create": "pnpm --dir apps/api exec ts-node src/cli/create-account.ts",
     "db:init": "node scripts/database.mjs init",
+    "db:prepare": "node scripts/database.mjs prepare",
     "db:seed:demo": "node scripts/database.mjs seed-demo",
     "db:seed:classroom": "node scripts/database.mjs seed-classroom"
   },

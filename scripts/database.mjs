@@ -8,8 +8,12 @@ if (existsSync(envPath)) process.loadEnvFile(envPath);
 const require = createRequire(new URL("apps/api/package.json", root));
 const { Client } = require("pg");
 const command = process.argv[2];
-if (!["check", "init", "seed-demo", "seed-classroom"].includes(command))
-  throw new Error("Uso: database.mjs check|init|seed-demo|seed-classroom");
+if (
+  !["check", "init", "prepare", "seed-demo", "seed-classroom"].includes(command)
+)
+  throw new Error(
+    "Uso: database.mjs check|init|prepare|seed-demo|seed-classroom",
+  );
 if (!process.env.DATABASE_URL)
   throw new Error("Falta DATABASE_URL. Revisa .env.example.");
 
@@ -40,23 +44,29 @@ const client = new Client({
 });
 try {
   await client.connect();
-  if (command === "init") {
+  if (command === "init" || command === "prepare") {
     await client.query("SELECT pg_advisory_lock(712410)");
     const existing = await client.query(
       "SELECT to_regnamespace('lms') IS NOT NULL AS exists",
     );
-    if (existing.rows[0].exists)
-      throw new Error(
-        "El esquema lms ya existe. Se conserva sin cambios. Utiliza db:check.",
+    if (existing.rows[0].exists) {
+      if (command === "init")
+        throw new Error(
+          "El esquema lms ya existe. Se conserva sin cambios. Utiliza db:prepare.",
+        );
+      console.log(
+        "Esquema existente conservado. Se aplicarán las migraciones pendientes.",
       );
-    // La migración original incluye su propia transacción; no se modifica ni se vuelve a aplicar.
-    await client.query(
-      readFileSync(
-        new URL("database/migrations/0001_initial_schema.sql", root),
-        "utf8",
-      ),
-    );
-    console.log("Esquema inicial instalado en la base local vacía.");
+    } else {
+      // La migración original incluye su propia transacción; no se vuelve a aplicar.
+      await client.query(
+        readFileSync(
+          new URL("database/migrations/0001_initial_schema.sql", root),
+          "utf8",
+        ),
+      );
+      console.log("Esquema inicial instalado en la base local vacía.");
+    }
   } else if (command === "seed-demo" || command === "seed-classroom") {
     await client.query("BEGIN");
     await client.query("SELECT pg_advisory_xact_lock(712410)");
@@ -95,4 +105,9 @@ try {
   process.exitCode = 1;
 } finally {
   await client.end();
+}
+
+// Liberar la conexión y su bloqueo antes de que migrate abra su transacción.
+if (command === "prepare" && !process.exitCode) {
+  await import("./migrate.mjs");
 }

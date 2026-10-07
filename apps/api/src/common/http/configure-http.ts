@@ -9,6 +9,8 @@ export function configureHttp(app: INestApplication): void {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+      validationError: { target: false, value: false },
       transform: true,
     }),
   );

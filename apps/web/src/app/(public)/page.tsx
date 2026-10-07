@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ActionLink } from "@/shared/ui/action-link";
 import { Icon, type IconName } from "@/shared/ui/icon";
 import { LearningIllustration } from "@/shared/ui/learning-illustration";
+import { InstitutionalCarousel } from "@/shared/ui/institutional-carousel";
 
 const resources: {
   href: string;
@@ -75,6 +76,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <div className="page-shell pt-10 sm:pt-12">
+        <InstitutionalCarousel />
+      </div>
 
       <section
         className="page-shell py-12 sm:py-16"

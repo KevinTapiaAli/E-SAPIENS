@@ -2,7 +2,8 @@
 import { portalSession } from "@/features/portal/server";
 import { isWorkspaceRole } from "@/features/portal/navigation";
 import { PortalHeading } from "@/features/portal/portal-ui";
-import { AdminAgenda } from "@/features/portal/admin-agenda";
+import { PortalAgenda } from "@/features/portal/portal-agenda";
+import { InstitutionalCarousel } from "@/shared/ui/institutional-carousel";
 import {
   LearningChallenge,
   TeachingCompass,
@@ -31,16 +32,29 @@ export default async function PortalHome({
               : "Aprender también es descubrir qué estrategias funcionan para ti."
         }
       />
+      <div className="mb-6">
+        <InstitutionalCarousel />
+      </div>
       {role === "administrador" ? (
-        <AdminAgenda
+        <PortalAgenda
+          role={role}
           timeZone={user.timeZone}
           month={filters.month}
           day={filters.day}
         />
-      ) : role === "docente" ? (
-        <TeachingCompass />
       ) : (
-        <LearningChallenge />
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="min-w-0">
+            {role === "docente" ? <TeachingCompass /> : <LearningChallenge />}
+          </div>
+          <PortalAgenda
+            role={role}
+            compact
+            timeZone={user.timeZone}
+            month={filters.month}
+            day={filters.day}
+          />
+        </div>
       )}
     </>
   );

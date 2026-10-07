@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { identityConfig, sessionCookie } from "@/features/auth/server";
+import { privateHeaders, readProxyBody } from "@/shared/api/proxy-request";
 
 async function proxy(
   request: NextRequest,
@@ -56,7 +57,7 @@ async function proxy(
           ),
         ];
   const headers = {
-    "Cache-Control": "no-store",
+    ...privateHeaders,
     "Content-Type": "application/json",
   };
   if (
@@ -71,47 +72,18 @@ async function proxy(
     const { api, origin } = identityConfig();
     let body: string | undefined;
     if (request.method === "POST") {
-      if (
-        request.headers.get("origin") !== origin ||
-        (request.headers.has("sec-fetch-site") &&
-          request.headers.get("sec-fetch-site") !== "same-origin")
-      )
-        return NextResponse.json(
-          { error: { message: "Origen no permitido." } },
-          { status: 403, headers },
-        );
-      if (!request.headers.get("content-type")?.startsWith("application/json"))
-        return NextResponse.json(
-          { error: { message: "Formato no permitido." } },
-          { status: 415, headers },
-        );
-      const reader = request.body?.getReader();
-      const chunks: Uint8Array[] = [];
-      let length = 0;
-      if (reader)
-        while (true) {
-          const part = await reader.read();
-          if (part.done) break;
-          length += part.value.byteLength;
-          if (
-            length >
-            (path.startsWith("management/courses") ||
-            path.startsWith("teaching/")
-              ? 98304
-              : 8192)
-          ) {
-            await reader.cancel();
-            return NextResponse.json(
-              { error: { message: "Solicitud demasiado grande." } },
-              { status: 413, headers },
-            );
-          }
-          chunks.push(part.value);
-        }
-      body = Buffer.concat(chunks).toString("utf8");
+      const result = await readProxyBody(
+        request,
+        origin,
+        path.startsWith("management/courses") || path.startsWith("teaching/")
+          ? 98304
+          : 8192,
+      );
+      if (result.error) return result.error;
+      body = result.body;
     }
     const response = await fetch(
-      `${api}/api/v1/academic/${path}${request.method === "GET" ? request.nextUrl.search : ""}`,
+      `${api}/api/v1/academic/${path}${request.method === "GET" || /^agenda(?:\/|$)/.test(path) ? request.nextUrl.search : ""}`,
       {
         method: request.method,
         body,

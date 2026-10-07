@@ -171,17 +171,20 @@ export interface AcademicReport {
   distribution: { label: string; value: number }[];
   timeline: { label: string; value: number }[];
 }
+export interface AgendaEvent {
+  id: string;
+  title: string;
+  day: string;
+  kind: "recordatorio" | "tarea" | "clase";
+  done: boolean;
+  courseId: string | null;
+  course: string | null;
+  occursAt: string | null;
+}
 export interface PersonalAgenda {
   days: { day: string; count: number }[];
-  events: {
-    id: string;
-    title: string;
-    day: string;
-    kind: "recordatorio" | "tarea" | "clase";
-    done: boolean;
-    courseId: string | null;
-    course: string | null;
-  }[];
+  events: AgendaEvent[];
+  upcoming: AgendaEvent[];
   total: number;
 }
 

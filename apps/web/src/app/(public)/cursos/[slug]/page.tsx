@@ -5,7 +5,19 @@ import { getCourse } from "@/features/catalog/api";
 import { Badge } from "@/shared/ui/badge";
 import { StatePanel } from "@/shared/ui/state-panel";
 
-export const metadata: Metadata = { title: "Detalle del curso" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const result = await getCourse(slug);
+  if (result.status !== "ok") return { title: "Detalle del curso" };
+  return {
+    title: result.data.title,
+    description: result.data.description.slice(0, 160),
+  };
+}
 export default async function CoursePage({
   params,
 }: {
@@ -85,9 +97,16 @@ export default async function CoursePage({
           <div className="mt-8 rounded-xl border border-line bg-brand-soft p-5">
             <p className="font-medium">Conoce el temario</p>
             <p className="mt-2 text-sm leading-6 text-muted">
-              Aquí puedes consultar los temas publicados. La inscripción y el
-              acceso a las clases se habilitarán próximamente.
+              Consulta los temas publicados y solicita tu inscripción desde el
+              portal. El acceso depende de la aprobación y vigencia de tu
+              matrícula.
             </p>
+            <Link
+              href="/portal/estudiante/oferta"
+              className="button button-primary mt-4"
+            >
+              Solicitar inscripción
+            </Link>
           </div>
         </section>
         <section>

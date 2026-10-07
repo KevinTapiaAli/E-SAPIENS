@@ -66,17 +66,18 @@ export default async function MetricsPage({
     ...(topic ? { topic } : {}),
     ...(courseId ? { courseId } : {}),
   });
-  const result = topic
-    ? await readPrivateApi(`academic/progress/report?${query}`, isReport)
-    : null;
   const recordQuery = new URLSearchParams(query);
   recordQuery.delete("topic");
   if (isResourceId(filters.cursor ?? ""))
     recordQuery.set("cursor", filters.cursor!);
-  const record =
+  const [result, record] = await Promise.all([
+    topic
+      ? readPrivateApi(`academic/progress/report?${query}`, isReport)
+      : null,
     topic && role === "estudiante"
-      ? await readPrivateApi(`academic/progress?${recordQuery}`, isProgressPage)
-      : null;
+      ? readPrivateApi(`academic/progress?${recordQuery}`, isProgressPage)
+      : null,
+  ]);
   const linkQuery = new URLSearchParams(query);
   linkQuery.delete("role");
   if (recordQuery.has("cursor"))
@@ -124,7 +125,11 @@ export default async function MetricsPage({
             </select>
           </label>
         </div>
-        <CourseChoice role={role} value={courseId} />
+        <CourseChoice
+          key={`${role}:${courseId ?? "all"}`}
+          role={role}
+          value={courseId}
+        />
         <button className="button button-primary">Consultar información</button>
       </form>
       {!topic ? (
