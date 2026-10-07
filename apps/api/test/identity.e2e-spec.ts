@@ -471,9 +471,23 @@ describe('Identidad, permisos y sesiones contra PostgreSQL/Redis (e2e)', () => {
       personId: identities.docente.id,
       courseId: managedCourse,
       reason: 'Asignación docente de prueba',
+      qualificationConfirmed: true,
     };
     await academicPost('assignments')
       .send({ ...dto, personId: newStudentId })
+      .expect(409);
+    const unreviewed = await academicPost('assignments').send(dto).expect(409);
+    expect(unreviewed.body.error.code).toBe('TEACHER_QUALIFICATION_REQUIRED');
+    await db.query(
+      'UPDATE lms.perfiles_docentes SET revision_formacion=$2,revisado_por=$3,revisado_en=now() WHERE usuario_id=$1',
+      [
+        identities.docente.id,
+        'Formación revisada para la asignación de prueba',
+        identities.administrador.id,
+      ],
+    );
+    await academicPost('assignments')
+      .send({ ...dto, qualificationConfirmed: false })
       .expect(409);
     const first = await academicPost('assignments').send(dto).expect(200);
     const second = await academicPost('assignments').send(dto).expect(200);
@@ -565,7 +579,19 @@ describe('Identidad, permisos y sesiones contra PostgreSQL/Redis (e2e)', () => {
     ).expect(200);
     expect(next.body.items[0].id).not.toBe(people.body.items[0].id);
     expect(Object.keys(people.body.items[0]).sort()).toEqual(
-      ['id', 'firstName', 'lastName', 'email', 'roles', 'status'].sort(),
+      [
+        'id',
+        'firstName',
+        'lastName',
+        'email',
+        'roles',
+        'status',
+        'specialty',
+        'curriculumUrl',
+        'qualificationReview',
+        'qualificationReviewedAt',
+        'profileRevision',
+      ].sort(),
     );
     const teachers = await academicGet(
       `people?q=${marker}&kind=docente&state=aprobado`,
