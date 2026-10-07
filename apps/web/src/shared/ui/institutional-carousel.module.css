@@ -64,7 +64,10 @@
   opacity: 0;
   visibility: hidden;
   transform: translateX(1.25rem);
-  transition: opacity 450ms ease, transform 450ms ease, visibility 450ms;
+  transition:
+    opacity 450ms ease,
+    transform 450ms ease,
+    visibility 450ms;
 }
 
 .active {
@@ -177,7 +180,9 @@
   height: 0.5rem;
   border-radius: 1rem;
   background: var(--input);
-  transition: width 250ms ease, background-color 250ms ease;
+  transition:
+    width 250ms ease,
+    background-color 250ms ease;
 }
 
 .indicator[aria-pressed="true"] span {

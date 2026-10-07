@@ -196,7 +196,9 @@ export async function PortalAgenda({
               </span>
             ))}
           </div>
-          <div className={`grid grid-cols-7 gap-1 ${compact ? "" : "sm:gap-2"}`}>
+          <div
+            className={`grid grid-cols-7 gap-1 ${compact ? "" : "sm:gap-2"}`}
+          >
             {Array.from({ length: (start.getUTCDay() + 6) % 7 }, (_, i) => (
               <span key={`blank-${i}`} aria-hidden />
             ))}
@@ -220,7 +222,8 @@ export async function PortalAgenda({
                         "●"
                       ) : (
                         <>
-                          {count} <span className="hidden sm:inline">activ.</span>
+                          {count}{" "}
+                          <span className="hidden sm:inline">activ.</span>
                         </>
                       )}
                     </span>
@@ -242,9 +245,7 @@ export async function PortalAgenda({
               próximos 30 días.
             </p>
             {result.data.upcoming.length ? (
-              <ul
-                className="mt-3 max-h-80 space-y-3 overflow-y-auto overscroll-contain p-1"
-              >
+              <ul className="mt-3 max-h-80 space-y-3 overflow-y-auto overscroll-contain p-1">
                 {result.data.upcoming.map((event) => (
                   <li
                     key={`${event.kind}-${event.id}`}
@@ -299,9 +300,7 @@ export async function PortalAgenda({
                 para planificar o añadir un recordatorio.
               </p>
             ) : (
-              <ul
-                className="mt-5 max-h-96 space-y-4 overflow-y-auto overscroll-contain p-1"
-              >
+              <ul className="mt-5 max-h-96 space-y-4 overflow-y-auto overscroll-contain p-1">
                 {result.data.events.map((event) => (
                   <li
                     key={`${event.kind}-${event.id}`}

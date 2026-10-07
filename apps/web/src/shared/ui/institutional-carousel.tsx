@@ -104,7 +104,8 @@ export function InstitutionalCarousel() {
       onMouseLeave={() => setHovered(false)}
       onFocusCapture={() => setFocused(true)}
       onBlurCapture={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
+        if (!event.currentTarget.contains(event.relatedTarget))
+          setFocused(false);
       }}
     >
       <div className={styles.header}>

@@ -9,7 +9,9 @@ export async function POST(
   const path = (await context.params).path.join("/");
   if (
     !["login", "logout", "register", "avatar"].includes(path) &&
-    !/^accounts\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/review$/i.test(path)
+    !/^accounts\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/review$/i.test(
+      path,
+    )
   ) {
     return NextResponse.json(
       { error: { message: "Ruta no disponible." } },

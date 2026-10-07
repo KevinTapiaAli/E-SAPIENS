@@ -97,8 +97,12 @@ export function AgendaCalendar({
         onKeyDown={(event) => {
           if (
             event.target !== event.currentTarget ||
-            event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
-          ) return;
+            event.altKey ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.shiftKey
+          )
+            return;
           if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
             event.preventDefault();
             navigate(event.key === "ArrowLeft" ? previousMonth : nextMonth);
@@ -125,7 +129,11 @@ export function AgendaCalendar({
             gesture.current = null;
             return;
           }
-          if (!current.dragging && horizontal > 14 && horizontal > vertical * 1.4) {
+          if (
+            !current.dragging &&
+            horizontal > 14 &&
+            horizontal > vertical * 1.4
+          ) {
             current.dragging = true;
             event.currentTarget.setPointerCapture(event.pointerId);
           }
@@ -141,11 +149,16 @@ export function AgendaCalendar({
           suppressClickUntil.current = Date.now() + 500;
           const horizontal = event.clientX - current.x;
           const vertical = Math.abs(event.clientY - current.y);
-          if (Math.abs(horizontal) >= 56 && Math.abs(horizontal) > vertical * 1.4) {
+          if (
+            Math.abs(horizontal) >= 56 &&
+            Math.abs(horizontal) > vertical * 1.4
+          ) {
             navigate(horizontal > 0 ? previousMonth : nextMonth);
           }
         }}
-        onPointerCancel={() => { gesture.current = null; }}
+        onPointerCancel={() => {
+          gesture.current = null;
+        }}
         onLostPointerCapture={(event) => {
           // Touch may transfer its implicit capture from a day link to the viewport.
           if (event.target === event.currentTarget) gesture.current = null;
