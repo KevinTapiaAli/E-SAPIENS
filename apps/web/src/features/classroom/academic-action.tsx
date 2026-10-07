@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { actionFeedback } from "@/features/auth/action-feedback";
 
-export function useAcademicAction(path: string) {
+export function useAcademicAction(path: string, refreshOnSuccess = true) {
   const router = useRouter();
   const busy = useRef(false);
   const [pending, setPending] = useState(false);
@@ -34,7 +34,7 @@ export function useAcademicAction(path: string) {
           ? data.enrollmentId
           : undefined;
       setFeedback({ ok: response.ok, message: result.message, enrollmentId });
-      if (response.ok) router.refresh();
+      if (response.ok && refreshOnSuccess) router.refresh();
       return { ok: response.ok, data };
     } catch {
       setFeedback({

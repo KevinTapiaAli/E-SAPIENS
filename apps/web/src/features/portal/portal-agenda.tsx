@@ -1,10 +1,12 @@
-﻿import Link from "next/link";
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import type {
   AgendaEvent,
   PersonalAgenda,
   WorkspaceRole,
 } from "@esapiens/contracts";
-import { readPrivateApi } from "@/features/auth/server";
 import { isRecord } from "@/shared/api/public-api";
 import { PortalUnavailable } from "./portal-ui";
 import { ReminderForm, ReminderToggle } from "./agenda-forms";
@@ -48,10 +50,12 @@ function EventDetails({
   event,
   role,
   timeZone,
+  onSaved,
 }: {
   event: AgendaEvent;
   role: WorkspaceRole;
   timeZone: string;
+  onSaved: () => void;
 }) {
   return (
     <>
@@ -88,7 +92,12 @@ function EventDetails({
         </time>
       )}
       {event.kind === "recordatorio" ? (
-        <ReminderToggle id={event.id} done={event.done} role={role} />
+        <ReminderToggle
+          id={event.id}
+          done={event.done}
+          role={role}
+          onSaved={onSaved}
+        />
       ) : event.kind === "tarea" && event.courseId ? (
         <Link
           href={`/portal/${role}/cursos/${event.courseId}/tareas/${event.id}`}
@@ -101,12 +110,12 @@ function EventDetails({
   );
 }
 
-export async function PortalAgenda({
+export function PortalAgenda({
   role,
   compact = false,
   timeZone,
-  month: requestedMonth,
-  day: requestedDay,
+  month: initialMonth,
+  day: initialDay,
 }: {
   role: WorkspaceRole;
   compact?: boolean;
@@ -114,6 +123,17 @@ export async function PortalAgenda({
   month?: string;
   day?: string;
 }) {
+  const [selection, setSelection] = useState({
+    month: initialMonth,
+    day: initialDay,
+  });
+  const { month: requestedMonth, day: requestedDay } = selection;
+  const [revision, setRevision] = useState(0);
+  const refresh = () => setRevision((value) => value + 1);
+  const [snapshot, setSnapshot] = useState<{
+    key: string;
+    data?: PersonalAgenda;
+  } | null>(null);
   const parts = new Intl.DateTimeFormat("en", {
     timeZone,
     year: "numeric",
@@ -142,8 +162,32 @@ export async function PortalAgenda({
       : today.startsWith(month)
         ? today
         : `${month}-01`;
-  const query = new URLSearchParams({ month, day, role });
-  const result = await readPrivateApi(`academic/agenda?${query}`, valid);
+  const query = new URLSearchParams({ month, day, role }).toString();
+  const requestKey = `${query}:${revision}`;
+  const pending = snapshot?.key !== requestKey;
+  const result: { data?: PersonalAgenda } = pending ? {} : (snapshot ?? {});
+  useEffect(() => {
+    const controller = new AbortController();
+    async function load() {
+      try {
+        const response = await fetch(`/api/academic/agenda?${query}`, {
+          cache: "no-store",
+          signal: AbortSignal.any([
+            controller.signal,
+            AbortSignal.timeout(10000),
+          ]),
+        });
+        const value: unknown = await response.json();
+        if (!response.ok || !valid(value)) throw new Error();
+        if (!controller.signal.aborted)
+          setSnapshot({ key: requestKey, data: value });
+      } catch {
+        if (!controller.signal.aborted) setSnapshot({ key: requestKey });
+      }
+    }
+    void load();
+    return () => controller.abort();
+  }, [query, requestKey]);
   const activityCounts = new Map<string, number>(
     result.data?.days.map(({ day, count }) => [day, count]),
   );
@@ -161,7 +205,7 @@ export async function PortalAgenda({
     <div
       className={
         compact
-          ? "w-full min-w-0 max-w-sm space-y-4"
+          ? "w-full min-w-0 space-y-4"
           : "grid items-start gap-6 xl:grid-cols-[1.3fr_1fr]"
       }
     >
@@ -173,14 +217,15 @@ export async function PortalAgenda({
           <p className="eyebrow">
             {compact ? "Mi calendario" : "Tu agenda de coordinación"}
           </p>
-          <Link
-            href={`?month=${today.slice(0, 7)}&day=${today}`}
-            scroll={false}
-            prefetch={false}
+          <button
+            type="button"
+            onClick={() =>
+              setSelection({ month: today.slice(0, 7), day: today })
+            }
             className="text-link inline-flex min-h-11 items-center text-sm"
           >
             Hoy
-          </Link>
+          </button>
         </div>
         <AgendaCalendar
           month={month}
@@ -188,6 +233,8 @@ export async function PortalAgenda({
           previousMonth={month === "2000-01" ? null : shift(-1)}
           nextMonth={month === "2099-12" ? null : shift(1)}
           compact={compact}
+          pending={pending}
+          onMonthChange={(month) => setSelection({ month, day: undefined })}
         >
           <div className="grid grid-cols-7 text-center text-xs text-muted">
             {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((d) => (
@@ -206,11 +253,10 @@ export async function PortalAgenda({
               const date = `${month}-${String(i + 1).padStart(2, "0")}`;
               const count = activityCounts.get(date) ?? 0;
               return (
-                <Link
+                <button
+                  type="button"
                   key={date}
-                  prefetch={false}
-                  scroll={false}
-                  href={`?month=${month}&day=${date}`}
+                  onClick={() => setSelection({ month, day: date })}
                   aria-current={date === day ? "date" : undefined}
                   aria-label={`${date}${count ? `, ${count} actividades` : ""}`}
                   className={`flex min-w-0 flex-col items-center justify-center rounded-xl border text-sm transition-colors ${compact ? "min-h-11" : "min-h-16 sm:min-h-20"} ${date === day ? "border-brand bg-brand text-on-brand" : date === today ? "border-brand bg-brand-soft" : "border-line hover:bg-brand-soft"}`}
@@ -228,7 +274,7 @@ export async function PortalAgenda({
                       )}
                     </span>
                   )}
-                </Link>
+                </button>
               );
             })}
           </div>
@@ -251,10 +297,14 @@ export async function PortalAgenda({
                     key={`${event.kind}-${event.id}`}
                     className="rounded-xl border border-line p-3"
                   >
-                    <Link
-                      href={`?month=${event.day.slice(0, 7)}&day=${event.day}`}
-                      prefetch={false}
-                      scroll={false}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelection({
+                          month: event.day.slice(0, 7),
+                          day: event.day,
+                        })
+                      }
                       className="text-link mb-2 inline-flex min-h-11 items-center text-xs"
                     >
                       {event.day === today
@@ -264,11 +314,12 @@ export async function PortalAgenda({
                             timeZone: "UTC",
                           }).format(new Date(`${event.day}T12:00:00Z`))}{" "}
                       · Ver día
-                    </Link>
+                    </button>
                     <EventDetails
                       event={event}
                       role={role}
                       timeZone={timeZone}
+                      onSaved={refresh}
                     />
                   </li>
                 ))}
@@ -291,7 +342,22 @@ export async function PortalAgenda({
           }).format(new Date(`${day}T12:00:00Z`))}
         </h2>
         {!result.data ? (
-          <PortalUnavailable />
+          pending ? (
+            <p role="status" className="my-6 text-sm text-muted">
+              Cargando agenda…
+            </p>
+          ) : (
+            <>
+              <PortalUnavailable />
+              <button
+                type="button"
+                onClick={refresh}
+                className="button button-secondary mt-3"
+              >
+                Reintentar
+              </button>
+            </>
+          )
         ) : (
           <>
             {!result.data.events.length ? (
@@ -310,6 +376,7 @@ export async function PortalAgenda({
                       event={event}
                       role={role}
                       timeZone={timeZone}
+                      onSaved={refresh}
                     />
                   </li>
                 ))}
@@ -329,10 +396,10 @@ export async function PortalAgenda({
               <summary className="text-link cursor-pointer py-3 text-sm">
                 Añadir recordatorio personal
               </summary>
-              <ReminderForm key={day} day={day} role={role} />
+              <ReminderForm key={day} day={day} role={role} onSaved={refresh} />
             </details>
           ) : (
-            <ReminderForm key={day} day={day} role={role} />
+            <ReminderForm key={day} day={day} role={role} onSaved={refresh} />
           ))}
       </section>
     </div>

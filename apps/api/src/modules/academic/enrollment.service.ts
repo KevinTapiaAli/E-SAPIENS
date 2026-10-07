@@ -50,7 +50,11 @@ export class EnrollmentService {
     };
   }
 
-  async request(user: SessionUser, courseId: string) {
+  async request(
+    user: SessionUser,
+    courseId: string,
+    visitor: string | null = null,
+  ) {
     this.identity.authorize(user, 'estudiante');
     return this.db.transaction(async (client) => {
       const course = await client.query(
@@ -75,9 +79,9 @@ export class EnrollmentService {
         user.id,
       ]);
       const result = await client.query(
-        `INSERT INTO lms.solicitudes_inscripcion(estudiante_id,curso_id) VALUES($1,$2)
+        `INSERT INTO lms.solicitudes_inscripcion(estudiante_id,curso_id,web_visitor_hash) VALUES($1,$2,$3)
          ON CONFLICT(estudiante_id,curso_id) DO NOTHING RETURNING id`,
-        [user.id, courseId],
+        [user.id, courseId, visitor],
       );
       return {
         message: result.rowCount

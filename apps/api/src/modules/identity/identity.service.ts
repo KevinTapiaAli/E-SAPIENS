@@ -111,18 +111,22 @@ export class IdentityService {
       );
   }
 
-  async register(dto: RegisterDto): Promise<{ message: string }> {
+  async register(
+    dto: RegisterDto,
+    visitor: string | null = null,
+  ): Promise<{ message: string }> {
     const passwordHash = await hashPassword(dto.password);
     await this.database.transaction(async (client) => {
       const result = await client.query<{ id: string }>(
-        `INSERT INTO lms.usuarios(email,username,nombres,apellidos,password_hash)
-        VALUES($1,$2,$3,$4,$5) ON CONFLICT(email) DO NOTHING RETURNING id`,
+        `INSERT INTO lms.usuarios(email,username,nombres,apellidos,password_hash,web_visitor_hash)
+        VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(email) DO NOTHING RETURNING id`,
         [
           dto.email,
           `u-${randomUUID()}`,
           dto.firstName,
           dto.lastName,
           passwordHash,
+          visitor,
         ],
       );
       const id = result.rows[0]?.id;

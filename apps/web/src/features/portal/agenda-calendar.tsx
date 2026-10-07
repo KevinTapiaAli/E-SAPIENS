@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useId, useRef, useTransition, type ReactNode } from "react";
+import { useId, useRef, type ReactNode } from "react";
 import styles from "./agenda-calendar.module.css";
 
 export function AgendaCalendar({
@@ -11,6 +9,8 @@ export function AgendaCalendar({
   previousMonth,
   nextMonth,
   compact,
+  pending,
+  onMonthChange,
   children,
 }: {
   month: string;
@@ -18,11 +18,11 @@ export function AgendaCalendar({
   previousMonth: string | null;
   nextMonth: string | null;
   compact: boolean;
+  pending: boolean;
+  onMonthChange: (month: string) => void;
   children: ReactNode;
 }) {
-  const router = useRouter();
   const hintId = useId();
-  const [pending, startTransition] = useTransition();
   const gesture = useRef<{
     pointerId: number;
     x: number;
@@ -33,22 +33,22 @@ export function AgendaCalendar({
 
   function navigate(target: string | null) {
     if (!target || pending) return;
-    startTransition(() => router.push(`?month=${target}`, { scroll: false }));
+    onMonthChange(target);
   }
 
   return (
     <div aria-busy={pending}>
       <div className="my-5 flex items-center justify-between gap-2">
         {previousMonth ? (
-          <Link
+          <button
+            type="button"
+            disabled={pending}
             aria-label="Mes anterior"
-            prefetch={false}
-            scroll={false}
-            href={`?month=${previousMonth}`}
+            onClick={() => navigate(previousMonth)}
             className="button button-secondary"
           >
             <span aria-hidden="true">←</span>
-          </Link>
+          </button>
         ) : (
           <button
             type="button"
@@ -67,15 +67,15 @@ export function AgendaCalendar({
           {heading}
         </h2>
         {nextMonth ? (
-          <Link
+          <button
+            type="button"
+            disabled={pending}
             aria-label="Mes siguiente"
-            prefetch={false}
-            scroll={false}
-            href={`?month=${nextMonth}`}
+            onClick={() => navigate(nextMonth)}
             className="button button-secondary"
           >
             <span aria-hidden="true">→</span>
-          </Link>
+          </button>
         ) : (
           <button
             type="button"

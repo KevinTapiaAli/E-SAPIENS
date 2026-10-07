@@ -1,6 +1,6 @@
 # Ejecutar E-SAPIENS en otra computadora
 
-Actualizado: 04/10/2026. Guía para Windows con PowerShell, desarrollo y demostración local. Incluye catálogo público, autenticación y paneles iniciales por perfil; el aula sigue pendiente. Publicar código en GitHub no publica automáticamente un sitio en Internet. Después de preparar la base, ejecutar `pnpm.cmd db:migrate` y seguir la [guía de primeras cuentas](14-identity-and-workspaces.md).
+Actualizado: 07/10/2026. Guía para Windows con PowerShell, desarrollo y demostración local. Incluye catálogo público, autenticación, aula, calendario lateral por perfil y panel ejecutivo administrativo. Publicar código en GitHub no publica automáticamente un sitio en Internet. Para una base nueva, seguir también la [guía de primeras cuentas](14-identity-and-workspaces.md).
 
 ## 1. Preparar la laptop
 
@@ -34,7 +34,7 @@ Si ya tienes un clon en la laptop, no clones encima ni reemplaces sus archivos. 
 
 ## 3. Configuración y dependencias
 
-Ejecutar desde la raíz del repositorio. Los archivos locales se crean solo si no existen:
+Ejecutar desde la raíz del repositorio: la carpeta que contiene `package.json` y `pnpm-workspace.yaml`. Si estás en una carpeta exterior que contiene el clon `E-SAPIENS`, entra con `Set-Location .\E-SAPIENS`. Los archivos locales se crean solo si no existen:
 
 ```powershell
 if (!(Test-Path .env)) { Copy-Item .env.example .env }
@@ -53,17 +53,15 @@ docker compose -f docker-compose.dev.yml ps
 
 Ambos servicios deben figurar como saludables (`healthy`). Docker conserva PostgreSQL en un volumen local de esta laptop.
 
-**Solo en la primera instalación, con una base vacía:**
+Preparar una base nueva o actualizar una existente:
 
 ```powershell
-pnpm.cmd db:init
-pnpm.cmd db:seed:demo
-pnpm.cmd db:check
+pnpm.cmd db:prepare
 ```
 
-Ejecutar los comandos uno por uno y detenerse si aparece un error. `db:init` instala el esquema original y rechaza un esquema `lms` existente. Si ya tienes datos, omite `db:init` y comprueba la base con `pnpm.cmd db:check`. El seed es opcional, agrega tres cursos y dos fichas ficticias y no sobrescribe registros existentes.
+Ejecutar los comandos uno por uno y detenerse si aparece un error. `db:prepare` instala el esquema solo si falta y aplica las migraciones pendientes conservando los datos. Si el esquema ya existe, también puedes aplicar únicamente las migraciones con `pnpm.cmd db:migrate`. No ejecutar `db:migrate` como comando independiente de PowerShell.
 
-Con una instalación nueva y el seed, la comprobación muestra 74 tablas, 26 funciones, 3 cursos publicados y 2 fichas públicas. Sin el seed, los catálogos pueden estar vacíos.
+El seed opcional `pnpm.cmd db:seed:demo` agrega tres cursos y dos fichas ficticias sin sobrescribir registros existentes. Sin el seed, los catálogos pueden estar vacíos. Las migraciones amplían el esquema original; la migración `0008` habilita la medición del panel ejecutivo y no reconstruye visitas anteriores.
 
 GitHub transporta código, migraciones y el seed; **no sincroniza el contenido de PostgreSQL entre computadoras**. Para continuar la demo basta con el seed. Si posteriormente necesitas trasladar datos propios, utiliza una copia y restauración controlada, fuera de Git.
 
@@ -83,7 +81,7 @@ Mantener esta terminal abierta. Se inician Next.js y NestJS juntos.
 | Swagger / API documentada    | http://localhost:4000/api/docs            |
 | Estado de PostgreSQL y Redis | http://localhost:4000/api/v1/health/ready |
 
-Para la demostración, abrir un curso, expandir su temario, buscar una ficha bibliográfica y alternar el tema claro/oscuro. El acceso al aula muestra su estado pendiente; todavía no hay cuentas para iniciar sesión.
+Usar las cuentas locales existentes. En una base nueva, crear la primera cuenta administrativa mediante la [CLI documentada](14-identity-and-workspaces.md). Los permisos y las inscripciones determinan el acceso al aula. El calendario se abre desde el botón lateral derecho y el panel ejecutivo está en el inicio del administrador.
 
 ## 6. Detener y volver a trabajar
 
@@ -104,7 +102,18 @@ No es necesario inicializar ni cargar el seed cada día. Evitar `docker compose 
 
 ## 7. Continuar entre la PC y la laptop
 
-Antes de empezar, comprobar `git status`. Si no hay cambios pendientes, actualizar `develop` con `git pull --ff-only origin develop`. Después de actualizar el código, ejecutar `pnpm.cmd install --frozen-lockfile`. Revisar las instrucciones de futuras migraciones; no volver a ejecutar la migración inicial sobre datos existentes.
+Antes de empezar, comprobar `git status` desde la carpeta que contiene `package.json`. Si no hay cambios pendientes, actualizar y arrancar con Docker Desktop abierto:
+
+```powershell
+git switch develop
+git pull --ff-only origin develop
+pnpm.cmd install --frozen-lockfile
+pnpm.cmd infra:up
+pnpm.cmd db:prepare
+pnpm.cmd dev
+```
+
+Ejecutar uno por uno y detenerse si aparece un error. `db:prepare` conserva el esquema y los datos existentes; no volver a ejecutar la migración inicial manualmente sobre ellos. Los archivos de entorno, las cuentas y los datos de PostgreSQL siguen siendo locales a cada computadora.
 
 Para una tarea nueva, crear una rama corta desde `develop` según `CONTRIBUTING.md`. Antes de cambiar de computadora, guardar el trabajo en un commit y subir su rama. En la otra computadora, hacer `git fetch origin` y abrir esa misma rama. Si Git informa divergencia o conflictos, resolverlos conservando ambos trabajos; no usar `reset --hard` o un push forzado como método de sincronización.
 
@@ -126,6 +135,8 @@ Las pruebas de integración usan una transacción con rollback y conservan los d
 | Síntoma                                                  | Qué revisar                                                                                                        |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `pnpm.ps1` está bloqueado                                | Usar `pnpm.cmd`, como en esta guía.                                                                                |
+| `db:migrate` no se reconoce                              | Ejecutar `pnpm.cmd db:migrate` desde la raíz del proyecto.                                                         |
+| `ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND`                    | Entrar a la carpeta que contiene `package.json`; si estás en la carpeta exterior, usar `Set-Location .\E-SAPIENS`. |
 | Docker no puede conectarse al motor                      | Abrir Docker Desktop, comprobar WSL 2 y esperar al inicio del motor.                                               |
 | `ECONNREFUSED`, readiness falla o catálogo no disponible | Revisar que PostgreSQL y Redis estén saludables, que la API esté iniciada y que existan ambos archivos de entorno. |
 | Puerto ocupado                                           | Revisar 3000, 4000, 5433 y 6379; cerrar únicamente el servicio propio que esté usando el puerto.                   |

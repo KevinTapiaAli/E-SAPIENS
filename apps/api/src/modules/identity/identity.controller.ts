@@ -23,6 +23,7 @@ import { IsOptional, IsUUID } from 'class-validator';
 import { IdentityService } from './identity.service';
 import { IdentitySecurityService } from './identity-security.service';
 import { LoginDto, RegisterDto, ReviewAccountDto } from './identity.dto';
+import { visitorDigest } from '../analytics/visitor';
 
 class PendingQuery {
   @IsOptional()
@@ -78,7 +79,10 @@ export class IdentityController {
   async register(@Body() dto: RegisterDto, @Req() request: Request) {
     this.security.checkOrigin(request);
     await this.security.limit(request, 'register', dto.email);
-    return this.identity.register(dto);
+    return this.identity.register(
+      dto,
+      visitorDigest(request.headers['x-esapiens-visitor']),
+    );
   }
 
   @Post('logout')

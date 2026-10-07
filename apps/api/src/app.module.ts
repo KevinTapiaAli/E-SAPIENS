@@ -10,6 +10,7 @@ import { CatalogModule } from './modules/catalog/catalog.module';
 import { LibraryModule } from './modules/library/library.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { AcademicModule } from './modules/academic/academic.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { AcademicModule } from './modules/academic/academic.module';
               paths: [
                 'req.headers.authorization',
                 'req.headers.cookie',
+                'req.headers["x-esapiens-visitor"]',
                 'res.headers["set-cookie"]',
                 'req.body.password',
               ],
@@ -76,6 +78,7 @@ import { AcademicModule } from './modules/academic/academic.module';
     LibraryModule,
     IdentityModule,
     AcademicModule,
+    AnalyticsModule,
   ],
 
   providers: [

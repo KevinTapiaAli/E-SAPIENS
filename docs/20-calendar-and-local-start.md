@@ -6,9 +6,10 @@ están escritos, pendientes de validación en ejecución.
 
 ## Calendario
 
-El inicio administrativo mantiene la agenda amplia. Docente y estudiante tienen
-una agenda compacta junto a su actividad de inicio, que se apila en pantallas
-pequeñas. Se puede deslizar horizontalmente con el dedo o el ratón para cambiar
+Actualización del 07/10: en los tres perfiles la agenda permanece oculta en un
+panel lateral derecho y se carga al pulsar «Calendario», también en las secciones
+internas del portal. Véase [dashboard ejecutivo](22-executive-dashboard.md).
+Se puede deslizar horizontalmente con el dedo o el ratón para cambiar
 de mes, usar los botones o las flechas del teclado con el calendario enfocado,
 seleccionar días, regresar a hoy, abrir tareas y crear, completar o reabrir
 recordatorios personales. El gesto horizontal conserva el desplazamiento vertical
@@ -20,7 +21,8 @@ ya entregadas por el estudiante, los recordatorios completados y las horas que
 ya pasaron. Las clases se conservan en el calendario, sin generar estos avisos.
 Las tareas entregadas siguen visibles en el día del plazo;
 entregar no significa aprobar. Los avisos se muestran dentro del portal y se
-actualizan al navegar o recargar, sin correo ni notificaciones del sistema.
+actualizan al abrir la agenda, cambiar el día/mes o guardar recordatorios,
+sin correo ni notificaciones del sistema.
 
 - Administración consulta las tareas publicadas y clases no canceladas.
 - Docentes consultan solo sus materias asignadas.

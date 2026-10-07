@@ -25,7 +25,11 @@ export function portalNavigation(
 ): { section: PortalSection; label: string; icon: IconName; href: string }[] {
   const base = `/portal/${role}`;
   const items: { section: PortalSection; label: string; icon: IconName }[] = [
-    { section: "resumen", label: "Inicio", icon: "dashboard" },
+    {
+      section: "resumen",
+      label: role === "administrador" ? "Panel ejecutivo" : "Inicio",
+      icon: "dashboard",
+    },
   ];
   if (role === "administrador") {
     if (user.permissions.includes("identity.review"))
@@ -83,7 +87,11 @@ export function portalNavigation(
   items.push({
     section: "informes",
     label:
-      role === "estudiante" ? "Consultar mi cárdex" : "Consultar indicadores",
+      role === "estudiante"
+        ? "Consultar mi cárdex"
+        : role === "administrador"
+          ? "Análisis académico"
+          : "Consultar indicadores",
     icon: "chart",
   });
   items.push({ section: "cuenta", label: "Mi cuenta", icon: "user" });
