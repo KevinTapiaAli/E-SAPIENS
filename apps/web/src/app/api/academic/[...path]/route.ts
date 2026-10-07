@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { identityConfig, sessionCookie } from "@/features/auth/server";
 import { privateHeaders, readProxyBody } from "@/shared/api/proxy-request";
+import { visitorToken } from "@/shared/api/visitor-cookie";
 
 async function proxy(
   request: NextRequest,
@@ -94,6 +95,7 @@ async function proxy(
           "Content-Type": "application/json",
           Origin: origin,
           Cookie: await sessionCookie(),
+          "X-Esapiens-Visitor": visitorToken(request),
         },
       },
     );

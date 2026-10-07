@@ -8,11 +8,13 @@ import {
 export function ReminderForm({
   day,
   role,
+  onSaved,
 }: {
   day: string;
   role: WorkspaceRole;
+  onSaved: () => void;
 }) {
-  const action = useAcademicAction(`agenda?role=${role}`);
+  const action = useAcademicAction(`agenda?role=${role}`, false);
   const operation = useRef<{ key: string; id: string } | null>(null);
   return (
     <form
@@ -35,6 +37,7 @@ export function ReminderForm({
         if (r?.ok) {
           form.reset();
           operation.current = null;
+          onSaved();
         }
       }}
     >
@@ -75,19 +78,24 @@ export function ReminderToggle({
   id,
   done,
   role,
+  onSaved,
 }: {
   id: string;
   done: boolean;
   role: WorkspaceRole;
+  onSaved: () => void;
 }) {
-  const action = useAcademicAction(`agenda/${id}?role=${role}`);
+  const action = useAcademicAction(`agenda/${id}?role=${role}`, false);
   return (
     <div>
       <button
         type="button"
         className="text-link inline-flex min-h-11 items-center text-sm"
         disabled={action.pending}
-        onClick={() => void action.submit({ done: !done })}
+        onClick={async () => {
+          const result = await action.submit({ done: !done });
+          if (result?.ok) onSaved();
+        }}
       >
         {action.pending ? "Guardando…" : done ? "Reabrir" : "Marcar como hecho"}
       </button>

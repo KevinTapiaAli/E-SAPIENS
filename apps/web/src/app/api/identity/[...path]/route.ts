@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { identityConfig, sessionCookie } from "@/features/auth/server";
 import { privateHeaders, readProxyBody } from "@/shared/api/proxy-request";
+import { visitorToken } from "@/shared/api/visitor-cookie";
 
 export async function POST(
   request: NextRequest,
@@ -34,6 +35,7 @@ export async function POST(
         "Content-Type": "application/json",
         Origin: origin,
         Cookie: await sessionCookie(),
+        "X-Esapiens-Visitor": visitorToken(request),
       },
       redirect: "error",
       cache: "no-store",

@@ -2,6 +2,12 @@
 
 ## Esquema existente
 
+La entrega del 07/10 requiere `0008_executive_analytics.sql` antes de iniciar la
+API actualizada: añade medición de visitas y atribución opcional de solicitudes.
+Aplicar con `pnpm.cmd db:migrate`; no se ejecutó durante el desarrollo por
+indicación del propietario. La retención se opera con `pnpm.cmd analytics:prune`.
+[Definiciones, activación y mantenimiento](../docs/22-executive-dashboard.md).
+
 `pnpm.cmd db:prepare` prepara la base local nueva o existente: instala 0001 solo cuando no hay esquema `lms`, libera el bloqueo de inicialización y aplica las migraciones incrementales con el mecanismo de `db:migrate`. Conserva datos y no reejecuta migraciones registradas. Tiene las mismas restricciones de entorno y destino que `db:init`. Requiere PostgreSQL encendido y dependencias instaladas.
 
 `migrations/0001_initial_schema.sql` conserva el esquema recibido sin datos ficticios. Incluye su propia transacción y no se ha editado. Un cambio posterior del esquema debe introducir una nueva migración.

@@ -10,7 +10,8 @@ Plataforma educativa web en desarrollo. Permite explorar cursos, temarios y fich
 - Demo local: tres cursos y dos fichas ficticias. No contiene credenciales de acceso utilizables.
 - Identidad: registro de estudiante pendiente, aprobación administrativa y login/logout. Alta de docentes y administradores mediante CLI controlada. [Guía de acceso](docs/14-identity-and-workspaces.md).
 - Portal privado: dashboards por perfil, solicitudes, consulta de usuarios/cursos, matrícula administrativa, asignación docente y consulta del progreso persistido. [Guía del portal](docs/15-private-portal.md).
-- Calendario deslizable por perfil: administrador, docente y estudiante, con clases, recordatorios privados y avisos solo de próximos pendientes. [Agenda y arranque local](docs/20-calendar-and-local-start.md).
+- Calendario lateral derecho, oculto hasta abrirlo en los tres perfiles; conserva deslizamiento, clases y avisos de próximos pendientes. [Agenda y arranque local](docs/20-calendar-and-local-start.md).
+- Panel ejecutivo administrativo: visitantes estimados, materias consultadas, conversiones, actividad semanal, inactividad y prioridades para seguimiento. Requiere migración 0008. [Definiciones y activación](docs/22-executive-dashboard.md).
 - Mejoras del 06/10: carrusel institucional cada 5 segundos, consultas optimizadas, limpieza de recursos sin uso y refuerzo de seguridad. Revisión manual, sin ejecutar pruebas por indicación del propietario. [Detalle de cambios](docs/21-professional-experience.md).
 - Ampliación del 05/10: solicitudes de inscripción a materias, autorizaciones por módulo y plazo, aula de lectura y registro de avance. Código pendiente de comprobación por el propietario; requiere migración 0004. [Preparación y recorrido de prueba](docs/16-enrollment-classroom.md).
 - Pendiente: recuperación/verificación de correo, recursos y video privados, edición de contenidos, pagos, evaluaciones, certificados y publicación en producción.
@@ -32,6 +33,8 @@ Monorepo pnpm + Turborepo, con monolito modular por dominio. Se conserva el esqu
 Para instalarlo por primera vez en otra computadora, seguir la [guía de preparación de la laptop](docs/13-laptop-setup.md), que incluye clonación desde `develop`, configuración, datos de demostración y sincronización del trabajo.
 
 Requisitos: Node.js 24 (versión de referencia en `.node-version`), pnpm 10.34.5 y Docker con Compose. Ejecutar desde la raíz. En Windows PowerShell, utilizar `pnpm.cmd` si la política de ejecución bloquea `pnpm.ps1`.
+
+La raíz es la carpeta que contiene `package.json` y `pnpm-workspace.yaml`. Si PowerShell muestra `ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND` y estás en la carpeta exterior que contiene el clon `E-SAPIENS`, entra primero con `Set-Location .\E-SAPIENS`. `db:migrate` es un script del proyecto: se ejecuta con `pnpm.cmd db:migrate`, no como comando independiente.
 
 Crear los archivos de entorno **solo si no existen**:
 

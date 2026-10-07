@@ -8,6 +8,9 @@ import { Icon } from "@/shared/ui/icon";
 import { LogoutButton } from "@/features/auth/logout-button";
 import { ProfileAvatar } from "./profile-photo";
 import { portalNavigation, portalSectionGroup, roleLabels } from "./navigation";
+import { AgendaDrawer } from "./agenda-drawer";
+import { VisitTracker } from "@/features/analytics/visit-tracker";
+import { MeasurementPreference } from "@/features/analytics/measurement-preference";
 
 export function PortalShell({
   user,
@@ -148,6 +151,10 @@ export function PortalShell({
   }
   return (
     <div className="min-h-screen bg-canvas lg:pl-64">
+      <AgendaDrawer role={role} timeZone={user.timeZone} />
+      {role === "estudiante" && pathname === "/portal/estudiante/oferta" && (
+        <VisitTracker resource="/oferta" />
+      )}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 overflow-y-auto border-r border-line bg-surface lg:block">
         {navigation()}
       </aside>
@@ -208,6 +215,7 @@ export function PortalShell({
           Tu espacio de formación y gestión · E-SAPIENS
         </p>
         <LogoutButton />
+        <MeasurementPreference />
       </footer>
     </div>
   );

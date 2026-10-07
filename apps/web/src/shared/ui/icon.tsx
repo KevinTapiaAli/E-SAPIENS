@@ -1,6 +1,12 @@
 import type { ReactNode } from "react";
 
 const paths: Record<IconName, ReactNode> = {
+  calendar: (
+    <>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M16 3v4M8 3v4M3 11h18M8 15h2m4 0h2m-8 3h2" />
+    </>
+  ),
   dashboard: (
     <>
       <rect x="3" y="3" width="7" height="7" rx="1.5" />
@@ -82,6 +88,7 @@ const paths: Record<IconName, ReactNode> = {
 };
 
 export type IconName =
+  | "calendar"
   | "dashboard"
   | "users"
   | "user"

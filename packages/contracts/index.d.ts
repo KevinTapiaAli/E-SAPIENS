@@ -188,6 +188,47 @@ export interface PersonalAgenda {
   total: number;
 }
 
+export interface ExecutiveDashboard {
+  generatedAt: string;
+  period: { days: number; from: string; to: string; previousFrom: string };
+  trackingSince: string;
+  traffic: {
+    visitors: number;
+    previousVisitors: number;
+    courseVisitors: number;
+    accountConversions: number;
+    enrollmentConversions: number;
+    accountRequests: number;
+    enrollmentRequests: number;
+    trend: { day: string; visitors: number | null }[];
+    topCourses: {
+      id: string;
+      title: string;
+      visitors: number;
+      requests: number;
+    }[];
+  };
+  learning: {
+    enrolledStudents: number;
+    weeklyActive: number;
+    previousWeeklyActive: number;
+    inactiveStudents: number;
+    neverActive: number;
+    ungradedSubmissions: number;
+    pendingAccounts: number;
+    pendingEnrollments: number;
+    publishedCourses: number;
+    unassignedCourses: number;
+    students: {
+      id: string;
+      name: string;
+      lastActivityAt: string | null;
+      enrolledAt: string;
+      enrollmentId: string;
+    }[];
+  };
+}
+
 export interface ManagedLesson {
   id: string;
   title: string;

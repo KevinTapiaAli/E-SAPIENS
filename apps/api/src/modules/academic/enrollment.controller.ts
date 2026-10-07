@@ -11,6 +11,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { visitorDigest } from '../analytics/visitor';
 import type { Request } from 'express';
 import { IdentityService } from '../identity/identity.service';
 import { IdentitySecurityService } from '../identity/identity-security.service';
@@ -72,6 +73,7 @@ export class EnrollmentController {
     return this.enrollment.request(
       await this.user(request, true),
       dto.courseId,
+      visitorDigest(request.headers['x-esapiens-visitor']),
     );
   }
 
