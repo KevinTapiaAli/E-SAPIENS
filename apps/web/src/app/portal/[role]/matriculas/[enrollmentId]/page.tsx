@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { portalSession } from "@/features/portal/server";
+import { portalRequestTime, portalSession } from "@/features/portal/server";
 import { readPrivateApi } from "@/features/auth/server";
 import { formatAccessTime } from "@/features/classroom/format-time";
 import {
@@ -32,6 +32,7 @@ export default async function EnrollmentAccessPage({
   if (result.status === 404) notFound();
   if (!result.data) return <PortalUnavailable />;
   const enrollment = result.data;
+  const now = portalRequestTime();
   return (
     <>
       <Link
@@ -74,8 +75,8 @@ export default async function EnrollmentAccessPage({
         ) : (
           <ul className="mt-5 grid gap-4 xl:grid-cols-2">
             {enrollment.grants.map((grant) => {
-              const expired = Date.parse(grant.endsAt) <= Date.now();
-              const scheduled = Date.parse(grant.startsAt) > Date.now();
+              const expired = Date.parse(grant.endsAt) <= now;
+              const scheduled = Date.parse(grant.startsAt) > now;
               return (
                 <li key={grant.id} className="ui-card p-6">
                   <p className="text-xs font-semibold uppercase tracking-wide text-brand">

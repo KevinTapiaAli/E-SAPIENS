@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { SessionUser, WorkspaceRole } from "@esapiens/contracts";
 import { readPrivateApi } from "@/features/auth/server";
+import { portalRequestTime } from "@/features/portal/server";
 import {
   PortalHeading,
   PortalSearch,
@@ -318,7 +319,7 @@ export async function TaskWorkspace({
   const t = task.data;
   const editor =
     role === "docente" && user.permissions.includes("teaching.manage");
-  const open = t.allowLate || Date.now() <= Date.parse(t.dueAt);
+  const open = t.allowLate || portalRequestTime() <= Date.parse(t.dueAt);
   const base = `/portal/${role}/cursos/${courseId}/tareas/${taskId}`;
   return (
     <>

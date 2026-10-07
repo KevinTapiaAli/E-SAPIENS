@@ -12,6 +12,10 @@ import { isRecord, isPublicPage } from "@/shared/api/public-api";
 import { readIdentity, isSessionUser } from "@/features/auth/server";
 import { isProgressSummary } from "@/features/progress/server";
 
+// Una referencia temporal estable por solicitud para los estados del portal.
+// La autorización de acceso y las fechas límite siguen comprobándose en NestJS.
+export const portalRequestTime = cache(() => Date.now());
+
 export const portalSession = cache(async () => {
   const result = await readIdentity("me", isSessionUser);
   if (result.status === 401) redirect("/login");
