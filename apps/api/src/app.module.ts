@@ -6,6 +6,11 @@ import { APP_FILTER } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { GlobalExceptionFilter } from './common/http/filters/global-exception.filter';
 import { HealthModule } from './modules/health/health.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
+import { LibraryModule } from './modules/library/library.module';
+import { IdentityModule } from './modules/identity/identity.module';
+import { AcademicModule } from './modules/academic/academic.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -29,7 +34,7 @@ import { HealthModule } from './modules/health/health.module';
 
               const requestId =
                 typeof incomingRequestId === 'string' &&
-                incomingRequestId.length <= 128
+                /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/.test(incomingRequestId)
                   ? incomingRequestId
                   : randomUUID();
 
@@ -39,7 +44,13 @@ import { HealthModule } from './modules/health/health.module';
             },
 
             redact: {
-              paths: ['req.headers.authorization', 'req.headers.cookie'],
+              paths: [
+                'req.headers.authorization',
+                'req.headers.cookie',
+                'req.headers["x-esapiens-visitor"]',
+                'res.headers["set-cookie"]',
+                'req.body.password',
+              ],
               censor: '[REDACTED]',
             },
 
@@ -63,6 +74,11 @@ import { HealthModule } from './modules/health/health.module';
     }),
 
     HealthModule,
+    CatalogModule,
+    LibraryModule,
+    IdentityModule,
+    AcademicModule,
+    AnalyticsModule,
   ],
 
   providers: [

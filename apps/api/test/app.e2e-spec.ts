@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { configureHttp } from '../src/common/http/configure-http';
 
 describe('E-SAPIENS Health (e2e)', () => {
   let app: INestApplication;
@@ -13,7 +14,7 @@ describe('E-SAPIENS Health (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
 
-    app.setGlobalPrefix('api/v1');
+    configureHttp(app);
 
     await app.init();
   });

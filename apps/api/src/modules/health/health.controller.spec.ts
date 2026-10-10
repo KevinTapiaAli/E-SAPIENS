@@ -11,7 +11,7 @@ describe('HealthController', () => {
   };
 
   const redisServiceMock = {
-    ping: jest.fn(),
+    readiness: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -50,7 +50,7 @@ describe('HealthController', () => {
         database: 'esapiens',
       });
 
-      redisServiceMock.ping.mockResolvedValue('PONG');
+      redisServiceMock.readiness.mockResolvedValue('PONG');
 
       const result = await controller.readiness();
 

@@ -1,0 +1,45 @@
+.viewport {
+  touch-action: pan-y pinch-zoom;
+  user-select: none;
+  border-radius: 0.75rem;
+  cursor: grab;
+  transition: opacity 160ms ease;
+}
+
+.viewport:active {
+  cursor: grabbing;
+}
+
+.viewport:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 4px;
+}
+
+.viewport[data-pending] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.month {
+  animation: reveal 180ms ease-out;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0.4;
+    transform: translateX(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewport {
+    transition: none;
+  }
+  .month {
+    animation: none;
+  }
+}

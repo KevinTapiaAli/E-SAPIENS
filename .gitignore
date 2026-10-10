@@ -26,3 +26,7 @@ uploads/
 
 # TypeScript build cache
 *.tsbuildinfo
+.tmp/
+
+# Copia local antigua del mismo repositorio; no forma parte del monorepo.
+/E-SAPIENS/
