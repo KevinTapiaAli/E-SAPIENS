@@ -17,6 +17,7 @@ export function LogoutButton() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: "{}",
+              signal: AbortSignal.timeout(12000),
             });
             if (!response.ok) throw new Error();
             // A full navigation clears the client-side router cache of private views.

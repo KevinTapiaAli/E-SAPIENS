@@ -4,10 +4,8 @@ import { isWorkspaceRole } from "@/features/portal/navigation";
 import { PortalHeading } from "@/features/portal/portal-ui";
 import { ExecutiveDashboardView } from "@/features/analytics/executive-dashboard";
 import { InstitutionalCarousel } from "@/shared/ui/institutional-carousel";
-import {
-  LearningChallenge,
-  TeachingCompass,
-} from "@/features/portal/learning-home";
+import { WorkspaceActions } from "@/features/portal/workspace-actions";
+import { LearningExtras } from "@/features/portal/learning-extras";
 export default async function PortalHome({
   params,
   searchParams,
@@ -24,6 +22,9 @@ export default async function PortalHome({
       <>
         <ExecutiveDashboardView user={user} days={filters.days} />
         <div className="mt-8">
+          <WorkspaceActions role={role} user={user} />
+        </div>
+        <div className="mt-8">
           <InstitutionalCarousel />
         </div>
       </>
@@ -35,14 +36,15 @@ export default async function PortalHome({
         title={`Hola, ${user.firstName}`}
         description={
           role === "docente"
-            ? "Hoy puedes convertir una buena explicación en una experiencia de aprendizaje."
-            : "Aprender también es descubrir qué estrategias funcionan para ti."
+            ? "Prepara tus materias, revisa las entregas y acompaña a tus estudiantes."
+            : "Continúa tus materias, organiza tus tareas y reconoce tus avances."
         }
       />
+      <WorkspaceActions role={role} user={user} />
       <div className="mb-6">
         <InstitutionalCarousel />
       </div>
-      {role === "docente" ? <TeachingCompass /> : <LearningChallenge />}
+      <LearningExtras role={role} />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 import { identityConfig, sessionCookie } from "@/features/auth/server";
 import { privateHeaders, readProxyBody } from "@/shared/api/proxy-request";
 import { visitorToken } from "@/shared/api/visitor-cookie";
@@ -20,8 +21,11 @@ export async function POST(
     );
   }
   const noStore = privateHeaders;
+  const requestId = randomUUID();
+  let configured = false;
   try {
     const { api, origin } = identityConfig();
+    configured = true;
     const result = await readProxyBody(
       request,
       origin,
@@ -33,6 +37,7 @@ export async function POST(
       body: result.body,
       headers: {
         "Content-Type": "application/json",
+        "X-Request-Id": requestId,
         Origin: origin,
         Cookie: await sessionCookie(),
         "X-Esapiens-Visitor": visitorToken(request),
@@ -43,20 +48,34 @@ export async function POST(
     });
     const response = new NextResponse(await upstream.text(), {
       status: upstream.status,
-      headers: { ...noStore, "Content-Type": "application/json" },
+      headers: {
+        ...noStore,
+        "Content-Type": "application/json",
+        "X-Request-Id": requestId,
+      },
     });
     for (const cookie of upstream.headers.getSetCookie())
       response.headers.append("Set-Cookie", cookie);
     return response;
-  } catch {
+  } catch (error) {
+    const code = !configured
+      ? "IDENTITY_CONFIGURATION_ERROR"
+      : error instanceof Error && error.name === "TimeoutError"
+        ? "IDENTITY_GATEWAY_TIMEOUT"
+        : "IDENTITY_GATEWAY_UNAVAILABLE";
+    // Correlación operativa sin registrar contraseñas, cookies ni URLs privadas.
+    console.error(
+      JSON.stringify({ service: "identity-proxy", code, requestId }),
+    );
     return NextResponse.json(
       {
         error: {
+          code,
           message:
             "No pudimos conectar con E-SAPIENS. Intenta nuevamente en unos momentos.",
         },
       },
-      { status: 503, headers: noStore },
+      { status: 503, headers: { ...noStore, "X-Request-Id": requestId } },
     );
   }
 }

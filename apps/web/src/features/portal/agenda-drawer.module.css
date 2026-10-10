@@ -44,6 +44,11 @@
   padding: 1rem;
 }
 .header {
+  position: sticky;
+  top: -1rem;
+  z-index: 2;
+  padding-block: 1rem;
+  background: var(--canvas);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -63,10 +68,10 @@
     animation: none;
   }
 }
-@media (max-width: 639px) {
+@media (max-width: 1023px) {
   .trigger {
     top: auto;
-    bottom: 5rem;
+    bottom: calc(5rem + env(safe-area-inset-bottom));
     writing-mode: horizontal-tb;
     padding: 0.75rem;
   }

@@ -60,6 +60,16 @@ export function CourseCards({
             ? "Cuando el docente apruebe tu inscripción, tu materia aparecerá aquí."
             : "Los cursos disponibles aparecerán en esta sección."
         }
+        action={
+          role === "estudiante" ? (
+            <Link
+              href="/portal/estudiante/oferta"
+              className="button button-primary"
+            >
+              Explorar materias disponibles <Icon name="arrow" />
+            </Link>
+          ) : undefined
+        }
       />
     );
   return (
@@ -281,7 +291,7 @@ export function PortalUnavailable() {
     <StatePanel
       type="error"
       title="No pudimos cargar esta información"
-      description="Comprueba tus permisos y vuelve a intentarlo en unos momentos."
+      description="La información no está disponible en este momento. Vuelve a intentarlo; si el problema continúa, avisa a administración."
     />
   );
 }

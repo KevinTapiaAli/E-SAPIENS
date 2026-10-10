@@ -19,10 +19,86 @@ export type PortalSection =
   | "progreso"
   | "seguimiento"
   | "cuenta";
+
+export const sectionDescriptions: Record<PortalSection, string> = {
+  resumen: "Tus accesos y prioridades en un solo lugar.",
+  informes: "Consulta resultados e indicadores académicos.",
+  docentes: "Organiza las asignaciones y revisa los perfiles docentes.",
+  solicitudes: "Revisa y responde las solicitudes de nuevas cuentas.",
+  usuarios: "Encuentra personas y gestiona el estado de sus cuentas.",
+  cursos: "Abre una materia para acceder a sus contenidos y actividades.",
+  matriculas: "Gestiona las matrículas y las condiciones de acceso.",
+  inscripciones: "Consulta las solicitudes de inscripción y su estado.",
+  oferta: "Explora las materias disponibles y solicita tu inscripción.",
+  progreso: "Identifica tus avances y lo que te falta completar.",
+  seguimiento: "Consulta avances y detecta quién necesita acompañamiento.",
+  cuenta: "Actualiza tus datos, fotografía y preferencias.",
+};
+
+export const workspaceGuides: Record<
+  WorkspaceRole,
+  {
+    title: string;
+    description: string;
+    steps: string[];
+    shortcuts: PortalSection[];
+  }
+> = {
+  administrador: {
+    title: "Gestiona lo que necesita atención",
+    description:
+      "Revisa solicitudes, organiza las materias y acompaña el avance académico.",
+    steps: [
+      "Revisa las prioridades del panel ejecutivo.",
+      "Atiende las solicitudes y organiza docentes y matrículas.",
+      "Usa el seguimiento para decidir a quién acompañar.",
+    ],
+    shortcuts: ["solicitudes", "cursos", "seguimiento", "matriculas"],
+  },
+  docente: {
+    title: "Tu próxima clase empieza aquí",
+    description:
+      "Abre una materia para preparar materiales, crear tareas y revisar entregas.",
+    steps: [
+      "En Mis cursos, selecciona la materia que vas a trabajar.",
+      "Organiza sus materiales y tareas, y revisa las entregas.",
+      "Consulta Mis estudiantes para acompañar su avance.",
+    ],
+    shortcuts: ["cursos", "inscripciones", "seguimiento", "informes"],
+  },
+  estudiante: {
+    title: "Continúa con tu aprendizaje",
+    description:
+      "Abre tus materias, encuentra tus tareas y consulta tu avance.",
+    steps: [
+      "En Mis cursos, abre una materia para continuar una lección.",
+      "Entra en Tareas para consultar consignas y entregar tu trabajo.",
+      "Abre el calendario lateral para ver tus próximos pendientes.",
+    ],
+    shortcuts: ["cursos", "progreso", "oferta", "informes"],
+  },
+};
+
+export type PortalNavItem = {
+  section: PortalSection;
+  label: string;
+  icon: IconName;
+  href: string;
+};
+
+export function isPortalItemActive(
+  pathname: string,
+  item: PortalNavItem,
+): boolean {
+  return (
+    pathname === item.href ||
+    (item.section !== "resumen" && pathname.startsWith(`${item.href}/`))
+  );
+}
 export function portalNavigation(
   role: WorkspaceRole,
   user: SessionUser,
-): { section: PortalSection; label: string; icon: IconName; href: string }[] {
+): PortalNavItem[] {
   const base = `/portal/${role}`;
   const items: { section: PortalSection; label: string; icon: IconName }[] = [
     {
@@ -49,7 +125,7 @@ export function portalNavigation(
         { section: "cursos", label: "Materias y temarios", icon: "book" },
         {
           section: "inscripciones",
-          label: "Inscripciones revisadas por docentes",
+          label: "Inscripciones",
           icon: "check",
         },
         {
@@ -59,7 +135,7 @@ export function portalNavigation(
         },
         {
           section: "seguimiento",
-          label: "Seguimiento de estudiantes",
+          label: "Seguimiento",
           icon: "chart",
         },
       );
@@ -84,16 +160,17 @@ export function portalNavigation(
         { section: "progreso", label: "Mi progreso", icon: "chart" },
       );
   }
-  items.push({
-    section: "informes",
-    label:
-      role === "estudiante"
-        ? "Consultar mi cárdex"
-        : role === "administrador"
-          ? "Análisis académico"
-          : "Consultar indicadores",
-    icon: "chart",
-  });
+  if (role !== "administrador" || user.permissions.includes("academic.read"))
+    items.push({
+      section: "informes",
+      label:
+        role === "estudiante"
+          ? "Mi cárdex"
+          : role === "administrador"
+            ? "Análisis académico"
+            : "Indicadores",
+      icon: "chart",
+    });
   items.push({ section: "cuenta", label: "Mi cuenta", icon: "user" });
   return items.map((item) => ({
     ...item,
