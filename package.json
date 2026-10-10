@@ -7,7 +7,10 @@
     "pnpm": "10.34.5"
   },
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "node scripts/start-local.mjs",
+    "dev:local": "node scripts/start-local.mjs",
+    "dev:apps": "turbo dev",
+    "setup:demo": "node scripts/start-local.mjs --demo --prepare-only",
     "infra:up": "docker compose -f docker-compose.dev.yml up -d --wait",
     "build": "turbo build",
     "lint": "turbo lint",

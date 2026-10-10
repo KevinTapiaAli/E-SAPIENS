@@ -104,8 +104,10 @@
   --color-danger-soft: var(--danger-soft);
   --color-institutional: var(--institutional);
   --color-on-institutional: var(--on-institutional);
-  --font-sans: var(--font-geist-sans), Arial, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-mono:
+    ui-monospace, "Cascadia Code", "Segoe UI Mono", Consolas, monospace;
 }
 
 * {
@@ -119,7 +121,7 @@ body {
   margin: 0;
   background: var(--canvas);
   color: var(--ink);
-  font-family: var(--font-geist-sans), Arial, sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.65;
   overflow-wrap: break-word;
 }

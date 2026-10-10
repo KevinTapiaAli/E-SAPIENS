@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCourses } from "@/features/catalog/api";
-import { Badge } from "@/shared/ui/badge";
-import { Card } from "@/shared/ui/card";
+import { CourseCard } from "@/features/catalog/course-card";
+
 import { SectionHeading } from "@/shared/ui/section-heading";
 import { StatePanel } from "@/shared/ui/state-panel";
-import { Icon } from "@/shared/ui/icon";
+
 import {
   CatalogSearch,
   CatalogPagination,
@@ -94,35 +94,7 @@ export default async function CoursesPage({
             </p>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {result.data.items.map((course) => (
-                <Card key={course.id} className="flex flex-col">
-                  <div className="flex items-center justify-between gap-3">
-                    <Badge variant="brand">{course.category}</Badge>
-                    <Icon name="book" className="h-5 w-5 text-brand" />
-                  </div>
-                  <h2 className="mt-5 text-xl font-semibold">
-                    <Link
-                      href={`/cursos/${encodeURIComponent(course.slug)}`}
-                      className="hover:text-brand hover:underline underline-offset-4"
-                    >
-                      {course.title}
-                    </Link>
-                  </h2>
-                  <p className="mt-3 line-clamp-3 leading-7 text-muted">
-                    {course.description}
-                  </p>
-                  <p className="mt-5 flex items-center gap-2 text-sm text-muted">
-                    <Icon name="clock" className="h-4 w-4" />
-                    {course.level} · {course.durationHours} horas
-                  </p>
-                  <Link
-                    href={`/cursos/${encodeURIComponent(course.slug)}`}
-                    className="text-link mt-auto inline-flex min-h-11 items-center gap-2 self-start pt-6"
-                    aria-label={`Ver temario de ${course.title}`}
-                  >
-                    Ver curso y temario{" "}
-                    <Icon name="arrow" className="h-4 w-4" />
-                  </Link>
-                </Card>
+                <CourseCard key={course.id} course={course} />
               ))}
             </div>
             <CatalogPagination

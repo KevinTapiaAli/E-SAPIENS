@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { FeaturedCourses } from "@/features/catalog/featured-courses";
 import { ActionLink } from "@/shared/ui/action-link";
 import { Icon, type IconName } from "@/shared/ui/icon";
 import { LearningIllustration } from "@/shared/ui/learning-illustration";
@@ -80,6 +82,41 @@ export default function Home() {
       <div className="page-shell pt-10 sm:pt-12">
         <InstitutionalCarousel />
       </div>
+
+      <section
+        className="page-shell pt-12 sm:pt-16"
+        aria-labelledby="courses-heading"
+      >
+        <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow">Tu próxima materia</p>
+            <h2
+              id="courses-heading"
+              className="mt-3 text-2xl font-semibold sm:text-3xl"
+            >
+              Descubre nuestros cursos
+            </h2>
+            <p className="mt-3 text-muted">
+              Conoce sus contenidos y elige por dónde comenzar.
+            </p>
+          </div>
+          <Link
+            href="/cursos"
+            className="text-link inline-flex min-h-11 items-center gap-2"
+          >
+            Ver todos los cursos <Icon name="arrow" />
+          </Link>
+        </div>
+        <Suspense
+          fallback={
+            <p role="status" className="ui-card p-6 text-muted">
+              Cargando materias disponibles…
+            </p>
+          }
+        >
+          <FeaturedCourses />
+        </Suspense>
+      </section>
 
       <section
         className="page-shell py-12 sm:py-16"

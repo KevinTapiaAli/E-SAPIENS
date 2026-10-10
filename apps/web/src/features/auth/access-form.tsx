@@ -14,6 +14,7 @@ export function AccessForm({ register = false }: { register?: boolean }) {
     error: boolean;
     message: string;
     unavailable?: boolean;
+    reference?: string;
   } | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -27,6 +28,7 @@ export function AccessForm({ register = false }: { register?: boolean }) {
     }
     submitting.current = true;
     setPending(true);
+    setShowPassword(false);
     setFeedback(null);
     try {
       const response = await fetch(
@@ -47,16 +49,23 @@ export function AccessForm({ register = false }: { register?: boolean }) {
           }),
         },
       );
-      const data = actionFeedback((await response.json()) as unknown);
+      const data = actionFeedback(
+        (await response.json().catch(() => null)) as unknown,
+      );
+      const requestId = response.headers.get("X-Request-Id");
       if (!response.ok) {
         setFeedback({
           error: true,
           unavailable: response.status >= 500,
+          reference:
+            requestId && /^[a-f0-9-]{36}$/i.test(requestId)
+              ? requestId
+              : undefined,
           message:
             data.code === "VALIDATION_ERROR"
               ? "Revisa los campos y la longitud de la contraseña."
               : response.status >= 500
-                ? "No podemos iniciar sesión en este momento. El servicio necesita atención; inténtalo más tarde o avisa a administración."
+                ? `No pudimos ${register ? "enviar tu solicitud" : "iniciar tu sesión"}. Espera un momento y vuelve a intentarlo. Si continúa, comunica esta incidencia a administración.`
                 : data.message,
         });
       } else if (register) {
@@ -173,9 +182,16 @@ export function AccessForm({ register = false }: { register?: boolean }) {
             </p>
             <p className="mt-2">{feedback.message}</p>
             {feedback.unavailable && (
-              <p className="mt-2">
-                No necesitas cambiar tu contraseña por este mensaje.
-              </p>
+              <>
+                <p className="mt-2">
+                  Este mensaje no indica que tu contraseña sea incorrecta.
+                </p>
+                {feedback.reference && (
+                  <p className="mt-2 break-all text-xs">
+                    Referencia de atención: {feedback.reference}
+                  </p>
+                )}
+              </>
             )}
           </div>
         )}
@@ -189,7 +205,9 @@ export function AccessForm({ register = false }: { register?: boolean }) {
           ? "Procesando…"
           : register
             ? "Solicitar mi cuenta"
-            : "Iniciar sesión"}
+            : feedback?.unavailable
+              ? "Volver a intentar"
+              : "Iniciar sesión"}
       </button>
       <p className="text-center text-sm text-muted">
         {register
