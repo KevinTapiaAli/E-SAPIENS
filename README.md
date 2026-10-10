@@ -10,6 +10,7 @@ Este README concentra la instalación, arquitectura, operación, demostración y
 - [Tecnologías y decisiones](#tecnologías-y-decisiones)
 - [Estructura del código](#estructura-del-código)
 - [Instalación en otra computadora](#instalación-en-otra-computadora)
+- [Usar Swagger y OpenAPI](#usar-swagger-y-openapi)
 - [Recorrido para revisar el sistema](#recorrido-para-revisar-el-sistema)
 - [Configuración](#configuración)
 - [Comandos disponibles](#comandos-disponibles)
@@ -99,6 +100,16 @@ Las lecturas privadas no se almacenan en cachés públicas. Las consultas se pag
 
 Los ejemplos usan PowerShell. El sufijo `.cmd` evita el bloqueo de `pnpm.ps1` sin cambiar la política de ejecución. En Linux/macOS usar `pnpm` en lugar de `pnpm.cmd`.
 
+Antes de instalar las dependencias, comprobar las herramientas en la terminal:
+
+```powershell
+git --version
+node --version
+docker compose version
+```
+
+`node --version` debe mostrar `v24.21.0`. El archivo `.node-version` documenta la versión, pero no la instala ni cambia automáticamente el Node del equipo. Si aparece Node 26 u otra versión, instalar o seleccionar Node 24.21.0 antes de continuar y abrir una terminal nueva. El proyecto admite Node `>=24.15.0 <25` y fija pnpm `10.34.5`.
+
 ```powershell
 npm.cmd install --global pnpm@10.34.5
 git clone --branch develop https://github.com/KevinTapiaAli/E-SAPIENS.git
@@ -107,6 +118,20 @@ pnpm.cmd install --frozen-lockfile
 ```
 
 Ejecutar los comandos uno por uno. Si alguno falla, corregirlo antes de continuar. La raíz correcta contiene `package.json` y `pnpm-workspace.yaml`. No clonar encima de otra copia. Si el repositorio es privado, el propietario debe conceder acceso al ingeniero en GitHub.
+
+#### Clonar dentro de una carpeta que ya existe
+
+Si ya se creó una carpeta **vacía**, entrar en ella y usar el punto final para colocar el proyecto directamente allí, sin crear otra carpeta `E-SAPIENS` dentro. Sustituir la ruta del ejemplo por la carpeta elegida; las comillas permiten rutas con espacios:
+
+```powershell
+Set-Location "C:\proyectos\E-SAPIENS"
+git clone --branch develop https://github.com/KevinTapiaAli/E-SAPIENS.git .
+pnpm.cmd install --frozen-lockfile
+```
+
+Esta es una alternativa al comando de clonación anterior; utilizar solo una. Si la carpeta ya contiene un clon, seguir [Actualizar después de un cambio](#actualizar-después-de-un-cambio). Después de instalar dependencias, continuar con los pasos 2, 3 y 4 de esta sección.
+
+Git descarga el código y el README, pero no las cuentas, la base de datos, `node_modules` ni los archivos `.env` de otra computadora. La instalación, la preparación y la creación de cuentas locales completan el primer arranque.
 
 ### 2. Preparar la demostración
 
@@ -158,6 +183,43 @@ docker compose -f docker-compose.dev.yml stop
 ```
 
 No eliminar los volúmenes de Docker para actualizar. En los siguientes arranques basta con abrir Docker Desktop y ejecutar `pnpm.cmd dev`.
+
+#### Si hay otra copia en la misma computadora
+
+No iniciar dos copias de web/API en los mismos puertos. Para conservar la base local de una instalación anterior, identificar primero su proyecto con `docker compose ls`. Si se llama `e-sapiens`, crear `.env` desde `.env.example` solo si todavía no existe y añadir esta línea al archivo:
+
+```dotenv
+COMPOSE_PROJECT_NAME=e-sapiens
+```
+
+Usar el nombre real del proyecto existente y mantener `DATABASE_URL` y `REDIS_URL` alineados con esos servicios. El preparador reutiliza ese proyecto Docker; ambas copias comparten sus cuentas y datos, y las migraciones o datos demo se aplican a esa misma base. No es una base independiente. Si se reutilizan cuentas existentes, no volver a crearlas.
+
+## Usar Swagger y OpenAPI
+
+E-SAPIENS incluye documentación interactiva de su API REST, generada por NestJS. Después de iniciar el proyecto con `pnpm.cmd dev` y esperar a que la API esté lista:
+
+| Recurso        | Dirección                           | Uso                                                                       |
+| -------------- | ----------------------------------- | ------------------------------------------------------------------------- |
+| Swagger UI     | http://localhost:4000/api/docs      | Consultar operaciones, parámetros, cuerpos y respuestas documentadas.     |
+| OpenAPI JSON   | http://localhost:4000/api/docs-json | Importar la definición de la API en herramientas compatibles con OpenAPI. |
+| Base de la API | http://localhost:4000/api/v1        | Prefijo de las rutas de negocio.                                          |
+
+### Consultar un endpoint público
+
+1. Abrir Swagger y desplegar un grupo, por ejemplo **Catálogo público**, **Biblioteca pública** o **Health**.
+2. Seleccionar una operación `GET`, como `/api/v1/courses`, `/api/v1/library` o `/api/v1/health`.
+3. Pulsar **Try it out**, completar los parámetros que correspondan y pulsar **Execute**.
+4. Revisar la URL solicitada, el código HTTP y el cuerpo de la respuesta. Un catálogo vacío puede indicar que falta ejecutar `setup:demo` o publicar materias.
+
+**Execute envía una petición real a la API local.** Leer la documentación no requiere ejecutar las operaciones. La web y la API deben mantenerse abiertas en la terminal mientras se usan sus servicios.
+
+### Consultar operaciones con sesión
+
+Iniciar sesión primero en http://localhost:3000/login con una cuenta aprobada y abrir Swagger en el **mismo navegador**, usando `localhost` en ambas direcciones. La autenticación utiliza una cookie de sesión `HttpOnly`; las lecturas privadas reciben la cookie del navegador y siguen sujetas a los permisos de la cuenta. No se utiliza un token Bearer ni se debe copiar una contraseña al botón **Authorize**.
+
+Las operaciones de escritura protegidas, como el inicio de sesión o ciertos `POST`, pueden responder `403` con `ORIGIN_NOT_ALLOWED` si se ejecutan desde Swagger: su origen es `http://localhost:4000`, mientras `APP_URL` admite normalmente `http://localhost:3000`. Realizar esas acciones desde la web. No cambiar `APP_URL` ni desactivar la protección para ejecutar una operación desde Swagger.
+
+Si Swagger no carga, confirmar que la API terminó de arrancar y que se está usando el puerto 4000. Si una lectura privada devuelve `401`, iniciar sesión de nuevo; si devuelve `403`, revisar el rol y los permisos exigidos por la operación.
 
 ## Recorrido para revisar el sistema
 
@@ -243,6 +305,29 @@ git push -u origin feat/nombre-del-cambio
 ```
 
 Abrir un pull request hacia `develop` con descripción del comportamiento, migraciones y validación. GitHub exige `Quality Gate` para integrar; no forzar la subida ni desactivar la protección. Cuando el PR esté integrado, las demás computadoras reciben el cambio con el procedimiento anterior. El historial de Git permite recuperar versiones anteriores sin conservar reportes duplicados en el árbol del proyecto.
+
+### Ejemplo: subir una mejora del README a GitHub
+
+Desde una copia sin cambios pendientes, preparar una rama antes de editar:
+
+```powershell
+git switch develop
+git pull --ff-only origin develop
+git switch -c docs/mejorar-readme
+```
+
+Añadir la documentación, guardar `README.md` y subir únicamente ese archivo:
+
+```powershell
+git diff -- README.md
+git add README.md
+git commit -m "docs: ampliar instalacion y uso de Swagger"
+git push -u origin docs/mejorar-readme
+```
+
+En GitHub, abrir **Compare & pull request**, seleccionar `develop` como rama de destino e integrar cuando se cumplan las comprobaciones y revisiones requeridas. El README de `develop` mostrará entonces los cambios. El README de la portada del repositorio corresponde a su rama predeterminada; si esa rama es `main`, la actualización llegará allí cuando se integre `develop` en `main` mediante el flujo del proyecto.
+
+Un `push` actualiza el código y la documentación en GitHub. Para recibirlo en otra computadora se necesita `git pull --ff-only origin develop` y los pasos de actualización anteriores. Publicar la aplicación en una dirección de Internet requiere además un despliegue; subir el README no inicia ni publica la web local.
 
 ## Base de datos y seguridad
 
