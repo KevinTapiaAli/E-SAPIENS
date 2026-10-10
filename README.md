@@ -198,11 +198,11 @@ Usar el nombre real del proyecto existente y mantener `DATABASE_URL` y `REDIS_UR
 
 E-SAPIENS incluye documentación interactiva de su API REST, generada por NestJS. Después de iniciar el proyecto con `pnpm.cmd dev` y esperar a que la API esté lista:
 
-| Recurso | Dirección | Uso |
-| --- | --- | --- |
-| Swagger UI | http://localhost:4000/api/docs | Consultar operaciones, parámetros, cuerpos y respuestas documentadas. |
-| OpenAPI JSON | http://localhost:4000/api/docs-json | Importar la definición de la API en herramientas compatibles con OpenAPI. |
-| Base de la API | http://localhost:4000/api/v1 | Prefijo de las rutas de negocio. |
+| Recurso        | Dirección                           | Uso                                                                       |
+| -------------- | ----------------------------------- | ------------------------------------------------------------------------- |
+| Swagger UI     | http://localhost:4000/api/docs      | Consultar operaciones, parámetros, cuerpos y respuestas documentadas.     |
+| OpenAPI JSON   | http://localhost:4000/api/docs-json | Importar la definición de la API en herramientas compatibles con OpenAPI. |
+| Base de la API | http://localhost:4000/api/v1        | Prefijo de las rutas de negocio.                                          |
 
 ### Consultar un endpoint público
 
