@@ -9,6 +9,7 @@ Este README concentra la instalación, arquitectura, operación, demostración y
 - [Funciones por perfil](#funciones-por-perfil)
 - [Tecnologías y decisiones](#tecnologías-y-decisiones)
 - [Estructura del código](#estructura-del-código)
+- [Servicios independientes](#servicios-independientes)
 - [Instalación en otra computadora](#instalación-en-otra-computadora)
 - [Usar Swagger y OpenAPI](#usar-swagger-y-openapi)
 - [Recorrido para revisar el sistema](#recorrido-para-revisar-el-sistema)
@@ -51,14 +52,19 @@ Las versiones exactas de dependencias están fijadas en `pnpm-lock.yaml`; no es 
 | Argon2id, Helmet y Pino                    | Hash de contraseñas, cabeceras de protección y registros estructurados con ocultación de secretos.                                                |
 | Jest, Supertest, ESLint, Oxlint y Prettier | Infraestructura de calidad y estilo del repositorio. GitHub Actions ejecuta el flujo de integración.                                              |
 
-Se utiliza un **monolito modular**, sin microservicios ni paquetes vacíos. Next.js presenta información y actúa como proxy web; NestJS es la autoridad de negocio. Esta separación permite ampliar cada dominio y escalar instancias manteniendo autorización, datos y límites compartidos.
+Se utiliza una **arquitectura híbrida con separación gradual en servicios**. La API principal conserva identidad y gestión académica, y delega por HTTP el contenido público y la analítica a dos procesos NestJS independientes. Next.js mantiene las mismas rutas y la API principal conserva la autorización. Los servicios comparten PostgreSQL en esta etapa; todavía no hay bases de datos ni ciclos de compilación independientes por dominio.
 
 ```mermaid
 flowchart LR
     Browser[Navegador] --> Web[Next.js · web]
-    Web --> API[NestJS · API REST]
-    API --> DB[(PostgreSQL)]
+    Web --> API[NestJS · API principal :4000]
+    API --> Content[Contenido público :4001]
+    API --> Analytics[Analítica :4002]
+    API --> DB[(PostgreSQL compartido)]
+    Content --> DB
+    Analytics --> DB
     API --> Redis[(Redis)]
+    Analytics --> Redis
     Contracts[Contratos TypeScript] -.-> Web
     Contracts -.-> API
 ```
@@ -74,6 +80,7 @@ apps/
   api/src/
     modules/             Identidad, académico, catálogo, biblioteca y analítica
     infrastructure/      Conexiones con PostgreSQL y Redis
+    services/            Arranque y rutas internas de contenido y analítica
     common/              Validación HTTP y tratamiento de errores
     cli/                 Creación autorizada de cuentas
   api/test/              Pruebas de integración
@@ -88,6 +95,52 @@ assets/screenshots/      Capturas históricas incorporadas a este README
 
 Las lecturas privadas no se almacenan en cachés públicas. Las consultas se paginan y utilizan conexiones acotadas. La agenda y las actividades complementarias cargan a demanda. La muestra de cursos de la portada utiliza la misma API y tarjetas que el catálogo, con un máximo de tres materias y estados diferenciados para carga, ausencia de datos y servicio no disponible.
 
+## Servicios independientes
+
+Se separan únicamente dos áreas con carga diferenciada; identidad, permisos, matrículas y gestión docente permanecen juntas para conservar sus transacciones.
+
+| Proceso           | Puerto local | Responsabilidad                                                                                                                                                     | Entrada                          |
+| ----------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| API principal     | 4000         | Sesiones, permisos, administración, aula y enrutamiento hacia los otros servicios.                                                                                  | `apps/api/src/main.ts`           |
+| Contenido público | 4001         | Consulta de materias publicadas, temarios y biblioteca pública. Las modificaciones siguen en la API académica.                                                      | `apps/api/src/content-main.ts`   |
+| Analítica         | 4002         | Registro de visitas y cálculo del panel ejecutivo. La API principal comprueba la sesión, los permisos, el origen y las preferencias de privacidad antes de delegar. | `apps/api/src/analytics-main.ts` |
+
+Los módulos de arranque están en `apps/api/src/services/`. Los clientes HTTP y la configuración de rutas de la API principal están en `apps/api/src/infrastructure/services/`. `common/runtime.module.ts` comparte configuración, registros y manejo de errores, sin arrancar otros procesos.
+
+### Arranque y configuración
+
+Después de instalar dependencias, `pnpm.cmd dev` prepara el entorno y arranca la web y los tres procesos de backend en la misma terminal. `Ctrl+C` detiene los procesos supervisados. El supervisor es `scripts/start-backends.mjs`; no crea servicios permanentes del sistema operativo.
+
+`setup:demo` continúa preparando solamente infraestructura y datos. Ambos comandos generan una clave aleatoria `INTERNAL_SERVICE_TOKEN` en `.env` cuando falta, sin imprimirla ni subirla a Git. Las instalaciones existentes también reciben esta clave al ejecutar el preparador. Las URLs omitidas usan los valores locales de la tabla siguiente.
+
+| Variable                                          | Valor local / función                                                                         |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `CONTENT_SERVICE_URL`                             | `http://127.0.0.1:4001`; destino de las consultas públicas.                                   |
+| `ANALYTICS_SERVICE_URL`                           | `http://127.0.0.1:4002`; destino de la analítica.                                             |
+| `CONTENT_SERVICE_PORT` / `ANALYTICS_SERVICE_PORT` | `4001` / `4002`; puertos de escucha de cada servicio.                                         |
+| `INTERNAL_SERVICE_TOKEN`                          | Secreto compartido de al menos 32 caracteres, generado automáticamente para desarrollo local. |
+| `SERVICE_BIND_HOST`                               | `127.0.0.1`; los dos servicios internos escuchan solo en la máquina local por defecto.        |
+
+Para ejecutar cada backend por separado, preparar primero el entorno y abrir una terminal por comando, desde la raíz:
+
+```powershell
+pnpm.cmd --dir apps/api dev:content
+pnpm.cmd --dir apps/api dev:analytics
+pnpm.cmd --dir apps/api dev:core
+```
+
+Cada comando ocupa su terminal. No combinarlos con `pnpm.cmd dev`, que ya arranca los tres. Para compilar los tres puntos de entrada usar `pnpm.cmd --dir apps/api build`. Después pueden ejecutarse por separado con `start:content`, `start:analytics` y `start:prod`, respectivamente; `start:services` supervisa los tres en modo producción. Este último requiere la configuración de producción descrita en seguridad, incluido `APP_URL` con HTTPS.
+
+### Comunicación, seguridad y límites de esta etapa
+
+- La web conserva `API_URL=http://localhost:4000` y las rutas `/api/v1/courses`, `/api/v1/library` y `/api/v1/analytics`. Swagger público permanece en `http://localhost:4000/api/docs`.
+- Los servicios internos exigen la cabecera privada `x-internal-service-token`, incluso en su ruta de disponibilidad. Esa clave se mantiene en el servidor, se oculta en los registros y no se incluye en la web ni en los documentos OpenAPI. Para usar Swagger interno local, el operador debe introducirla manualmente. No hay rutas de login ni administración en los dos servicios nuevos.
+- El cliente HTTP aplica un límite de ocho segundos, no sigue redirecciones ni reintenta escrituras automáticamente. Las conexiones remotas requieren HTTPS. Un servicio caído produce `503` en sus operaciones, sin ejecutar silenciosamente la lógica en la API principal.
+- `GET /api/v1/health/ready` en el puerto 4000 incluye PostgreSQL, Redis, contenido y analítica. Devuelve `503` si alguna dependencia no está lista. Esperar a que los tres backends indiquen que arrancaron antes de usar el sistema.
+- PostgreSQL y sus migraciones siguen siendo compartidos: las escrituras académicas pertenecen al núcleo, el contenido público realiza lecturas y analítica registra visitas y lee los indicadores. No se duplican cuentas ni se trasladan datos. Cada proceso utiliza un pool de hasta 10 conexiones; dimensionar PostgreSQL para el conjunto de procesos y réplicas.
+- Los servicios se pueden ejecutar y desplegar por separado utilizando el mismo artefacto compilado. Esta entrega comparte código, esquema y credenciales de base de datos; el aislamiento de datos por servicio, usuarios SQL específicos, colas y despliegue distribuido quedan como trabajo posterior.
+- Las pruebas unitarias de transporte y autenticación interna simulan HTTP sin abrir servidores. Las pruebas existentes del catálogo conservan su transacción aislada mediante sustitución explícita de los proveedores remotos; la suite de salud simula únicamente los dos servicios internos. Estas comprobaciones no equivalen a una prueba distribuida completa.
+
 ## Instalación en otra computadora
 
 ### 1. Requisitos
@@ -96,7 +149,7 @@ Las lecturas privadas no se almacenan en cachés públicas. Las consultas se pag
 - Node.js **24.21.0**, conforme a `.node-version`.
 - Docker Desktop iniciado, con motor de contenedores Linux listo. En Windows, habilitar su integración con WSL 2.
 - Internet durante la descarga inicial del repositorio, dependencias e imágenes Docker.
-- Puertos locales 3000, 4000, 5433 y 6379 disponibles.
+- Puertos locales 3000, 4000, 4001, 4002, 5433 y 6379 disponibles.
 
 Los ejemplos usan PowerShell. El sufijo `.cmd` evita el bloqueo de `pnpm.ps1` sin cambiar la política de ejecución. En Linux/macOS usar `pnpm` en lugar de `pnpm.cmd`.
 
@@ -167,6 +220,8 @@ pnpm.cmd dev
 
 El comando prepara infraestructura y migraciones antes de iniciar Next.js y NestJS. **Mantener esta terminal abierta** y esperar a que Next.js indique que está listo y NestJS muestre `E-SAPIENS API running on http://localhost:4000/api/v1`. Que aparezca el formulario de acceso no significa que la API haya terminado de arrancar.
 
+Esperar también los mensajes `content service ready` y `analytics service ready`. La disponibilidad conjunta se consulta en `/api/v1/health/ready` de la API principal.
+
 | Servicio                            | Dirección                                 |
 | ----------------------------------- | ----------------------------------------- |
 | Web e inicio                        | http://localhost:3000                     |
@@ -195,6 +250,29 @@ COMPOSE_PROJECT_NAME=e-sapiens
 Usar el nombre real del proyecto existente y mantener `DATABASE_URL` y `REDIS_URL` alineados con esos servicios. El preparador reutiliza ese proyecto Docker; ambas copias comparten sus cuentas y datos, y las migraciones o datos demo se aplican a esa misma base. No es una base independiente. Si se reutilizan cuentas existentes, no volver a crearlas.
 
 ## Usar Swagger y OpenAPI
+
+### Swagger de los microservicios
+
+Después de arrancar con `pnpm.cmd dev`, hay tres documentos separados:
+
+| API                                           | Swagger interactivo            | OpenAPI JSON                        |
+| --------------------------------------------- | ------------------------------ | ----------------------------------- |
+| Principal: sesiones y operaciones de usuarios | http://localhost:4000/api/docs | http://localhost:4000/api/docs-json |
+| Contenido: catálogo y biblioteca              | http://127.0.0.1:4001/api/docs | http://127.0.0.1:4001/api/docs-json |
+| Analítica: visitas e indicadores              | http://127.0.0.1:4002/api/docs | http://127.0.0.1:4002/api/docs-json |
+
+Los puertos corresponden a la configuración local predeterminada. Swagger de los dos servicios internos está habilitado para desarrollo y deshabilitado cuando `NODE_ENV=production`. Consultar su documentación local no requiere una sesión de usuario; ejecutar sus endpoints sí requiere la clave interna y no omite la protección del servicio.
+
+1. Abrir `.env` en la raíz y localizar `INTERNAL_SERVICE_TOKEN`. El preparador `pnpm.cmd dev` o `pnpm.cmd setup:demo` genera esta clave si falta.
+2. Abrir Swagger de contenido o analítica y pulsar **Authorize**.
+3. En `internal-service`, introducir únicamente el valor de esa variable, sin comillas ni prefijo `Bearer`. No utilizar la contraseña de una cuenta. Autorizar cada interfaz por separado; la clave no se conserva al recargar la página.
+4. Abrir una operación, pulsar **Try it out**, completar los parámetros y pulsar **Execute**. Las respuestas `401` indican una clave ausente o incorrecta; `503`, dependencias no disponibles.
+
+Los esquemas incluyen búsqueda y paginación del catálogo, fichas y temarios, disponibilidad, período del panel (`7`, `30` o `90` días) y campos de la visita. El ejemplo de visita utiliza `/cursos` y un hash ficticio de 64 caracteres hexadecimales; **ejecutar ese POST escribe datos reales**, por lo que debe usarse únicamente en una base de demostración. Los ejemplos de documentación no crean cuentas ni rellenan indicadores automáticamente. Para disponer del catálogo y biblioteca demo se mantiene `pnpm.cmd setup:demo`.
+
+Código de los servicios: entradas `apps/api/src/content-main.ts` y `apps/api/src/analytics-main.ts`; módulos internos y Swagger en `apps/api/src/services/`; lógica de negocio en `apps/api/src/modules/catalog/`, `library/` y `analytics/`; comunicación desde la API principal en `apps/api/src/infrastructure/services/`.
+
+### Swagger de la API principal
 
 E-SAPIENS incluye documentación interactiva de su API REST, generada por NestJS. Después de iniciar el proyecto con `pnpm.cmd dev` y esperar a que la API esté lista:
 
@@ -389,6 +467,6 @@ Capturas históricas existentes del catálogo público, correspondientes al 03/1
 
 La automatización de GitHub Actions instala dependencias con el lockfile, prepara PostgreSQL/Redis y ejecuta formato, lint, comprobación de tipos, pruebas y build. El resultado de cada ejecución está en la pestaña **Actions** y en el pull request correspondiente. Pasar CI no sustituye el recorrido funcional del revisor ni pruebas de carga.
 
-La preparación de esta entrega se realizó mediante cambios y lectura de código, sin iniciar la web, recorrer pantallas ni ejecutar pruebas locales. Las capturas anteriores se conservan con su fecha. No se garantiza ausencia absoluta de errores: el ingeniero puede reproducir la instalación y el recorrido de este README y consultar los resultados asociados al commit recibido.
+La separación de servicios se revisó mediante lectura de código, comprobación de tipos, compilación del backend y pruebas unitarias aisladas de comunicación, autenticación interna, composición de módulos y disponibilidad. No se inició la web ni se ejecutó el recorrido distribuido con servidores reales. Las capturas anteriores se conservan con su fecha y no acreditan esta actualización. El ingeniero puede reproducir la instalación y el recorrido de este README y consultar los resultados asociados al commit recibido.
 
 El alcance implementado es la plataforma web descrita. Recuperación/verificación por correo, pagos, certificados, exámenes completos, distribución privada de video, mensajería externa y aplicación móvil requieren desarrollo e integración adicionales. Tener tablas o variables reservadas para esos dominios no significa que estén operativos. No se requiere contratarlos para revisar el sistema académico actual.

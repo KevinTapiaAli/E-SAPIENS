@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { configureHttp } from '../src/common/http/configure-http';
+import { ServiceClient } from '../src/infrastructure/services/service-client';
 
 describe('E-SAPIENS Health (e2e)', () => {
   let app: INestApplication;
@@ -10,7 +11,11 @@ describe('E-SAPIENS Health (e2e)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      // This suite checks core dependencies; workers are not started by the suite.
+      .overrideProvider(ServiceClient)
+      .useValue({ request: async () => ({ status: 'ok' }) })
+      .compile();
 
     app = moduleFixture.createNestApplication();
 

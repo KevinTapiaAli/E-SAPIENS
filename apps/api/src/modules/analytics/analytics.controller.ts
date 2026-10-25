@@ -8,7 +8,14 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
-import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCookieAuth,
+  ApiOperation,
+  ApiTags,
+  ApiOkResponse,
+  ApiNoContentResponse,
+} from '@nestjs/swagger';
+import { executiveDashboardSchema } from './analytics.openapi';
 import type { Request } from 'express';
 import { IdentityService } from '../identity/identity.service';
 import { IdentitySecurityService } from '../identity/identity-security.service';
@@ -26,6 +33,7 @@ export class AnalyticsController {
   ) {}
 
   @Get('dashboard')
+  @ApiOkResponse({ schema: executiveDashboardSchema })
   @ApiCookieAuth()
   @Header('Cache-Control', 'private, no-store')
   @ApiOperation({
@@ -40,6 +48,10 @@ export class AnalyticsController {
   }
 
   @Post('visit')
+  @ApiNoContentResponse({
+    description:
+      'Petición procesada; la visita puede omitirse según preferencias de privacidad o límites.',
+  })
   @HttpCode(204)
   @Header('Cache-Control', 'no-store')
   @ApiOperation({

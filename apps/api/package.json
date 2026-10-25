@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "dev": "nest start --watch",
+    "dev": "node ../../scripts/start-backends.mjs",
     "typecheck": "tsc --noEmit",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -20,7 +20,13 @@
     "test:watch": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch",
     "test:cov": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --coverage",
     "test:debug": "node --inspect-brk --experimental-vm-modules -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./test/jest-e2e.json"
+    "test:e2e": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
+    "dev:core": "node --watch -r ts-node/register src/main.ts",
+    "dev:content": "node --watch -r ts-node/register src/content-main.ts",
+    "dev:analytics": "node --watch -r ts-node/register src/analytics-main.ts",
+    "start:services": "node ../../scripts/start-backends.mjs --production",
+    "start:content": "node dist/content-main.js",
+    "start:analytics": "node dist/analytics-main.js"
   },
   "dependencies": {
     "@esapiens/contracts": "workspace:*",
