@@ -7,6 +7,8 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { configureHttp } from '../src/common/http/configure-http';
 import { DatabaseService } from '../src/infrastructure/database/database.service';
+import { CatalogService } from '../src/modules/catalog/catalog.service';
+import { LibraryService } from '../src/modules/library/library.service';
 
 describe('Catálogo público contra PostgreSQL (e2e)', () => {
   let app: INestApplication;
@@ -25,6 +27,12 @@ describe('Catálogo público contra PostgreSQL (e2e)', () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      // Domain integration uses this test's uncommitted PostgreSQL transaction.
+      // HTTP transport and internal authentication have separate unit coverage.
+      .overrideProvider(CatalogService)
+      .useClass(CatalogService)
+      .overrideProvider(LibraryService)
+      .useClass(LibraryService)
       .overrideProvider(DatabaseService)
       .useValue({
         query: (sql: string, params: unknown[]) => database.query(sql, params),

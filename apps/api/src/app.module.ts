@@ -1,91 +1,17 @@
-import { randomUUID } from 'node:crypto';
-import { IncomingMessage, ServerResponse } from 'node:http';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER } from '@nestjs/core';
-import { LoggerModule } from 'nestjs-pino';
-import { GlobalExceptionFilter } from './common/http/filters/global-exception.filter';
+import { RuntimeModule } from './common/runtime.module';
 import { HealthModule } from './modules/health/health.module';
-import { CatalogModule } from './modules/catalog/catalog.module';
-import { LibraryModule } from './modules/library/library.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { AcademicModule } from './modules/academic/academic.module';
-import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { GatewayModule } from './infrastructure/services/gateway.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: ['../../.env', '.env'],
-    }),
-
-    LoggerModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const isProduction =
-          configService.get<string>('NODE_ENV') === 'production';
-
-        return {
-          pinoHttp: {
-            level: isProduction ? 'info' : 'debug',
-
-            genReqId: (req: IncomingMessage, res: ServerResponse) => {
-              const incomingRequestId = req.headers['x-request-id'];
-
-              const requestId =
-                typeof incomingRequestId === 'string' &&
-                /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/.test(incomingRequestId)
-                  ? incomingRequestId
-                  : randomUUID();
-
-              res.setHeader('X-Request-Id', requestId);
-
-              return requestId;
-            },
-
-            redact: {
-              paths: [
-                'req.headers.authorization',
-                'req.headers.cookie',
-                'req.headers["x-esapiens-visitor"]',
-                'res.headers["set-cookie"]',
-                'req.body.password',
-              ],
-              censor: '[REDACTED]',
-            },
-
-            customProps: () => ({
-              service: 'esapiens-api',
-            }),
-
-            transport: isProduction
-              ? undefined
-              : {
-                  target: 'pino-pretty',
-                  options: {
-                    colorize: true,
-                    singleLine: true,
-                    translateTime: 'SYS:standard',
-                  },
-                },
-          },
-        };
-      },
-    }),
-
+    RuntimeModule,
+    GatewayModule,
     HealthModule,
-    CatalogModule,
-    LibraryModule,
     IdentityModule,
     AcademicModule,
-    AnalyticsModule,
-  ],
-
-  providers: [
-    {
-      provide: APP_FILTER,
-      useClass: GlobalExceptionFilter,
-    },
   ],
 })
 export class AppModule {}

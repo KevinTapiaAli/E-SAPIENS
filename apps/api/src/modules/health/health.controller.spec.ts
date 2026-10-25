@@ -1,7 +1,9 @@
 import { Test } from '@nestjs/testing';
+import { ServiceUnavailableException } from '@nestjs/common';
 import { HealthController } from './health.controller';
 import { DatabaseService } from '../../infrastructure/database/database.service';
 import { RedisService } from '../../infrastructure/redis/redis.service';
+import { ServiceClient } from '../../infrastructure/services/service-client';
 
 describe('HealthController', () => {
   let controller: HealthController;
@@ -13,13 +15,19 @@ describe('HealthController', () => {
   const redisServiceMock = {
     readiness: jest.fn(),
   };
+  const servicesMock = { request: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    servicesMock.request.mockResolvedValue({ status: 'ok' });
 
     const moduleRef = await Test.createTestingModule({
       controllers: [HealthController],
       providers: [
+        {
+          provide: ServiceClient,
+          useValue: servicesMock,
+        },
         {
           provide: DatabaseService,
           useValue: databaseServiceMock,
@@ -45,6 +53,14 @@ describe('HealthController', () => {
   });
 
   describe('readiness', () => {
+    it('devuelve 503 si un servicio interno no responde', async () => {
+      databaseServiceMock.ping.mockResolvedValue({ database: 'esapiens' });
+      redisServiceMock.readiness.mockResolvedValue('PONG');
+      servicesMock.request.mockRejectedValueOnce(new Error('Unavailable'));
+      await expect(controller.readiness()).rejects.toBeInstanceOf(
+        ServiceUnavailableException,
+      );
+    });
     it('debe indicar PostgreSQL y Redis disponibles', async () => {
       databaseServiceMock.ping.mockResolvedValue({
         database: 'esapiens',

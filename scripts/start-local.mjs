@@ -1,4 +1,11 @@
-import { constants, copyFileSync, existsSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import {
+  readFileSync,
+  writeFileSync,
+  constants,
+  copyFileSync,
+  existsSync,
+} from "node:fs";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
@@ -70,6 +77,24 @@ try {
         `El arranque local solo admite servicios locales en ${name}.`,
       );
   }
+  if (!process.env.INTERNAL_SERVICE_TOKEN) {
+    const token = randomBytes(32).toString("hex");
+    const existing = readFileSync(".env", "utf8");
+    const line = "INTERNAL_SERVICE_TOKEN=" + token;
+    writeFileSync(
+      ".env",
+      /^INTERNAL_SERVICE_TOKEN=.*$/m.test(existing)
+        ? existing.replace(/^INTERNAL_SERVICE_TOKEN=.*$/m, line)
+        : existing + "\n" + line + "\n",
+    );
+    process.env.INTERNAL_SERVICE_TOKEN = token;
+    console.log("Clave interna generada en .env (no se publica en Git).");
+  }
+  if (process.env.INTERNAL_SERVICE_TOKEN.length < 32) {
+    throw new Error(
+      "INTERNAL_SERVICE_TOKEN debe tener al menos 32 caracteres.",
+    );
+  }
   const pnpm = (script) =>
     run(process.execPath, [process.env.npm_execpath, script], script);
   console.log(
@@ -91,7 +116,7 @@ try {
     );
   } else {
     console.log(
-      "3/3 · Iniciando web y API. Mantén esta terminal abierta; usa Ctrl+C para detenerlas.",
+      "3/3 · Iniciando web, API, contenido y analítica. Mantén esta terminal abierta; usa Ctrl+C para detenerlas.",
     );
     // Separar el supervisor evita invocar este preparador de forma recursiva.
     await pnpm("dev:apps");
