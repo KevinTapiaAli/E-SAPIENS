@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { unstable_rethrow } from "next/navigation";
 import type {
   PendingAccount,
@@ -12,8 +13,15 @@ import { isRecord } from "@/shared/api/public-api";
 export function identityConfig() {
   const api = process.env.API_URL;
   const app = process.env.APP_URL;
-  if (!api || !app)
-    throw new Error("API_URL y APP_URL son necesarias para el acceso.");
+  if (!api || !app) {
+    const missing = [!api && "API_URL", !app && "APP_URL"]
+      .filter(Boolean)
+      .join(", ");
+    const message = `[IDENTITY_CONFIGURATION_ERROR] Faltan ${missing}. Configura las variables del servidor en el entorno de Vercel correspondiente y vuelve a desplegar.`;
+    // Solo nombres de variables: nunca valores, cookies ni URLs privadas.
+    console.error(message);
+    throw new Error(message);
+  }
   const origin = new URL(app).origin;
   return {
     api: api.replace(/\/$/, ""),
@@ -42,6 +50,9 @@ export async function readPrivateApi<T>(
   path: string,
   validate: (value: unknown) => value is T,
 ): Promise<{ status: number; data?: T }> {
+  // Incluye portalSession() y /login: no consultar identidad durante el build.
+  // Fuera del try para conservar las señales de renderizado dinámico de Next.js.
+  await connection();
   try {
     const { api } = identityConfig();
     const response = await fetch(`${api}/api/v1/${path}`, {
