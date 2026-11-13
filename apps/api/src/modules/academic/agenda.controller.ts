@@ -21,28 +21,62 @@ import {
   Matches,
 } from 'class-validator';
 import type { Request } from 'express';
+import { ApiCookieAuth, ApiProperty, ApiTags } from '@nestjs/swagger';
 import type { PersonalAgenda, WorkspaceRole } from '@esapiens/contracts';
 import { DatabaseService } from '../../infrastructure/database/database.service';
 import { IdentityService } from '../identity/identity.service';
 import { IdentitySecurityService } from '../identity/identity-security.service';
 
 class AgendaRoleQuery {
+  @ApiProperty({
+    enum: ['administrador', 'docente', 'estudiante'],
+    default: 'administrador',
+  })
   @IsIn(['administrador', 'docente', 'estudiante'])
   role: WorkspaceRole = 'administrador';
 }
 class AgendaQuery extends AgendaRoleQuery {
-  @Matches(/^20\d{2}-(0[1-9]|1[0-2])$/) month: string;
-  @Matches(/^20\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/) day: string;
+  @ApiProperty({ example: '2026-10', pattern: '^20\\d{2}-(0[1-9]|1[0-2])$' })
+  @Matches(/^20\d{2}-(0[1-9]|1[0-2])$/)
+  month: string;
+  @ApiProperty({
+    example: '2026-10-28',
+    description: 'Fecha dentro del mes consultado (YYYY-MM-DD).',
+  })
+  @Matches(/^20\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/)
+  day: string;
 }
 class ReminderDto {
-  @IsUUID() operationId: string;
-  @IsString() @Length(3, 180) title: string;
-  @Matches(/^20\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/) day: string;
+  @ApiProperty({
+    format: 'uuid',
+    description:
+      'UUID nuevo por operación; reutilizarlo solo al reintentar la misma creación.',
+  })
+  @IsUUID()
+  operationId: string;
+  @ApiProperty({
+    minLength: 3,
+    maxLength: 180,
+    example: 'Preparar la próxima clase',
+  })
+  @IsString()
+  @Length(3, 180)
+  title: string;
+  @ApiProperty({
+    example: '2026-10-28',
+    description: 'Fecha futura en la zona horaria del usuario.',
+  })
+  @Matches(/^20\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/)
+  day: string;
 }
 class ReminderStateDto {
-  @IsBoolean() done: boolean;
+  @ApiProperty({ example: true })
+  @IsBoolean()
+  done: boolean;
 }
 
+@ApiTags('Personal agenda')
+@ApiCookieAuth()
 @Controller('academic/agenda')
 export class AgendaController {
   constructor(

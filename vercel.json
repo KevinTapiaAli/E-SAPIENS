@@ -96,8 +96,10 @@
       }
     },
     {
-  "source": "/(.*)",
-  "destination": { "service": "web" }
-}
+      "source": "/(.*)",
+      "destination": {
+        "service": "web"
+      }
+    }
   ]
 }

@@ -1,9 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { configureHttp } from './common/http/configure-http';
-import { IdentitySecurityService } from './modules/identity/identity-security.service';
+import { setupApiSwagger } from './common/http/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -15,18 +14,9 @@ async function bootstrap() {
   configureHttp(app);
   app.enableShutdownHooks();
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('E-SAPIENS API')
-    .setDescription('API REST oficial de la plataforma E-SAPIENS LMS')
-    .setVersion('1.0')
-    .addCookieAuth(app.get(IdentitySecurityService).cookieName)
-    .build();
+  setupApiSwagger(app);
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-
-  SwaggerModule.setup('api/docs', app, document);
-
-  const port = Number(process.env.PORT ?? 4000);
+  const port = Number(process.env.API_PORT ?? process.env.PORT ?? 4000);
 
   await app.listen(port);
 

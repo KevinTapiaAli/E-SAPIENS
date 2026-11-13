@@ -13,7 +13,7 @@ export function BrandMark({ compact = false }: BrandMarkProps) {
         <Icon name="book" className="h-6 w-6" />
       </span>
       {!compact && (
-        <span className="text-[1.125rem] font-bold tracking-[-0.025em] text-ink">
+        <span className="brand-wordmark text-[1.125rem] font-bold tracking-[-0.025em] text-ink">
           E-SAPIENS
         </span>
       )}

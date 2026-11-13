@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { IdentityModule } from '../identity/identity.module';
+import { IdentityAccessModule } from '../identity/identity-access.module';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { AcademicService } from './academic.service';
 import { AcademicController } from './academic.controller';
@@ -13,10 +13,20 @@ import { ProgressController } from './progress.controller';
 import { TeachingService } from './teaching.service';
 import { TeachingController } from './teaching.controller';
 import { AgendaController } from './agenda.controller';
+import { CommerceController } from './commerce.controller';
+import { RedisModule } from '../../infrastructure/redis/redis.module';
+import { AcademicWriteLimiter } from './academic-write-limiter';
+import { SavedLibraryController } from './saved-library.controller';
+import { CommerceService } from './commerce.service';
+import { EvaluationController } from './evaluation.controller';
+import { EvaluationService } from './evaluation.service';
 
 @Module({
-  imports: [IdentityModule, DatabaseModule],
+  imports: [IdentityAccessModule, DatabaseModule, RedisModule],
   providers: [
+    AcademicWriteLimiter,
+    CommerceService,
+    EvaluationService,
     AcademicService,
     EnrollmentService,
     ClassroomService,
@@ -25,6 +35,9 @@ import { AgendaController } from './agenda.controller';
     TeachingService,
   ],
   controllers: [
+    SavedLibraryController,
+    CommerceController,
+    EvaluationController,
     AgendaController,
     AcademicController,
     EnrollmentController,

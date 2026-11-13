@@ -1,5 +1,19 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
+
+const inter = localFont({
+  src: "../shared/fonts/Inter.ttf",
+  variable: "--font-inter",
+  display: "swap",
+  weight: "100 900",
+});
+const montserrat = localFont({
+  src: "../shared/fonts/Montserrat.ttf",
+  variable: "--font-montserrat",
+  display: "swap",
+  weight: "100 900",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -17,6 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
+      className={`${inter.variable} ${montserrat.variable}`}
       data-scroll-behavior="smooth"
       data-theme="light"
       suppressHydrationWarning

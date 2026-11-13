@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { WorkspaceRole } from "@esapiens/contracts";
 import { Icon } from "@/shared/ui/icon";
 import { LogoutButton } from "@/features/auth/logout-button";
+import { currentPortalSpace, portalSpaces } from "./spaces";
 import {
   isPortalItemActive,
   portalSectionGroup,
@@ -35,6 +36,7 @@ export function PortalNavigation({
   mobile?: boolean;
 }) {
   const [query, setQuery] = useState("");
+  const space = currentPortalSpace(pathname, role);
   const visible = items.filter((item) =>
     searchable(`${item.label} ${sectionDescriptions[item.section]}`).includes(
       searchable(query.trim()),
@@ -70,14 +72,20 @@ export function PortalNavigation({
         )}
       </div>
       <p className="mb-4 mt-6 rounded-lg bg-brand-soft px-3 py-2 text-sm font-semibold text-brand">
-        {roleLabels[role]}
+        {space ? portalSpaces[space].title : roleLabels[role]}
       </p>
       <label className="form-label text-sm">
         Buscar sección
         <input
           type="search"
           className="form-input"
-          placeholder="Cursos, cuenta…"
+          placeholder={
+            space === "gestion"
+              ? "Materias, pagos…"
+              : space === "aula"
+                ? "Cursos, progreso…"
+                : "Elige tu espacio"
+          }
           value={query}
           maxLength={80}
           onChange={(event) => setQuery(event.target.value)}
@@ -153,6 +161,14 @@ export function PortalNavigation({
         </div>
       )}
       <div className="mt-6 space-y-4 border-t border-line pt-5">
+        <Link
+          href={`/portal/${role}`}
+          prefetch={false}
+          onClick={onNavigate}
+          className="text-link inline-flex min-h-11 items-center gap-2 text-sm"
+        >
+          <Icon name="dashboard" /> Cambiar de espacio
+        </Link>
         <Link
           href="/"
           prefetch={false}

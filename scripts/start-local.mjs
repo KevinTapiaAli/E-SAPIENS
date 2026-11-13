@@ -116,7 +116,7 @@ try {
     );
   } else {
     console.log(
-      "3/3 · Iniciando web, API, contenido y analítica. Mantén esta terminal abierta; usa Ctrl+C para detenerlas.",
+      "3/3 · Iniciando web, gateway, identidad, académico, contenido y analítica. Mantén esta terminal abierta; usa Ctrl+C para detenerlas.",
     );
     // Separar el supervisor evita invocar este preparador de forma recursiva.
     await pnpm("dev:apps");

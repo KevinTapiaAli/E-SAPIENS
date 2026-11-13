@@ -41,9 +41,15 @@ export function CourseWorkspaceLinks({
     >
       <Link
         className="button button-secondary"
-        href={`/portal/${role}/cursos/${id}`}
+        href={
+          role === "administrador"
+            ? "/portal/administrador/aula"
+            : `/portal/${role}/cursos/${id}`
+        }
       >
-        Materia
+        {role === "administrador"
+          ? "Volver al aula"
+          : "Contenido de la materia"}
       </Link>
       <Link
         className="button button-secondary"
@@ -56,6 +62,12 @@ export function CourseWorkspaceLinks({
         href={`/portal/${role}/cursos/${id}/tareas`}
       >
         Tareas y entregas
+      </Link>
+      <Link
+        className="button button-secondary"
+        href={`/portal/${role}/cursos/${id}/evaluaciones`}
+      >
+        Evaluaciones
       </Link>
       {role !== "estudiante" && (
         <Link

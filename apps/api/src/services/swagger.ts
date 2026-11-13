@@ -1,4 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { SchemaObject } from '@nestjs/swagger';
 
@@ -22,9 +23,7 @@ const errorSchema: SchemaObject = {
 
 export function createServiceDocument(app: INestApplication, name: string) {
   const config = new DocumentBuilder()
-    .setTitle(
-      `E-SAPIENS · ${name === 'content' ? 'Contenido público' : 'Analítica'}`,
-    )
+    .setTitle(`E-SAPIENS · ${name}`)
     .setDescription(
       'Servicio interno. En Authorize introduce INTERNAL_SERVICE_TOKEN de tu .env, sin prefijo Bearer. Los ejemplos son ficticios; Execute realiza operaciones reales. La clave no se incluye en esta documentación.',
     )
@@ -33,6 +32,11 @@ export function createServiceDocument(app: INestApplication, name: string) {
       { type: 'apiKey', in: 'header', name: 'x-internal-service-token' },
       'internal-service',
     )
+    .addCookieAuth(
+      app.get(ConfigService).get<string>('APP_URL')?.startsWith('https:')
+        ? '__Host-esapiens_session'
+        : 'esapiens_session',
+    )
     .addSecurityRequirements('internal-service')
     .build();
   const document = SwaggerModule.createDocument(app, config);
@@ -40,6 +44,13 @@ export function createServiceDocument(app: INestApplication, name: string) {
     for (const method of ['get', 'post', 'put', 'patch', 'delete'] as const) {
       const operation = path[method];
       if (!operation) continue;
+      // OpenAPI OR arrays must not allow a session to replace the internal key.
+      operation.security = operation.security?.length
+        ? operation.security.map((requirement) => ({
+            ...requirement,
+            'internal-service': [],
+          }))
+        : [{ 'internal-service': [] }];
       operation.responses['401'] ??= {
         description: 'Clave interna ausente o incorrecta.',
         content: { 'application/json': { schema: errorSchema } },
@@ -59,6 +70,7 @@ export function setupServiceSwagger(app: INestApplication, name: string) {
     swaggerOptions: {
       persistAuthorization: false,
       displayRequestDuration: true,
+      validatorUrl: null,
     },
   });
 }

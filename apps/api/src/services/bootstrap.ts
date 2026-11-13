@@ -4,6 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { configureHttp } from '../common/http/configure-http';
 import { setupServiceSwagger } from './swagger';
+import { createApiDocument } from '../common/http/swagger';
+import { ServiceDocumentController } from './service-document.controller';
 
 export async function startService(
   module: Type<unknown>,
@@ -16,9 +18,17 @@ export async function startService(
   app.enableShutdownHooks();
   const config = app.get(ConfigService);
   const port = Number(
-    config.get(`${name.toUpperCase()}_SERVICE_PORT`) ?? defaultPort,
+    config.get('PORT') ??
+      config.get(`${name.toUpperCase()}_SERVICE_PORT`) ??
+      defaultPort,
   );
-  const host = config.get<string>('SERVICE_BIND_HOST') ?? '127.0.0.1';
+  const host =
+    config.get('VERCEL') === '1'
+      ? '0.0.0.0'
+      : (config.get<string>('SERVICE_BIND_HOST') ?? '127.0.0.1');
+  if (name === 'identity' || name === 'academic') {
+    app.get(ServiceDocumentController).document = createApiDocument(app);
+  }
   if (config.get<string>('NODE_ENV') !== 'production') {
     setupServiceSwagger(app, name);
   }

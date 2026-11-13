@@ -7,6 +7,11 @@ export const roleLabels: Record<WorkspaceRole, string> = {
   estudiante: "Estudiante",
 };
 export type PortalSection =
+  | "gestion"
+  | "aula"
+  | "materias"
+  | "pagos"
+  | "biblioteca"
   | "resumen"
   | "informes"
   | "docentes"
@@ -21,6 +26,11 @@ export type PortalSection =
   | "cuenta";
 
 export const sectionDescriptions: Record<PortalSection, string> = {
+  gestion: "Consulta materias, inscripciones, historial y pagos.",
+  aula: "Trabaja en tus contenidos, tareas, evaluaciones y avances.",
+  materias: "Consulta el estado de tus materias y sus docentes.",
+  pagos: "Consulta planes, compras y pagos pendientes de revisión.",
+  biblioteca: "Encuentra tus referencias guardadas para estudiar.",
   resumen: "Tus accesos y prioridades en un solo lugar.",
   informes: "Consulta resultados e indicadores académicos.",
   docentes: "Organiza las asignaciones y revisa los perfiles docentes.",
@@ -53,7 +63,7 @@ export const workspaceGuides: Record<
       "Atiende las solicitudes y organiza docentes y matrículas.",
       "Usa el seguimiento para decidir a quién acompañar.",
     ],
-    shortcuts: ["solicitudes", "cursos", "seguimiento", "matriculas"],
+    shortcuts: ["solicitudes", "pagos", "cursos", "seguimiento", "matriculas"],
   },
   docente: {
     title: "Tu próxima clase empieza aquí",
@@ -75,7 +85,7 @@ export const workspaceGuides: Record<
       "Entra en Tareas para consultar consignas y entregar tu trabajo.",
       "Abre el calendario lateral para ver tus próximos pendientes.",
     ],
-    shortcuts: ["cursos", "progreso", "oferta", "informes"],
+    shortcuts: ["cursos", "progreso", "pagos", "biblioteca"],
   },
 };
 
@@ -140,7 +150,7 @@ export function portalNavigation(
         },
       );
   } else {
-    items.push({ section: "cursos", label: "Mis cursos", icon: "book" });
+    items.push({ section: "cursos", label: "Mis aulas", icon: "book" });
     if (role === "docente")
       items.push(
         {
@@ -160,6 +170,15 @@ export function portalNavigation(
         { section: "progreso", label: "Mi progreso", icon: "chart" },
       );
   }
+  if (
+    role === "estudiante" ||
+    (role === "administrador" && user.permissions.includes("commerce.manage"))
+  )
+    items.push({
+      section: "pagos",
+      label: role === "estudiante" ? "Planes y mis compras" : "Pagos y planes",
+      icon: "clipboard",
+    });
   if (role !== "administrador" || user.permissions.includes("academic.read"))
     items.push({
       section: "informes",
@@ -171,7 +190,15 @@ export function portalNavigation(
             : "Indicadores",
       icon: "chart",
     });
+  items.push({ section: "biblioteca", label: "Mi biblioteca", icon: "book" });
   items.push({ section: "cuenta", label: "Mi cuenta", icon: "user" });
+  if (role !== "administrador" || user.permissions.includes("academic.read"))
+    items.push({
+      section: "materias",
+      label:
+        role === "estudiante" ? "Materias inscritas" : "Registro de materias",
+      icon: "book",
+    });
   return items.map((item) => ({
     ...item,
     href: item.section === "resumen" ? base : `${base}/${item.section}`,
@@ -182,9 +209,14 @@ export function portalSectionGroup(
   role: WorkspaceRole,
   section: PortalSection,
 ): string {
-  if (section === "resumen") return "Mi espacio";
+  if (section === "resumen") return "Inicio";
+  if (section === "gestion" || section === "aula") return "Mis espacios";
+  if (section === "pagos") return "Pagos";
+  if (["materias", "oferta", "inscripciones", "matriculas"].includes(section))
+    return "Materias e inscripciones";
   if (section === "cuenta") return "Mi cuenta";
-  if (["informes", "seguimiento", "progreso"].includes(section))
+  if (section === "informes") return "Historial e informes";
+  if (["seguimiento", "progreso"].includes(section))
     return "Consultas y seguimiento";
   if (
     role === "administrador" &&

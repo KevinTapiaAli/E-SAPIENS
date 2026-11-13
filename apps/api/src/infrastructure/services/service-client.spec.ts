@@ -81,4 +81,30 @@ describe('ServiceClient transport (no network)', () => {
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it.each([401, 403])('preserves identity rejection %i', async (status) => {
+    jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          error: { code: 'UNAUTHORIZED', message: 'Denied' },
+        }),
+        { status },
+      ),
+    );
+    await expect(
+      client.request('identity', 'identity/me'),
+    ).rejects.toMatchObject({ status });
+  });
+
+  it('does not allow caller headers to replace the internal key', async () => {
+    const mock = jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('{}'));
+    await client.forward('academic', 'academic/courses', 'GET', undefined, {
+      'x-internal-service-token': 'forged',
+    });
+    expect(mock.mock.calls[0][1]?.headers).toMatchObject({
+      'x-internal-service-token': token,
+    });
+  });
 });

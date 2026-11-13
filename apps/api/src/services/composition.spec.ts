@@ -11,43 +11,62 @@ import {
 } from '../infrastructure/services/remote-services';
 import { ContentServiceModule } from './content.module';
 import { AnalyticsServiceModule } from './analytics.module';
+import { IdentityServiceModule } from './identity.module';
+import { AcademicServiceModule } from './academic.module';
+import { AcademicService } from '../modules/academic/academic.service';
+import { IdentityController } from '../modules/identity/identity.controller';
+import { configureHttp } from '../common/http/configure-http';
 
 describe('Independent service composition (no database or HTTP listeners)', () => {
-  it.each([AppModule, ContentServiceModule, AnalyticsServiceModule])(
-    'resolves %p with isolated infrastructure',
-    async (root) => {
-      const module = await Test.createTestingModule({ imports: [root] })
-        .overrideProvider(DatabaseService)
-        .useValue({})
-        .overrideProvider(RedisService)
-        .useValue({})
-        .overrideProvider(ConfigService)
-        .useValue(
-          new ConfigService({
-            APP_URL: 'http://localhost:3000',
-            NODE_ENV: 'test',
-            INTERNAL_SERVICE_TOKEN: 'a'.repeat(64),
-          }),
-        )
-        .compile();
-      try {
-        if (root === AppModule) {
-          expect(module.get(CatalogService)).toBeInstanceOf(
-            RemoteCatalogService,
-          );
-          expect(module.get(AnalyticsService)).toBeInstanceOf(
-            RemoteAnalyticsService,
-          );
-        } else if (root === ContentServiceModule) {
-          expect(module.get(CatalogService)).toBeInstanceOf(CatalogService);
-          expect(() => module.get(AnalyticsService)).toThrow();
-        } else {
-          expect(module.get(AnalyticsService)).toBeInstanceOf(AnalyticsService);
-          expect(() => module.get(CatalogService)).toThrow();
-        }
-      } finally {
-        await module.close();
+  it.each([
+    AppModule,
+    ContentServiceModule,
+    AnalyticsServiceModule,
+    IdentityServiceModule,
+    AcademicServiceModule,
+  ])('resolves %p with isolated infrastructure', async (root) => {
+    const module = await Test.createTestingModule({ imports: [root] })
+      .overrideProvider(DatabaseService)
+      .useValue({})
+      .overrideProvider(RedisService)
+      .useValue({})
+      .overrideProvider(ConfigService)
+      .useValue(
+        new ConfigService({
+          APP_URL: 'http://localhost:3000',
+          NODE_ENV: 'test',
+          INTERNAL_SERVICE_TOKEN: 'a'.repeat(64),
+        }),
+      )
+      .compile();
+    try {
+      if (root === AppModule) {
+        expect(() => module.get(DatabaseService)).toThrow();
+        expect(() => module.get(IdentityController)).toThrow();
+        expect(() => module.get(AcademicService)).toThrow();
+        const app = module.createNestApplication();
+        configureHttp(app);
+        await app.init(); // Register routes without opening a listener.
+        await app.close();
+        expect(module.get(CatalogService)).toBeInstanceOf(RemoteCatalogService);
+        expect(module.get(AnalyticsService)).toBeInstanceOf(
+          RemoteAnalyticsService,
+        );
+      } else if (root === ContentServiceModule) {
+        expect(module.get(CatalogService)).toBeInstanceOf(CatalogService);
+        expect(() => module.get(AnalyticsService)).toThrow();
+      } else if (root === AnalyticsServiceModule) {
+        expect(module.get(AnalyticsService)).toBeInstanceOf(AnalyticsService);
+        expect(() => module.get(CatalogService)).toThrow();
+      } else if (root === IdentityServiceModule) {
+        expect(module.get(IdentityController)).toBeDefined();
+        expect(() => module.get(AcademicService)).toThrow();
+      } else {
+        expect(module.get(AcademicService)).toBeDefined();
+        expect(() => module.get(IdentityController)).toThrow();
       }
-    },
-  );
+    } finally {
+      await module.close();
+    }
+  });
 });

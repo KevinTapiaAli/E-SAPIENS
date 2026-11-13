@@ -10,12 +10,26 @@ import {
   Res,
 } from '@nestjs/common';
 import { IsString, MaxLength, ValidateIf } from 'class-validator';
+import {
+  ApiCookieAuth,
+  ApiOkResponse,
+  ApiProperty,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { DatabaseService } from '../../infrastructure/database/database.service';
 import { IdentityService } from './identity.service';
 import { IdentitySecurityService } from './identity-security.service';
 
 class AvatarDto {
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    maxLength: 46000,
+    description:
+      'JPEG como data:image/jpeg;base64,... (máximo 32 KiB y 256 × 256 píxeles). null elimina la foto.',
+    example: null,
+  })
   @ValidateIf((_object, value: unknown) => value !== null)
   @IsString()
   @MaxLength(46000)
@@ -61,6 +75,8 @@ function jpeg(data: string): Buffer {
   throw invalid();
 }
 
+@ApiTags('Identity')
+@ApiCookieAuth()
 @Controller('identity/avatar')
 export class AvatarController {
   constructor(
@@ -70,6 +86,9 @@ export class AvatarController {
   ) {}
 
   @Get()
+  @ApiOkResponse({
+    content: { 'image/jpeg': { schema: { type: 'string', format: 'binary' } } },
+  })
   async image(@Req() request: Request, @Res() response: Response) {
     const user = await this.identity.authenticate(this.security.token(request));
     const result = await this.db.query<{ contenido: Buffer }>(

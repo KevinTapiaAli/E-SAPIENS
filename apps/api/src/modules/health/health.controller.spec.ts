@@ -72,10 +72,8 @@ describe('HealthController', () => {
 
       expect(result.status).toBe('ok');
 
-      expect(result.dependencies.database).toEqual({
-        status: 'up',
-        name: 'esapiens',
-      });
+      expect(result.dependencies.identity).toEqual({ status: 'up' });
+      expect(result.dependencies.academic).toEqual({ status: 'up' });
 
       expect(result.dependencies.redis).toEqual({
         status: 'up',
