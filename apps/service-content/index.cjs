@@ -1,2 +1,8 @@
-// Deployment entrypoint; domain logic remains in apps/api.
-require("../api/dist/content-main.js");
+const {
+  createServerlessHandler,
+} = require("../api/dist/services/serverless.js");
+const {
+  ContentServiceModule,
+} = require("../api/dist/services/content.module.js");
+
+module.exports = createServerlessHandler(ContentServiceModule, "content");

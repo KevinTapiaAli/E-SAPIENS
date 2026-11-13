@@ -1,2 +1,8 @@
-// Deployment entrypoint; domain logic remains in apps/api.
-require("../api/dist/identity-main.js");
+const {
+  createServerlessHandler,
+} = require("../api/dist/services/serverless.js");
+const {
+  IdentityServiceModule,
+} = require("../api/dist/services/identity.module.js");
+
+module.exports = createServerlessHandler(IdentityServiceModule, "identity");
