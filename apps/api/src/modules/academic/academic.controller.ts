@@ -10,7 +10,12 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
-import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCookieAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import { IdentityService } from '../identity/identity.service';
 import { IdentitySecurityService } from '../identity/identity-security.service';
@@ -37,6 +42,7 @@ export class AcademicController {
   }
 
   @Get('overview/:role')
+  @ApiParam({ name: 'role', enum: AcademicRole })
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
     summary: 'Indicadores reales del portal según rol y propiedad',

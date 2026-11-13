@@ -9,7 +9,6 @@ import { Icon } from "@/shared/ui/icon";
 import { ProfileAvatar } from "./profile-photo";
 import {
   isPortalItemActive,
-  portalNavigation,
   roleLabels,
   sectionDescriptions,
   workspaceGuides,
@@ -18,6 +17,7 @@ import { PortalNavigation } from "./portal-navigation";
 import { AgendaDrawer } from "./agenda-drawer";
 import { VisitTracker } from "@/features/analytics/visit-tracker";
 import { MeasurementPreference } from "@/features/analytics/measurement-preference";
+import { currentPortalSpace, portalSpaces, spaceNavigation } from "./spaces";
 
 export function PortalShell({
   user,
@@ -48,22 +48,39 @@ export function PortalShell({
     dialog.current?.close();
     if (help.current) help.current.open = false;
   }, [pathname]);
-  const items = portalNavigation(role, user);
+  const space = currentPortalSpace(pathname, role);
+  const items = spaceNavigation(role, user, space);
   const active = items.find((item) => isPortalItemActive(pathname, item));
   const base = `/portal/${role}`;
-  const guide = workspaceGuides[role];
+  const guide = space
+    ? {
+        description: portalSpaces[space].description,
+        steps:
+          space === "gestion"
+            ? [
+                "Abre Materias para consultar tu registro académico.",
+                "Usa el menú para encontrar inscripciones, historial o pagos disponibles para tu perfil.",
+                "Cambia al Aula virtual cuando quieras trabajar en contenidos y actividades.",
+              ]
+            : [
+                "Selecciona una materia.",
+                "Abre sus materiales, tareas o evaluaciones.",
+                "Consulta tu progreso o el seguimiento de tus estudiantes.",
+              ],
+      }
+    : workspaceGuides[role];
   const initials =
     `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase();
-  const mobileSections = [
-    "resumen",
-    "cursos",
-    role === "estudiante"
-      ? "progreso"
-      : role === "docente"
-        ? "seguimiento"
-        : "solicitudes",
-    "cuenta",
-  ];
+  const mobileSections =
+    space === "gestion"
+      ? ["resumen", "materias", role === "docente" ? "inscripciones" : "pagos"]
+      : space === "aula"
+        ? [
+            "resumen",
+            "cursos",
+            role === "estudiante" ? "progreso" : "seguimiento",
+          ]
+        : ["resumen", "gestion", "aula"];
   const mobileItems = mobileSections
     .flatMap((section) => items.filter((item) => item.section === section))
     .slice(0, 3);
@@ -78,12 +95,15 @@ export function PortalShell({
 
   return (
     <div className="min-h-screen bg-canvas pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0 lg:pl-72">
-      <AgendaDrawer role={role} timeZone={user.timeZone} />
+      {space === "aula" && (
+        <AgendaDrawer role={role} timeZone={user.timeZone} />
+      )}
       {role === "estudiante" && pathname === "/portal/estudiante/oferta" && (
         <VisitTracker resource="/oferta" />
       )}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 overflow-y-auto border-r border-line bg-surface lg:block">
         <PortalNavigation
+          key={space ?? "selector"}
           role={role}
           roles={roles}
           items={items}
@@ -129,9 +149,13 @@ export function PortalShell({
             <Icon name="menu" />
           </button>
           <div className="min-w-0">
-            <p className="text-xs text-muted">{roleLabels[role]}</p>
+            <p className="text-xs text-muted">
+              {roleLabels[role]} ·{" "}
+              {space ? portalSpaces[space].title : "Mis espacios"}
+            </p>
             <p className="truncate text-sm font-semibold">
-              {active?.label ?? "Portal"}
+              {active?.label ??
+                (space ? portalSpaces[space].title : "Mis espacios")}
             </p>
           </div>
         </div>
@@ -150,6 +174,23 @@ export function PortalShell({
           </Link>
         </div>
       </header>
+      <nav
+        aria-label="Cambiar de espacio"
+        className="grid grid-cols-2 gap-2 border-b border-line bg-surface p-3 sm:px-8"
+      >
+        {(["gestion", "aula"] as const).map((option) => (
+          <Link
+            key={option}
+            href={`${base}/${option}`}
+            prefetch={false}
+            aria-current={space === option ? "true" : undefined}
+            className={`flex min-h-12 items-center justify-center gap-2 rounded-xl px-3 text-center text-sm font-semibold ${space === option ? "bg-brand text-on-brand" : "bg-surface-soft text-muted hover:text-brand"}`}
+          >
+            <Icon name={portalSpaces[option].icon} />
+            {portalSpaces[option].title}
+          </Link>
+        ))}
+      </nav>
       <main
         id="main-content"
         tabIndex={-1}
@@ -163,12 +204,12 @@ export function PortalShell({
             <ol className="flex flex-wrap items-center gap-2">
               <li>
                 <Link
-                  href={base}
+                  href={space ? `${base}/${space}` : base}
                   prefetch={false}
                   className="text-link inline-flex min-h-11 items-center"
                   aria-current={pathname === base ? "page" : undefined}
                 >
-                  Inicio
+                  {space ? portalSpaces[space].title : "Elegir espacio"}
                 </Link>
               </li>
               {active && active.section !== "resumen" && (
@@ -210,10 +251,11 @@ export function PortalShell({
                   <li key={step}>{step}</li>
                 ))}
               </ol>
-              <p className="mt-3 text-muted">
-                El botón Calendario del lateral derecho muestra tu agenda y
-                próximos pendientes.
-              </p>
+              {space === "aula" && (
+                <p className="mt-3 text-muted">
+                  El botón Calendario muestra tu agenda y próximos pendientes.
+                </p>
+              )}
             </div>
           </details>
         </div>

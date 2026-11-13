@@ -31,7 +31,13 @@ function stop(code) {
   }
 }
 
-for (const name of ["content-main", "analytics-main", "main"]) {
+for (const name of [
+  "content-main",
+  "analytics-main",
+  "identity-main",
+  "academic-main",
+  "main",
+]) {
   const args = production
     ? [`dist/${name}.js`]
     : ["--watch", "-r", "ts-node/register", `src/${name}.ts`];

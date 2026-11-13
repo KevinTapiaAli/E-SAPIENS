@@ -19,6 +19,7 @@
     "test:e2e": "turbo test:e2e",
     "format:check": "prettier --check .",
     "db:check": "node scripts/database.mjs check",
+    "deploy:check": "node scripts/check-deployment.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "analytics:prune": "node scripts/prune-analytics.mjs",
     "account:create": "pnpm --dir apps/api exec ts-node src/cli/create-account.ts",

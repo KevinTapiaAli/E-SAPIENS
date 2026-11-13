@@ -38,17 +38,15 @@ describe('E-SAPIENS Health (e2e)', () => {
     expect(response.body.timestamp).toBeDefined();
   });
 
-  it('GET /api/v1/health/ready debe validar PostgreSQL y Redis', async () => {
+  it('GET /api/v1/health/ready debe validar servicios y Redis', async () => {
     const response = await request(app.getHttpServer())
       .get('/api/v1/health/ready')
       .expect(200);
 
     expect(response.body.status).toBe('ok');
 
-    expect(response.body.dependencies.database).toEqual({
-      status: 'up',
-      name: 'esapiens',
-    });
+    expect(response.body.dependencies.identity).toEqual({ status: 'up' });
+    expect(response.body.dependencies.academic).toEqual({ status: 'up' });
 
     expect(response.body.dependencies.redis).toEqual({
       status: 'up',

@@ -3,6 +3,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiProperty,
   ApiTags,
 } from '@nestjs/swagger';
 import { IsString, MaxLength, MinLength } from 'class-validator';
@@ -11,6 +12,13 @@ import { CatalogService } from './catalog.service';
 import { courseDetailSchema, coursePageSchema } from './catalog.openapi';
 
 class CourseSlugDto {
+  @ApiProperty({
+    minLength: 1,
+    maxLength: 200,
+    example: 'demo-ciencias-naturales',
+    description:
+      'Slug obtenido de GET /courses; el ejemplo corresponde al seed local.',
+  })
   @IsString()
   @MinLength(1)
   @MaxLength(200)

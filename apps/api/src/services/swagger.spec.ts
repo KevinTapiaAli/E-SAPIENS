@@ -6,11 +6,15 @@ import { configureHttp } from '../common/http/configure-http';
 import { ContentServiceModule } from './content.module';
 import { AnalyticsServiceModule } from './analytics.module';
 import { createServiceDocument } from './swagger';
+import { IdentityServiceModule } from './identity.module';
+import { AcademicServiceModule } from './academic.module';
 
 describe('Service OpenAPI documents without network listeners', () => {
   it.each([
     ['content', ContentServiceModule],
     ['analytics', AnalyticsServiceModule],
+    ['identity', IdentityServiceModule],
+    ['academic', AcademicServiceModule],
   ] as const)(
     'documents %s with internal authentication and actual schemas',
     async (name, root) => {
@@ -24,6 +28,7 @@ describe('Service OpenAPI documents without network listeners', () => {
         .useValue(
           new ConfigService({
             NODE_ENV: 'test',
+            APP_URL: 'http://localhost:3000',
             INTERNAL_SERVICE_TOKEN: secret,
           }),
         )
@@ -49,7 +54,7 @@ describe('Service OpenAPI documents without network listeners', () => {
             document.paths['/api/v1/courses'].get?.responses['200'],
           ).toBeDefined();
           expect(document.paths['/api/v1/library/{id}'].get).toBeDefined();
-        } else {
+        } else if (name === 'analytics') {
           expect(
             document.paths['/api/v1/analytics/dashboard'].get?.responses['200'],
           ).toBeDefined();
@@ -59,6 +64,15 @@ describe('Service OpenAPI documents without network listeners', () => {
           expect(document.components?.schemas?.InternalVisitDto).toMatchObject({
             required: expect.arrayContaining(['visitor', 'path']),
           });
+        } else {
+          const path =
+            name === 'identity'
+              ? '/api/v1/identity/me'
+              : '/api/v1/academic/courses';
+          expect(document.paths[path].get?.security).toEqual([
+            { cookie: [], 'internal-service': [] },
+          ]);
+          expect(document.paths['/api/v1/internal/openapi']).toBeUndefined();
         }
       } finally {
         await app.close();

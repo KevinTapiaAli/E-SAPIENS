@@ -13,14 +13,21 @@ const courseSchema: SchemaObject = {
     'durationHours',
   ],
   properties: {
-    id: { type: 'string', format: 'uuid' },
-    slug: { type: 'string' },
-    title: { type: 'string' },
-    description: { type: 'string' },
-    category: { type: 'string' },
-    level: { type: 'string' },
-    language: { type: 'string' },
-    durationHours: { type: 'number' },
+    id: {
+      type: 'string',
+      format: 'uuid',
+      example: 'e5a00000-0000-4000-8000-000000000101',
+    },
+    slug: { type: 'string', example: 'demo-ciencias-naturales' },
+    title: { type: 'string', example: 'Ciencias naturales — ejemplo' },
+    description: {
+      type: 'string',
+      example: 'Introducción al estudio de los seres vivos.',
+    },
+    category: { type: 'string', example: 'Ciencias' },
+    level: { type: 'string', example: 'inicial' },
+    language: { type: 'string', example: 'es' },
+    durationHours: { type: 'number', example: 12 },
   },
 };
 

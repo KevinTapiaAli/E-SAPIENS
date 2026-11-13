@@ -1,4 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
+import { isIP } from 'node:net';
+import { internalClientIp, type TrustedRequest } from './trusted-request';
 import {
   CanActivate,
   ExecutionContext,
@@ -32,6 +34,9 @@ export class InternalServiceGuard implements CanActivate {
         'Internal service authentication required',
       );
     }
+    const request = context.switchToHttp().getRequest<TrustedRequest>();
+    const ip = request.headers['x-esapiens-client-ip'];
+    if (typeof ip === 'string' && isIP(ip)) request[internalClientIp] = ip;
     return true;
   }
 }

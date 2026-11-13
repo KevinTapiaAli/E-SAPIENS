@@ -19,12 +19,18 @@ async function proxy(
           "enrollments",
           "offerings",
           "registration-requests",
+          "commerce/plans",
+          "commerce/orders",
+          "commerce/pending",
+          "saved-library",
         ]
       : [
           "enrollments",
           "assignments",
           "registration-requests",
           "management/users",
+          "commerce/plans",
+          "commerce/orders",
           "management/courses",
           "agenda",
         ];
@@ -32,6 +38,8 @@ async function proxy(
     request.method === "GET"
       ? [
           new RegExp(`^enrollments/${uuid}$`),
+          new RegExp(`^evaluations/${uuid}$`),
+          new RegExp(`^evaluations/${uuid}/${uuid}/results$`),
           new RegExp(`^management/courses/${uuid}$`),
           new RegExp(`^management/courses/${uuid}/lessons/${uuid}$`),
           new RegExp(
@@ -40,6 +48,12 @@ async function proxy(
         ]
       : [
           new RegExp(`^registration-requests/${uuid}/review$`),
+          new RegExp(`^commerce/orders/${uuid}/payment$`),
+          new RegExp(`^saved-library/${uuid}$`),
+          new RegExp(`^commerce/payments/${uuid}/review$`),
+          new RegExp(
+            `^evaluations/${uuid}(?:/${uuid}/(?:start|attempts/${uuid}))?$`,
+          ),
           new RegExp(`^agenda/${uuid}$`),
           new RegExp(`^enrollments/${uuid}/access$`),
           new RegExp(`^enrollments/${uuid}/access/${uuid}/revoke$`),
@@ -76,7 +90,9 @@ async function proxy(
       const result = await readProxyBody(
         request,
         origin,
-        path.startsWith("management/courses") || path.startsWith("teaching/")
+        path.startsWith("management/courses") ||
+          path.startsWith("teaching/") ||
+          path.startsWith("evaluations/")
           ? 98304
           : 8192,
       );

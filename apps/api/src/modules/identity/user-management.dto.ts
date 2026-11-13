@@ -21,11 +21,19 @@ export class CreateManagedUserDto extends RegisterDto {
   @IsString()
   @Length(0, 200)
   specialty?: string;
+  @ApiPropertyOptional({
+    maxLength: 2000,
+    description: 'Enlace HTTPS al currículum, o cadena vacía.',
+  })
   @IsOptional()
   @Transform(trimText)
   @IsString()
   @Length(0, 2000)
   curriculumUrl?: string;
+  @ApiPropertyOptional({
+    maxLength: 1000,
+    description: 'Revisión de formación docente.',
+  })
   @IsOptional()
   @Transform(trimText)
   @IsString()
@@ -51,11 +59,35 @@ export class ManagedUserStateDto {
   reason: string;
 }
 export class TeacherProfileReviewDto {
-  @Transform(trimText) @IsString() @Length(3, 200) specialty: string;
-  @Transform(trimText) @IsString() @Length(0, 2000) curriculumUrl: string;
+  @ApiProperty({ minLength: 3, maxLength: 200, example: 'Ciencias naturales' })
+  @Transform(trimText)
+  @IsString()
+  @Length(3, 200)
+  specialty: string;
+  @ApiProperty({
+    maxLength: 2000,
+    example: '',
+    description: 'Enlace HTTPS al currículum, o cadena vacía.',
+  })
+  @Transform(trimText)
+  @IsString()
+  @Length(0, 2000)
+  curriculumUrl: string;
+  @ApiProperty({
+    minLength: 10,
+    maxLength: 1000,
+    example: 'Formación revisada y adecuada para impartir la materia.',
+  })
   @Transform(trimText)
   @IsString()
   @Length(10, 1000)
   qualificationReview: string;
-  @IsInt() @Min(0) revision: number;
+  @ApiProperty({
+    minimum: 0,
+    description:
+      'profileRevision actual de la consulta de docentes; evita sobrescribir cambios concurrentes.',
+  })
+  @IsInt()
+  @Min(0)
+  revision: number;
 }

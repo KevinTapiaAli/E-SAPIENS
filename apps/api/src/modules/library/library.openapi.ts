@@ -14,13 +14,20 @@ const librarySchema: SchemaObject = {
   ],
   properties: {
     id: { type: 'string', format: 'uuid' },
-    title: { type: 'string' },
+    title: { type: 'string', example: 'Guía de ciencias — ejemplo' },
     type: { type: 'string', enum: ['libro', 'articulo', 'guia', 'video'] },
-    description: { type: 'string' },
+    description: {
+      type: 'string',
+      example: 'Material bibliográfico de demostración.',
+    },
     publisher: { type: 'string', nullable: true },
     year: { type: 'integer', nullable: true },
     isbn: { type: 'string', nullable: true },
-    authors: { type: 'array', items: { type: 'string' } },
+    authors: {
+      type: 'array',
+      items: { type: 'string' },
+      example: ['Autor de ejemplo'],
+    },
   },
 };
 export const libraryPageSchema: SchemaObject = {

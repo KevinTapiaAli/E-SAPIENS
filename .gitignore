@@ -27,6 +27,7 @@ uploads/
 # TypeScript build cache
 *.tsbuildinfo
 .tmp/
+.vercel/
 
 # Copia local antigua del mismo repositorio; no forma parte del monorepo.
 /E-SAPIENS/

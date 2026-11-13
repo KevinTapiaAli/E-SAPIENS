@@ -1,6 +1,5 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { DatabaseService } from '../../infrastructure/database/database.service';
 import { RedisService } from '../../infrastructure/redis/redis.service';
 import { ServiceClient } from '../../infrastructure/services/service-client';
 
@@ -8,7 +7,6 @@ import { ServiceClient } from '../../infrastructure/services/service-client';
 @Controller('health')
 export class HealthController {
   constructor(
-    private readonly databaseService: DatabaseService,
     private readonly redisService: RedisService,
     private readonly services: ServiceClient,
   ) {}
@@ -30,15 +28,26 @@ export class HealthController {
     summary: 'Comprobar API, PostgreSQL, Redis, contenido y analítica',
   })
   async readiness() {
-    const [databaseResult, redisResult, contentResult, analyticsResult] =
-      await Promise.allSettled([
-        this.databaseService.ping(),
-        this.redisService.readiness(),
-        this.services.request<{ status: string }>('content', 'health/ready'),
-        this.services.request<{ status: string }>('analytics', 'health/ready'),
-      ]);
+    const [
+      identityResult,
+      academicResult,
+      redisResult,
+      contentResult,
+      analyticsResult,
+    ] = await Promise.allSettled([
+      this.services.request<{ status: string }>('identity', 'health/ready'),
+      this.services.request<{ status: string }>('academic', 'health/ready'),
+      this.redisService.readiness(),
+      this.services.request<{ status: string }>('content', 'health/ready'),
+      this.services.request<{ status: string }>('analytics', 'health/ready'),
+    ]);
 
-    const databaseUp = databaseResult.status === 'fulfilled';
+    const identityUp =
+      identityResult.status === 'fulfilled' &&
+      identityResult.value.status === 'ok';
+    const academicUp =
+      academicResult.status === 'fulfilled' &&
+      academicResult.value.status === 'ok';
 
     const redisUp =
       redisResult.status === 'fulfilled' && redisResult.value === 'PONG';
@@ -48,7 +57,8 @@ export class HealthController {
     const analyticsUp =
       analyticsResult.status === 'fulfilled' &&
       analyticsResult.value.status === 'ok';
-    const ready = databaseUp && redisUp && contentUp && analyticsUp;
+    const ready =
+      identityUp && academicUp && redisUp && contentUp && analyticsUp;
 
     const response = {
       status: ready ? 'ok' : 'error',
@@ -56,13 +66,8 @@ export class HealthController {
       dependencies: {
         content: { status: contentUp ? 'up' : 'down' },
         analytics: { status: analyticsUp ? 'up' : 'down' },
-        database: {
-          status: databaseUp ? 'up' : 'down',
-          name:
-            databaseResult.status === 'fulfilled'
-              ? databaseResult.value.database
-              : undefined,
-        },
+        identity: { status: identityUp ? 'up' : 'down' },
+        academic: { status: academicUp ? 'up' : 'down' },
         redis: {
           status: redisUp ? 'up' : 'down',
         },

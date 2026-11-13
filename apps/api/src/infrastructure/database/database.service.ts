@@ -14,9 +14,16 @@ export class DatabaseService implements OnApplicationShutdown {
       throw new Error('DATABASE_URL is not configured');
     }
 
+    const max = Number(
+      this.configService.get<string>('DATABASE_POOL_MAX') ?? 10,
+    );
+    if (!Number.isInteger(max) || max < 1 || max > 100) {
+      throw new Error('DATABASE_POOL_MAX debe ser un entero entre 1 y 100');
+    }
     this.pool = new Pool({
       connectionString,
-      max: 10,
+      max,
+      idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 3000,
       statement_timeout: 5000,
       query_timeout: 6000,

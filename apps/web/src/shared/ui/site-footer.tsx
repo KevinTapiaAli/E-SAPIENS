@@ -4,14 +4,12 @@ import { MeasurementPreference } from "@/features/analytics/measurement-preferen
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-line bg-surface">
+    <footer className="brand-footer mt-auto border-t border-line bg-surface">
       <div className="page-shell flex flex-col justify-between gap-6 py-8 sm:flex-row sm:items-center">
         <div>
           <BrandMark />
           <MeasurementPreference />
-          <p className="mt-3 text-sm text-muted">
-            Formación y conocimiento, a tu alcance.
-          </p>
+          <p className="mt-3 text-sm text-muted">Aprende. Explora. Crece.</p>
         </div>
         <nav
           aria-label="Enlaces del pie de página"

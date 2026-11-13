@@ -10,7 +10,13 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
-  @ApiProperty({ format: 'email', maxLength: 254 })
+  @ApiProperty({
+    format: 'email',
+    maxLength: 254,
+    example: 'estudiante@example.test',
+    description:
+      'Sustituir por el correo de una cuenta aprobada creada en esta instalación.',
+  })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
@@ -18,14 +24,24 @@ export class LoginDto {
   @MaxLength(254)
   email: string;
 
-  @ApiProperty({ format: 'password', minLength: 1, maxLength: 128 })
+  @ApiProperty({
+    format: 'password',
+    minLength: 1,
+    maxLength: 128,
+    writeOnly: true,
+    description: 'Contraseña de tu cuenta. No hay contraseñas predeterminadas.',
+  })
   @IsString()
   @Length(1, 128)
   password: string;
 }
 
 export class RegisterDto {
-  @ApiProperty({ format: 'email', maxLength: 254 })
+  @ApiProperty({
+    format: 'email',
+    maxLength: 254,
+    example: 'solicitud@example.test',
+  })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
@@ -33,12 +49,17 @@ export class RegisterDto {
   @MaxLength(254)
   email: string;
 
-  @ApiProperty({ format: 'password', minLength: 15, maxLength: 128 })
+  @ApiProperty({
+    format: 'password',
+    minLength: 15,
+    maxLength: 128,
+    writeOnly: true,
+  })
   @IsString()
   @Length(15, 128)
   password: string;
 
-  @ApiProperty({ maxLength: 100 })
+  @ApiProperty({ maxLength: 100, example: 'Ana' })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
@@ -47,7 +68,7 @@ export class RegisterDto {
   @Matches(/\S/)
   firstName: string;
 
-  @ApiProperty({ maxLength: 100 })
+  @ApiProperty({ maxLength: 100, example: 'Ejemplo' })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
@@ -58,11 +79,15 @@ export class RegisterDto {
 }
 
 export class ReviewAccountDto {
-  @ApiProperty({ enum: ['aprobar', 'rechazar'] })
+  @ApiProperty({ enum: ['aprobar', 'rechazar'], example: 'aprobar' })
   @IsIn(['aprobar', 'rechazar'])
   decision: 'aprobar' | 'rechazar';
 
-  @ApiProperty({ minLength: 5, maxLength: 500 })
+  @ApiProperty({
+    minLength: 5,
+    maxLength: 500,
+    example: 'Identidad revisada para la demostración académica.',
+  })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )

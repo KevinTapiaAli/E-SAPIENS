@@ -9,6 +9,10 @@ import {
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import { RedisService } from '../../infrastructure/redis/redis.service';
+import {
+  internalClientIp,
+  type TrustedRequest,
+} from '../../services/trusted-request';
 
 export const tokenDigest = (token: string) =>
   createHash('sha256').update(token).digest('hex');
@@ -20,6 +24,7 @@ export class IdentitySecurityService {
   readonly origin: string;
   readonly secure: boolean;
   readonly cookieName: string;
+  readonly swaggerOrigin?: string;
 
   constructor(
     config: ConfigService,
@@ -43,11 +48,36 @@ export class IdentitySecurityService {
     this.cookieName = this.secure
       ? '__Host-esapiens_session'
       : 'esapiens_session';
+
+    // Swagger es otro cliente local explícito, no una excepción a CSRF.
+    const swaggerOrigin = config.get<string>('SWAGGER_ORIGIN');
+    if (swaggerOrigin && config.get('NODE_ENV') !== 'production') {
+      let swaggerUrl: URL;
+      try {
+        swaggerUrl = new URL(swaggerOrigin);
+      } catch {
+        throw new Error('SWAGGER_ORIGIN must be a local HTTP(S) origin');
+      }
+      if (
+        !['http:', 'https:'].includes(swaggerUrl.protocol) ||
+        !['localhost', '127.0.0.1', '[::1]'].includes(swaggerUrl.hostname) ||
+        !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) ||
+        swaggerOrigin !== swaggerUrl.origin ||
+        swaggerUrl.protocol !== url.protocol
+      ) {
+        throw new Error(
+          'SWAGGER_ORIGIN must be a local origin using the APP_URL protocol',
+        );
+      }
+      this.swaggerOrigin = swaggerUrl.origin;
+    }
   }
 
   checkOrigin(request: Request): void {
     if (
-      request.headers.origin !== this.origin ||
+      (request.headers.origin !== this.origin &&
+        (!this.swaggerOrigin ||
+          request.headers.origin !== this.swaggerOrigin)) ||
       (request.headers['sec-fetch-site'] &&
         request.headers['sec-fetch-site'] !== 'same-origin')
     ) {
@@ -100,7 +130,7 @@ export class IdentitySecurityService {
           900,
         ),
         this.redis.consume(
-          `identity:${purpose}:address:${tokenDigest(request.ip ?? 'unknown')}`,
+          `identity:${purpose}:address:${tokenDigest((request as TrustedRequest)[internalClientIp] ?? request.ip ?? 'unknown')}`,
           900,
         ),
       ]);
