@@ -43,6 +43,7 @@ export class AnalyticsService {
         from.toISOString(),
         end.toISOString(),
         previousFrom.toISOString(),
+        null,
       ]),
       this.db.query<ExecutiveDashboard['learning']>(learningSql, [generatedAt]),
       this.db.query<{ enabled_at: Date }>(

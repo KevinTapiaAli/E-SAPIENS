@@ -18,6 +18,7 @@ Este README concentra la instalación, arquitectura, operación, demostración y
 - [Actualizar después de un cambio](#actualizar-después-de-un-cambio)
 - [Base de datos y seguridad](#base-de-datos-y-seguridad)
 - [Indicadores ejecutivos](#indicadores-ejecutivos)
+- [Centro de Datos administrativo](#centro-de-datos-administrativo)
 - [Capturas de ejecución](#capturas-de-ejecución)
 - [Problemas frecuentes](#problemas-frecuentes)
 - [Calidad y alcance](#calidad-y-alcance)
@@ -431,6 +432,91 @@ El administrador puede consultar visitantes únicos estimados, materias consulta
 - Actividad semanal: acciones académicas registradas; iniciar sesión por sí solo no equivale a estudiar. La inactividad se basa en ausencia de actividad académica durante al menos 14 días considerando la matrícula.
 - La medición respeta exclusión voluntaria y señales DNT/GPC. No envía estos eventos a un proveedor externo.
 - `analytics:prune` elimina datos de medición y atribución anteriores a 190 días en lotes de hasta 10 000 por tabla. En un despliegue debe programarse y atender posibles lotes acumulados; no existe un cron automático dentro de la aplicación.
+
+## Centro de Datos administrativo
+
+El [informe de entrega y validación](docs/centro-datos-validacion.md) detalla los archivos, las comprobaciones realizadas y sus límites.
+
+El menú administrativo incorpora **Centro de Datos**, en `/portal/administrador/datos`. Conserva el Panel ejecutivo y el Análisis académico existentes. Usa los contratos compartidos, la consulta de progreso académico y la definición de actividad del panel; amplía el servicio de analítica de la arquitectura actual, sin otra base de datos ni nuevos procesos.
+
+### Vistas disponibles
+
+- **Resumen general:** cuentas registradas y aprobadas, estudiantes y docentes aprobados, estados de cursos, matrículas activas, solicitudes pendientes, avance, inactividad, entregas pendientes y prioridades administrativas.
+- **Estudiantes:** una fila por matrícula, estudiantes únicos, distribución y avance por materia, cobertura, solicitudes por estado, entregas y calificaciones. El expediente utiliza la ruta de seguimiento existente y comprueba nuevamente la autorización.
+- **Cursos:** estados, estudiantes únicos, matrículas, avance, lecciones publicadas y completadas, tareas, entregas y docentes habilitados. Incluye comparación por barras y tabla ordenable.
+- **Docentes:** cuentas aprobadas, materias asignadas con enlaces, pendientes en esas materias, calificaciones efectuadas, retroalimentaciones y sesiones iniciadas registradas. No se deducen horas, productividad ni desempeño.
+- **Actividad web:** visitantes únicos estimados, consultas de cursos, solicitudes atribuidas, conversiones con sus denominadores y evolución diaria. Se reutilizan `web_visits_daily`, `web_analytics_config` y las atribuciones opcionales existentes.
+- **Reportes y exportaciones:** consultas de estudiantes, cursos, docentes, solicitudes y tráfico diario, con CSV protegido para Excel.
+
+Las preferencias visuales, el tema claro/oscuro y la navegación móvil son los del portal. Los gráficos incluyen leyendas y valores textuales; la serie temporal ofrece una tabla accesible. Los estados de carga, error de filtros, ausencia de registros, sesión no autorizada y servicio no disponible están diferenciados.
+
+### Acceso y comunicación
+
+La API principal exige una sesión de cuenta aprobada, rol `administrador` o `administrador_general` y **ambos** permisos `dashboard.admin` y `academic.read`, tanto para consultar como para exportar. El servicio interno exige `InternalServiceGuard`; su token no se entrega al navegador. Las respuestas privadas y el proxy CSV utilizan `Cache-Control: private, no-store`.
+
+| Endpoint público, prefijo `/api/v1`     | Función                                                        |
+| --------------------------------------- | -------------------------------------------------------------- |
+| `GET /analytics/data-center`            | Indicadores, recomendaciones, columnas y página de resultados. |
+| `GET /analytics/data-center/export.csv` | Descarga CSV con los mismos filtros y orden.                   |
+
+La API principal delega en `GET /api/v1/analytics/data-center` y `GET /api/v1/analytics/data-center/export` del servicio interno de analítica. Este último devuelve un sobre privado con el CSV y sus límites; solo el archivo llega al navegador mediante `/api/analytics/data-center/export`. Swagger documenta los DTO, las respuestas y los requisitos de acceso en los procesos correspondientes. Un servicio caído produce `503`, sin ejecutar consultas alternativas en el núcleo.
+
+### Filtros y límites
+
+| Parámetro            | Valores / alcance                                                                                                            |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `days`               | `7`, `30` o `90`; por defecto `30`. Ventanas de días UTC completos, fin exclusivo, y comparación anterior de igual duración. |
+| `courseId`           | UUID de materia; omitido incluye todas.                                                                                      |
+| `state`              | `todos`, `activa`, `suspendida`, `abandonada`, `cancelada`; estado de matrícula ya registrado.                               |
+| `stage`              | `todos`, `sin_iniciar`, `en_curso`, `completado`, `sin_contenido`, `sin_actividad`, `sin_cobertura`.                         |
+| `courseState`        | `todos`, `publicado`, `borrador`, `revision`, `archivado`.                                                                   |
+| `requestState`       | `todos`, `pendiente`, `aprobada`, `rechazada`.                                                                               |
+| `indicator`          | `students`, `courses`, `teachers`, `requests`, `traffic`.                                                                    |
+| `page` / `pageSize`  | Página `1..10000`; tamaño `1..100` (predeterminados: `1`, `20`).                                                             |
+| `sort` / `direction` | `name`, `progress`, `students`, `pending`, `activity`; `asc` o `desc`, con desempate por ID.                                 |
+
+Los parámetros desconocidos, repetidos o inválidos se rechazan. Los filtros se aplican antes de agregar y paginar; el total se conserva incluso cuando una página queda vacía. La interfaz restablece la página al aplicar filtros. Los estados de matrícula, avance y curso delimitan las consultas académicas; las solicitudes intersectan ese ámbito cuando se selecciona un estado o nivel académico. El tráfico utiliza período y materia: no se atribuye un estado académico a un navegador. Los totales de cuentas aprobadas permanecen institucionales.
+
+El período afecta actividad, entregas, calificaciones, solicitudes listadas y tráfico. Cuentas, contenidos, matrículas y pendientes representan el **estado actual**; no se reconstruyen estados históricos. Los gráficos de materias identifican si representan la página actual o las primeras diez materias del ámbito completo. El selector incluye hasta 500 materias e informa cuando alcanza ese límite. La consulta API admite cualquier UUID válido autorizado.
+
+La exportación incluye las primeras **5000 filas de todas las páginas**, respetando filtros y orden. Las cabeceras `X-Export-Rows`, `X-Export-Total` y `X-Export-Truncated` informan su alcance; la interfaz avisa si hay truncamiento. CSV UTF-8 con BOM, comillas escapadas y neutralización de `=`, `+`, `-`, `@` incluso después de espacios o controles. No incluye contraseñas, hashes, correos, sesiones, textos de entregas ni identificadores de visitantes. Las fechas se exportan como ISO UTC; los registros de la interfaz usan la zona horaria de la cuenta y los días de tráfico se identifican expresamente como UTC.
+
+### Definiciones y recomendaciones
+
+| Indicador                 | Definición                                                                                                                                                                                                                                                      |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cuentas activas/aprobadas | Estado administrativo `aprobado`, con el rol correspondiente. No significa actividad reciente; la participación registrada se informa por separado.                                                                                                             |
+| Estudiantes únicos        | Personas distintas entre las matrículas filtradas. No sumar este dato entre materias para obtener el total institucional.                                                                                                                                       |
+| Avance                    | Lecciones completadas / lecciones publicadas de módulos publicados. Se reutiliza el porcentaje entero por matrícula del seguimiento. Sin lecciones: `null`.                                                                                                     |
+| Promedio                  | Media de porcentajes por matrícula activa con contenido; `progressDenominator` informa cuántas participan. Si el denominador es cero: `null`. El promedio por curso abarca las matrículas de su filtro.                                                         |
+| Cobertura vigente         | Existe al menos un acceso a módulo publicado, no revocado, con `desde <= ahora < hasta`. No garantiza acceso a todo el curso ni sustituye los requisitos del aula. Se informa por matrícula activa.                                                             |
+| Inactividad               | Estudiantes únicos aprobados con matrícula activa y al menos 14 días desde la última actividad o la matrícula: inicio/finalización de lecciones, entregas o asistencia confirmada a una clase iniciada. La tabla también identifica la situación por matrícula. |
+| Entregas y pendientes     | Último intento por tarea y matrícula. Pendientes: sin nota, incluyendo períodos anteriores. Entregas/calificadas del período: fechas de entrega/calificación respectivamente.                                                                                   |
+| Docente habilitado        | Cuenta aprobada con rol docente y asignación a la materia, igual que en el Panel ejecutivo. Los pendientes de una materia con varios docentes pueden aparecer en varias filas: no sumarlas.                                                                     |
+| Conversiones              | Visitantes estimados con una solicitud real posterior a su primera visita del período. Cuenta: visitantes convertidos / visitantes estimados. Inscripción: visitantes convertidos / visitantes que consultaron cursos. Sin denominador: sin datos.              |
+
+**Análisis y recomendaciones** aplica reglas determinísticas: valores positivos de pendientes, inactividad, cursos publicados sin docente o falta de cobertura generan sugerencias de revisión. Cada recomendación muestra su indicador y valor. Una reducción de participación compara estudiantes con actividad en ventanas de igual duración y muestra el cambio porcentual; no atribuye causas. Nunca cambia estados de abandono, califica docentes ni presenta correlaciones como causas.
+
+La medición web empieza en `web_analytics_config.enabled_at`, respeta las preferencias existentes y no reconstruye períodos anteriores. Los días previos aparecen sin medición, nunca como una serie reconstruida; el día de habilitación puede ser parcial. La comparación de tráfico se advierte como incompleta si falta todo el período previo. Visitantes estimados no son personas identificadas, las solicitudes no son matrículas y los visitantes únicos diarios no se suman para deducir los del período.
+
+No se añade una migración: las tablas, relaciones e índices existentes permiten las lecturas implementadas. No se editan migraciones aplicadas ni se escriben datos desde los informes. Para grandes volúmenes, revisar `EXPLAIN (ANALYZE, BUFFERS)` en un entorno apropiado antes de justificar nuevos índices; el timeout de PostgreSQL y el límite interno HTTP permanecen vigentes.
+
+### Comprobación
+
+Usar Node.js de `.node-version` y las dependencias del lockfile. Ejecutar desde la raíz:
+
+```powershell
+pnpm.cmd format:check
+pnpm.cmd lint
+pnpm.cmd typecheck
+pnpm.cmd test
+pnpm.cmd test:e2e
+pnpm.cmd build
+```
+
+Pruebas nuevas: `data-center.spec.ts` cubre porcentajes, recomendaciones, límite y neutralización CSV; `data-center.e2e-spec.ts` verifica HTTP, permisos reales, DTO, filtros, respuestas vacías y fallos controlados; `data-center.postgres.e2e-spec.ts` ejecuta las consultas reales con datos temporales dentro de una transacción y hace `ROLLBACK`. Esta última exige `APP_ENV=local/test`, PostgreSQL local y base `esapiens` o `esapiens_test`. Ninguna prueba requiere borrar o reinicializar la base; la suite completa también necesita Redis disponible. La revisión visual requiere un navegador conectado y una sesión administrativa autorizada.
+
+**Texto para el informe académico:** Se implementó un Centro de Datos administrativo integrado con la arquitectura de E-SAPIENS. Reúne indicadores académicos y de tráfico, consultas filtradas y paginadas, gráficos accesibles, recomendaciones basadas en reglas explícitas y exportaciones CSV seguras. Reutiliza la autorización, el seguimiento académico y la analítica existentes para apoyar decisiones institucionales con datos registrados, sin alterar los registros originales.
 
 ## Capturas de ejecución
 

@@ -4,6 +4,7 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { configureHttp } from '../src/common/http/configure-http';
 import { ServiceClient } from '../src/infrastructure/services/service-client';
+import { RedisService } from '../src/infrastructure/redis/redis.service';
 
 describe('E-SAPIENS Health (e2e)', () => {
   let app: INestApplication;
@@ -22,6 +23,18 @@ describe('E-SAPIENS Health (e2e)', () => {
     configureHttp(app);
 
     await app.init();
+    // Redis intentionally rejects commands before connecting. Wait for actual
+    // readiness in the fixture so concurrent suites cannot race that startup.
+    const redis = moduleFixture.get(RedisService);
+    for (let attempt = 0; ; attempt++) {
+      try {
+        await redis.readiness();
+        break;
+      } catch (error) {
+        if (attempt >= 30) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
   });
 
   afterAll(async () => {

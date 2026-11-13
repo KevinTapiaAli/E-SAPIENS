@@ -8,6 +8,7 @@ export const roleLabels: Record<WorkspaceRole, string> = {
 };
 export type PortalSection =
   | "resumen"
+  | "datos"
   | "informes"
   | "docentes"
   | "solicitudes"
@@ -21,6 +22,7 @@ export type PortalSection =
   | "cuenta";
 
 export const sectionDescriptions: Record<PortalSection, string> = {
+  datos: "Consulta y exporta indicadores administrativos y académicos.",
   resumen: "Tus accesos y prioridades en un solo lugar.",
   informes: "Consulta resultados e indicadores académicos.",
   docentes: "Organiza las asignaciones y revisa los perfiles docentes.",
@@ -108,6 +110,11 @@ export function portalNavigation(
     },
   ];
   if (role === "administrador") {
+    if (
+      user.permissions.includes("dashboard.admin") &&
+      user.permissions.includes("academic.read")
+    )
+      items.push({ section: "datos", label: "Centro de Datos", icon: "chart" });
     if (user.permissions.includes("identity.review"))
       items.push({
         section: "solicitudes",
@@ -184,7 +191,7 @@ export function portalSectionGroup(
 ): string {
   if (section === "resumen") return "Mi espacio";
   if (section === "cuenta") return "Mi cuenta";
-  if (["informes", "seguimiento", "progreso"].includes(section))
+  if (["datos", "informes", "seguimiento", "progreso"].includes(section))
     return "Consultas y seguimiento";
   if (
     role === "administrador" &&
