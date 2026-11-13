@@ -1,0 +1,105 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "web": {
+      "root": "apps/web",
+      "framework": "nextjs",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "gateway",
+          "format": "url",
+          "env": "API_URL"
+        }
+      ]
+    },
+    "gateway": {
+      "root": "apps/service-gateway",
+      "framework": "nestjs",
+      "entrypoint": "index.cjs",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "content",
+          "format": "url",
+          "env": "CONTENT_SERVICE_URL"
+        },
+        {
+          "type": "service",
+          "service": "analytics",
+          "format": "url",
+          "env": "ANALYTICS_SERVICE_URL"
+        },
+        {
+          "type": "service",
+          "service": "identity",
+          "format": "url",
+          "env": "IDENTITY_SERVICE_URL"
+        },
+        {
+          "type": "service",
+          "service": "academic",
+          "format": "url",
+          "env": "ACADEMIC_SERVICE_URL"
+        }
+      ],
+      "buildCommand": "pnpm --filter esapiens-api... build"
+    },
+    "content": {
+      "root": "apps/service-content",
+      "framework": "nestjs",
+      "entrypoint": "index.cjs",
+      "buildCommand": "pnpm --filter esapiens-api... build"
+    },
+    "analytics": {
+      "root": "apps/service-analytics",
+      "framework": "nestjs",
+      "entrypoint": "index.cjs",
+      "buildCommand": "pnpm --filter esapiens-api... build"
+    },
+    "identity": {
+      "root": "apps/service-identity",
+      "framework": "nestjs",
+      "entrypoint": "index.cjs",
+      "buildCommand": "pnpm --filter esapiens-api... build"
+    },
+    "academic": {
+      "root": "apps/service-academic",
+      "framework": "nestjs",
+      "entrypoint": "index.cjs",
+      "buildCommand": "pnpm --filter esapiens-api... build"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/v1/:path*",
+      "destination": {
+        "service": "gateway"
+      }
+    },
+    {
+      "source": "/api/docs",
+      "destination": {
+        "service": "gateway"
+      }
+    },
+    {
+      "source": "/api/docs/:path*",
+      "destination": {
+        "service": "gateway"
+      }
+    },
+    {
+      "source": "/api/docs-json",
+      "destination": {
+        "service": "gateway"
+      }
+    },
+    {
+      "source": "/:path*",
+      "destination": {
+        "service": "web"
+      }
+    }
+  ]
+}

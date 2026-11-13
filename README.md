@@ -875,6 +875,16 @@ La población de una ciudad no equivale a usuarios simultáneos. Esta versión a
 
 La prueba SQL local pasó con las migraciones nuevas presentes; en cada entorno de destino deben aplicarse mediante el procedimiento documentado y revisarse los recorridos funcionales. La configuración estática local pasó, con pagos deshabilitados hasta completar `PAYMENT_INSTRUCTIONS`. No se realizaron cobros reales ni despliegues. La capacidad para una ciudad completa sigue pendiente de dimensionamiento y pruebas de carga.
 
+## Infraestructura de producción
+
+`vercel.json`, en la raíz del repositorio, configura Vercel Services (beta): web Next.js, gateway y cuatro servicios NestJS (identidad, gestión académica, contenido y analítica). Los servicios se compilan por separado y se publican juntos. Cada carpeta `apps/service-*` contiene únicamente su entrada de despliegue; la lógica permanece en `apps/api/src`. Los enlaces privados proporcionan `API_URL` y las cuatro variables `*_SERVICE_URL`; no deben sustituirse por direcciones locales.
+
+PostgreSQL Neon y Redis Upstash están vinculados al entorno **Production** de `e-sapiens-web`, con planes gratuitos. Se instaló el esquema inicial y se aplicaron las migraciones `0002` a `0010`. `DATABASE_URL` y `REDIS_URL` proceden de las integraciones; `INTERNAL_SERVICE_TOKEN` es secreto y `DATABASE_POOL_MAX=2` limita las conexiones por proceso. No se incluyen credenciales en Git.
+
+Solo el gateway publica `/api/v1/*`, `/api/docs` y `/api/docs-json`. Los otros servicios requieren la clave interna y no tienen rutas públicas. Swagger usa el inicio de sesión real y su cookie HttpOnly; no se debe pegar la clave interna en el navegador. No se cargan cuentas, cursos ni libros de demostración en producción. La primera cuenta administrativa se crea mediante `account:create` con las variables del entorno de destino; después permite administrar cuentas y publicar contenido autorizado. Los pagos permanecen deshabilitados hasta configurar `PAYMENT_INSTRUCTIONS` institucionales.
+
+Para desplegar esta configuración, la raíz del proyecto Vercel debe ser la raíz del monorepo. Primero construir con `vercel deploy --prod --skip-domain`, comprobar la disponibilidad de API, autenticación y biblioteca y luego promover el despliegue. Crear un despliegue no confirma su funcionamiento. Los planes gratuitos tienen límites; no se ha validado capacidad para una ciudad completa.
+
 ## Dos espacios de trabajo
 
 Al ingresar a `/portal/{perfil}`, cada usuario elige entre dos opciones:
