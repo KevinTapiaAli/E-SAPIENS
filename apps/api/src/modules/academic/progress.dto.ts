@@ -48,6 +48,7 @@ export class ProgressQuery extends AcademicListQuery {
 }
 
 export class ReportQuery extends ProgressQuery {
+  @ApiProperty({ enum: ['avance', 'tareas', 'asistencia', 'acceso'] })
   @IsIn(['avance', 'tareas', 'asistencia', 'acceso'])
   topic: 'avance' | 'tareas' | 'asistencia' | 'acceso';
 }

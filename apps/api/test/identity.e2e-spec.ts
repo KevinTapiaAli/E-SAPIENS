@@ -5,7 +5,9 @@ import { Test } from '@nestjs/testing';
 import { Client, PoolClient } from 'pg';
 import request from 'supertest';
 import { hash as bcryptHash } from 'bcryptjs';
-import { AppModule } from '../src/app.module';
+import { RuntimeModule } from '../src/common/runtime.module';
+import { IdentityModule } from '../src/modules/identity/identity.module';
+import { AcademicModule } from '../src/modules/academic/academic.module';
 import { configureHttp } from '../src/common/http/configure-http';
 import { DatabaseService } from '../src/infrastructure/database/database.service';
 import { RedisService } from '../src/infrastructure/redis/redis.service';
@@ -50,7 +52,10 @@ describe('Identidad, permisos y sesiones contra PostgreSQL/Redis (e2e)', () => {
   };
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+    // Exercise real domain handlers with the transaction below, not a remote gateway.
+    const moduleRef = await Test.createTestingModule({
+      imports: [RuntimeModule, IdentityModule, AcademicModule],
+    })
       .overrideProvider(DatabaseService)
       .useValue({
         query: (sql: string, params: unknown[]) => db.query(sql, params),

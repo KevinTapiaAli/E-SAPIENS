@@ -4,9 +4,11 @@ import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { Client } from 'pg';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
+import { RuntimeModule } from '../src/common/runtime.module';
 import { configureHttp } from '../src/common/http/configure-http';
 import { DatabaseService } from '../src/infrastructure/database/database.service';
+import { CatalogModule } from '../src/modules/catalog/catalog.module';
+import { LibraryModule } from '../src/modules/library/library.module';
 
 describe('Catálogo público contra PostgreSQL (e2e)', () => {
   let app: INestApplication;
@@ -24,7 +26,11 @@ describe('Catálogo público contra PostgreSQL (e2e)', () => {
   const unpublishedItemId = randomUUID();
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+    const moduleRef = await Test.createTestingModule({
+      imports: [RuntimeModule, CatalogModule, LibraryModule],
+    })
+      // Domain integration uses this test's uncommitted PostgreSQL transaction.
+      // HTTP transport and internal authentication have separate unit coverage.
       .overrideProvider(DatabaseService)
       .useValue({
         query: (sql: string, params: unknown[]) => database.query(sql, params),

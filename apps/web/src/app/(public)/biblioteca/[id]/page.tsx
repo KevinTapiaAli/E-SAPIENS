@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLibraryItem } from "@/features/library/api";
 import { Badge } from "@/shared/ui/badge";
+import { AcademicAction } from "@/features/classroom/academic-action";
 import { StatePanel } from "@/shared/ui/state-panel";
 
 export async function generateMetadata({
@@ -69,6 +70,17 @@ export default async function LibraryItemPage({
       <h1 className="mt-5 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
         {item.title}
       </h1>
+      <AcademicAction
+        path={`saved-library/${item.id}`}
+        label="Guardar referencia en Mi biblioteca"
+        payload={{ saved: true }}
+      />
+      <p className="mt-2 text-sm text-muted">
+        Requiere una sesión activa.{" "}
+        <Link className="text-link" href="/login">
+          Iniciar sesión
+        </Link>
+      </p>
       <p className="mt-6 whitespace-pre-line text-lg leading-8 text-muted">
         {item.description}
       </p>

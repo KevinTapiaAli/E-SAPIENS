@@ -15,6 +15,9 @@ import {
 import {
   ApiCookieAuth,
   ApiOperation,
+  ApiOkResponse,
+  ApiPropertyOptional,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -24,8 +27,13 @@ import { IdentityService } from './identity.service';
 import { IdentitySecurityService } from './identity-security.service';
 import { LoginDto, RegisterDto, ReviewAccountDto } from './identity.dto';
 import { visitorDigest } from '../analytics/visitor';
+import { sessionUserSchema } from './identity.openapi';
 
 class PendingQuery {
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'nextCursor de la página anterior.',
+  })
   @IsOptional()
   @IsUUID()
   cursor?: string;
@@ -51,6 +59,15 @@ export class IdentityController {
     summary: 'Iniciar una sesión web de ocho horas en una cuenta aprobada',
   })
   @ApiResponse({ status: 401, description: 'Credenciales incorrectas' })
+  @ApiOkResponse({
+    description:
+      'Sesión creada. Set-Cookie establece la cookie HttpOnly; el navegador la enviará automáticamente.',
+    schema: sessionUserSchema,
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Demasiados intentos. Esperar 15 minutos.',
+  })
   @ApiResponse({
     status: 403,
     description: 'Cuenta sin aprobación u origen no permitido',
@@ -101,6 +118,7 @@ export class IdentityController {
 
   @Get('me')
   @ApiCookieAuth()
+  @ApiOkResponse({ schema: sessionUserSchema })
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
     summary: 'Consultar identidad, roles y permisos de la sesión',
@@ -110,6 +128,7 @@ export class IdentityController {
   }
 
   @Get('dashboard/:role')
+  @ApiParam({ name: 'role', enum: Role })
   @ApiCookieAuth()
   @Header('Cache-Control', 'no-store')
   @ApiOperation({

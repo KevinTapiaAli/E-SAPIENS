@@ -31,8 +31,8 @@ export async function StudentCourses({
   return (
     <>
       <PortalHeading
-        eyebrow="Mi biblioteca de aprendizaje"
-        title="Mis materias"
+        eyebrow="Aula virtual"
+        title="Mis aulas"
         description="Tus materias, agrupadas por categoría y ordenadas por nombre. Entra al aula, encuentra materiales o consulta tus tareas."
       />
       <PortalSearch q={q} placeholder="Buscar una materia o categoría" />

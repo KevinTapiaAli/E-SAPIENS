@@ -42,17 +42,40 @@ import { ProfilePhotoEditor } from "@/features/portal/profile-photo";
 import MetricsPage from "@/features/portal/metrics-page";
 import { TeachersSection } from "@/features/management/teachers-section";
 import { StudentCourses } from "@/features/portal/student-courses";
+import { SpaceHome, SpaceCourses } from "@/features/portal/space-home";
+import { ExecutiveDashboardView } from "@/features/analytics/executive-dashboard";
 
 export default async function PortalSectionPage({
   params,
   searchParams,
 }: {
   params: Promise<{ role: string; section: string }>;
-  searchParams: Promise<ProgressFilters>;
+  searchParams: Promise<ProgressFilters & { days?: string }>;
 }) {
   const { role, section } = await params;
   if (!isWorkspaceRole(role)) notFound();
   const user = await portalSession();
+  if (section === "gestion" || section === "aula") {
+    const filters = await searchParams;
+    return (
+      <>
+        <SpaceHome role={role} user={user} space={section} />
+        {section === "aula" &&
+          (role !== "administrador" ||
+            user.permissions.includes("academic.read")) && (
+            <SpaceCourses
+              role={role}
+              q={filters.q}
+              cursor={filters.cursor}
+              aula
+            />
+          )}
+        {section === "gestion" && role === "administrador" && (
+          <ExecutiveDashboardView user={user} days={filters.days} />
+        )}
+      </>
+    );
+  }
   const item = portalNavigation(role, user).find(
     (item) => item.section === section,
   );
@@ -75,6 +98,8 @@ export default async function PortalSectionPage({
   )
     return <ProgressSection role={role} user={user} filters={filters} />;
   const { q = "", cursor } = filters;
+  if (section === "materias")
+    return <SpaceCourses role={role} q={q} cursor={cursor} />;
   if (section === "cursos" && role === "estudiante")
     return <StudentCourses q={q} cursor={cursor} />;
   if (section === "docentes" && role === "administrador")

@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { configureHttp } from '../src/common/http/configure-http';
+import { ServiceClient } from '../src/infrastructure/services/service-client';
 
 describe('E-SAPIENS Health (e2e)', () => {
   let app: INestApplication;
@@ -10,7 +11,11 @@ describe('E-SAPIENS Health (e2e)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      // This suite checks core dependencies; workers are not started by the suite.
+      .overrideProvider(ServiceClient)
+      .useValue({ request: async () => ({ status: 'ok' }) })
+      .compile();
 
     app = moduleFixture.createNestApplication();
 
@@ -33,17 +38,15 @@ describe('E-SAPIENS Health (e2e)', () => {
     expect(response.body.timestamp).toBeDefined();
   });
 
-  it('GET /api/v1/health/ready debe validar PostgreSQL y Redis', async () => {
+  it('GET /api/v1/health/ready debe validar servicios y Redis', async () => {
     const response = await request(app.getHttpServer())
       .get('/api/v1/health/ready')
       .expect(200);
 
     expect(response.body.status).toBe('ok');
 
-    expect(response.body.dependencies.database).toEqual({
-      status: 'up',
-      name: 'esapiens',
-    });
+    expect(response.body.dependencies.identity).toEqual({ status: 'up' });
+    expect(response.body.dependencies.academic).toEqual({ status: 'up' });
 
     expect(response.body.dependencies.redis).toEqual({
       status: 'up',

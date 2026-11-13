@@ -149,7 +149,12 @@ export class IdentityService {
     };
   }
 
-  authorize(user: SessionUser, role: WorkspaceRole, permission?: string): void {
+  authorize(
+    this: void,
+    user: SessionUser,
+    role: WorkspaceRole,
+    permission?: string,
+  ): void {
     const expected =
       permission ??
       {

@@ -12,12 +12,26 @@
       "persistent": true,
       "env": [
         "DATABASE_URL",
+        "DATABASE_POOL_MAX",
+        "PAYMENT_INSTRUCTIONS",
         "REDIS_URL",
         "API_URL",
         "APP_URL",
+        "SWAGGER_ORIGIN",
         "PORT",
+        "API_PORT",
         "APP_ENV",
-        "NODE_ENV"
+        "NODE_ENV",
+        "CONTENT_SERVICE_URL",
+        "ANALYTICS_SERVICE_URL",
+        "IDENTITY_SERVICE_URL",
+        "ACADEMIC_SERVICE_URL",
+        "CONTENT_SERVICE_PORT",
+        "ANALYTICS_SERVICE_PORT",
+        "IDENTITY_SERVICE_PORT",
+        "ACADEMIC_SERVICE_PORT",
+        "INTERNAL_SERVICE_TOKEN",
+        "SERVICE_BIND_HOST"
       ]
     },
     "lint": {

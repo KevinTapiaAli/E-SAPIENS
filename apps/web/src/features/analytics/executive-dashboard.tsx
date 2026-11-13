@@ -265,7 +265,7 @@ export async function ExecutiveDashboardView({
           {["7", "30", "90"].map((period) => (
             <Link
               key={period}
-              href={`${base}?days=${period}`}
+              href={`${base}/gestion?days=${period}`}
               prefetch={false}
               aria-current={days === period ? "page" : undefined}
               className={`button ${days === period ? "button-primary" : "button-secondary"}`}

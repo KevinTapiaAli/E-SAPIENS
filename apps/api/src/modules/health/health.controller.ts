@@ -1,14 +1,14 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { DatabaseService } from '../../infrastructure/database/database.service';
 import { RedisService } from '../../infrastructure/redis/redis.service';
+import { ServiceClient } from '../../infrastructure/services/service-client';
 
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {
   constructor(
-    private readonly databaseService: DatabaseService,
     private readonly redisService: RedisService,
+    private readonly services: ServiceClient,
   ) {}
 
   @Get()
@@ -25,30 +25,49 @@ export class HealthController {
 
   @Get('ready')
   @ApiOperation({
-    summary: 'Comprobar API, PostgreSQL y Redis',
+    summary: 'Comprobar API, PostgreSQL, Redis, contenido y analítica',
   })
   async readiness() {
-    const [databaseResult, redisResult] = await Promise.allSettled([
-      this.databaseService.ping(),
+    const [
+      identityResult,
+      academicResult,
+      redisResult,
+      contentResult,
+      analyticsResult,
+    ] = await Promise.allSettled([
+      this.services.request<{ status: string }>('identity', 'health/ready'),
+      this.services.request<{ status: string }>('academic', 'health/ready'),
       this.redisService.readiness(),
+      this.services.request<{ status: string }>('content', 'health/ready'),
+      this.services.request<{ status: string }>('analytics', 'health/ready'),
     ]);
 
-    const databaseUp = databaseResult.status === 'fulfilled';
+    const identityUp =
+      identityResult.status === 'fulfilled' &&
+      identityResult.value.status === 'ok';
+    const academicUp =
+      academicResult.status === 'fulfilled' &&
+      academicResult.value.status === 'ok';
 
     const redisUp =
       redisResult.status === 'fulfilled' && redisResult.value === 'PONG';
+    const contentUp =
+      contentResult.status === 'fulfilled' &&
+      contentResult.value.status === 'ok';
+    const analyticsUp =
+      analyticsResult.status === 'fulfilled' &&
+      analyticsResult.value.status === 'ok';
+    const ready =
+      identityUp && academicUp && redisUp && contentUp && analyticsUp;
 
     const response = {
-      status: databaseUp && redisUp ? 'ok' : 'error',
+      status: ready ? 'ok' : 'error',
       service: 'esapiens-api',
       dependencies: {
-        database: {
-          status: databaseUp ? 'up' : 'down',
-          name:
-            databaseResult.status === 'fulfilled'
-              ? databaseResult.value.database
-              : undefined,
-        },
+        content: { status: contentUp ? 'up' : 'down' },
+        analytics: { status: analyticsUp ? 'up' : 'down' },
+        identity: { status: identityUp ? 'up' : 'down' },
+        academic: { status: academicUp ? 'up' : 'down' },
         redis: {
           status: redisUp ? 'up' : 'down',
         },
@@ -56,7 +75,7 @@ export class HealthController {
       timestamp: new Date().toISOString(),
     };
 
-    if (!databaseUp || !redisUp) {
+    if (!ready) {
       throw new ServiceUnavailableException(response);
     }
 

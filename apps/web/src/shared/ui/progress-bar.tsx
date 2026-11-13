@@ -23,7 +23,7 @@ export function ProgressBar({ value, label }: ProgressBarProps) {
         aria-label={label ?? "Progreso"}
       >
         <div
-          className="h-full rounded-full bg-brand transition-[width] duration-150"
+          className="h-full rounded-full bg-[var(--global-green)] transition-[width] duration-150"
           style={{
             width: `${safeValue}%`,
           }}
