@@ -1,3 +1,5 @@
+import { DataCenterService } from './data-center.service';
+import { DataCenterController } from './data-center.controller';
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { RedisModule } from '../../infrastructure/redis/redis.module';
@@ -7,7 +9,7 @@ import { AnalyticsService } from './analytics.service';
 
 @Module({
   imports: [DatabaseModule, RedisModule, IdentityModule],
-  providers: [AnalyticsService],
-  controllers: [AnalyticsController],
+  providers: [AnalyticsService, DataCenterService],
+  controllers: [AnalyticsController, DataCenterController],
 })
 export class AnalyticsModule {}
