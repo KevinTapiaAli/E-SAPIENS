@@ -1,0 +1,8 @@
+{
+  "name": "esapiens-service-gateway",
+  "private": true,
+  "version": "0.0.1",
+  "dependencies": {
+    "esapiens-api": "workspace:*"
+  }
+}

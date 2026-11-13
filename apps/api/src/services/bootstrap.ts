@@ -18,9 +18,14 @@ export async function startService(
   app.enableShutdownHooks();
   const config = app.get(ConfigService);
   const port = Number(
-    config.get(`${name.toUpperCase()}_SERVICE_PORT`) ?? defaultPort,
+    config.get('PORT') ??
+      config.get(`${name.toUpperCase()}_SERVICE_PORT`) ??
+      defaultPort,
   );
-  const host = config.get<string>('SERVICE_BIND_HOST') ?? '127.0.0.1';
+  const host =
+    config.get('VERCEL') === '1'
+      ? '0.0.0.0'
+      : (config.get<string>('SERVICE_BIND_HOST') ?? '127.0.0.1');
   if (name === 'identity' || name === 'academic') {
     app.get(ServiceDocumentController).document = createApiDocument(app);
   }

@@ -141,6 +141,36 @@ importers:
         specifier: ^6.0.2
         version: 6.0.3
 
+  apps/service-academic:
+    dependencies:
+      esapiens-api:
+        specifier: workspace:*
+        version: link:../api
+
+  apps/service-analytics:
+    dependencies:
+      esapiens-api:
+        specifier: workspace:*
+        version: link:../api
+
+  apps/service-content:
+    dependencies:
+      esapiens-api:
+        specifier: workspace:*
+        version: link:../api
+
+  apps/service-gateway:
+    dependencies:
+      esapiens-api:
+        specifier: workspace:*
+        version: link:../api
+
+  apps/service-identity:
+    dependencies:
+      esapiens-api:
+        specifier: workspace:*
+        version: link:../api
+
   apps/web:
     dependencies:
       "@esapiens/contracts":
