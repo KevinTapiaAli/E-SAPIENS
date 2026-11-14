@@ -8,6 +8,7 @@ export class RedisService implements OnApplicationShutdown {
   private readonly client: Redis;
   private readonly logger = new Logger(RedisService.name);
   private unavailable = false;
+  private readyPromise?: Promise<void>;
 
   constructor(private readonly configService: ConfigService) {
     const redisUrl = this.configService.get<string>('REDIS_URL');
@@ -37,7 +38,33 @@ export class RedisService implements OnApplicationShutdown {
   }
 
   async ping(): Promise<string> {
+    await this.waitUntilReady();
     return this.client.ping();
+  }
+
+  private waitUntilReady(): Promise<void> {
+    if (this.client.status === 'ready') return Promise.resolve();
+    this.readyPromise ??= new Promise<void>((resolve, reject) => {
+      const cleanup = () => {
+        clearTimeout(timeout);
+        this.client.off('ready', ready);
+        this.client.off('end', ended);
+      };
+      const ready = () => {
+        cleanup();
+        resolve();
+      };
+      const ended = () => {
+        cleanup();
+        reject(new Error('REDIS_UNAVAILABLE'));
+      };
+      const timeout = setTimeout(ended, 3000);
+      this.client.once('ready', ready);
+      this.client.once('end', ended);
+    }).finally(() => {
+      this.readyPromise = undefined;
+    });
+    return this.readyPromise;
   }
 
   /** La autenticación necesita ejecutar scripts y escribir, además de PING. */
@@ -49,6 +76,7 @@ export class RedisService implements OnApplicationShutdown {
 
   /** Fixed window; INCR and expiry must be atomic across API instances. */
   async consume(key: string, seconds: number): Promise<number> {
+    await this.waitUntilReady();
     return Number(
       await this.client.eval(
         "local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],ARGV[1]) end; return n",

@@ -877,6 +877,8 @@ La prueba SQL local pasó con las migraciones nuevas presentes; en cada entorno 
 
 ## Infraestructura de producción
 
+En Vercel, configurar `NODE_OPTIONS=--experimental-require-module`: NestJS 12 publica paquetes ESM y el backend compilado usa CommonJS. Esta variable permite cargarlos en el runtime de Node 24. La base de producción contiene las **74 tablas originales** y **10 tablas adicionales** de las migraciones (84 en total); no se eliminan tablas para reducir el conteo.
+
 `vercel.json`, en la raíz del repositorio, configura Vercel Services (beta): web Next.js, gateway y cuatro servicios NestJS (identidad, gestión académica, contenido y analítica). Los servicios se compilan por separado y se publican juntos. Cada carpeta `apps/service-*` contiene únicamente su entrada de despliegue; la lógica permanece en `apps/api/src`. Los enlaces privados proporcionan `API_URL` y las cuatro variables `*_SERVICE_URL`; no deben sustituirse por direcciones locales.
 
 PostgreSQL Neon y Redis Upstash están vinculados al entorno **Production** de `e-sapiens-web`, con planes gratuitos. Se instaló el esquema inicial y se aplicaron las migraciones `0002` a `0010`. `DATABASE_URL` y `REDIS_URL` proceden de las integraciones; `INTERNAL_SERVICE_TOKEN` es secreto y `DATABASE_POOL_MAX=2` limita las conexiones por proceso. No se incluyen credenciales en Git.
