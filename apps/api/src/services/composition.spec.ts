@@ -4,10 +4,12 @@ import { AppModule } from '../app.module';
 import { DatabaseService } from '../infrastructure/database/database.service';
 import { RedisService } from '../infrastructure/redis/redis.service';
 import { CatalogService } from '../modules/catalog/catalog.service';
+import { DataCenterService } from '../modules/analytics/data-center.service';
 import { AnalyticsService } from '../modules/analytics/analytics.service';
 import {
   RemoteCatalogService,
   RemoteAnalyticsService,
+  RemoteDataCenterService,
 } from '../infrastructure/services/remote-services';
 import { ContentServiceModule } from './content.module';
 import { AnalyticsServiceModule } from './analytics.module';
@@ -52,11 +54,15 @@ describe('Independent service composition (no database or HTTP listeners)', () =
         expect(module.get(AnalyticsService)).toBeInstanceOf(
           RemoteAnalyticsService,
         );
+        expect(module.get(DataCenterService)).toBeInstanceOf(
+          RemoteDataCenterService,
+        );
       } else if (root === ContentServiceModule) {
         expect(module.get(CatalogService)).toBeInstanceOf(CatalogService);
         expect(() => module.get(AnalyticsService)).toThrow();
       } else if (root === AnalyticsServiceModule) {
         expect(module.get(AnalyticsService)).toBeInstanceOf(AnalyticsService);
+        expect(module.get(DataCenterService)).toBeInstanceOf(DataCenterService);
         expect(() => module.get(CatalogService)).toThrow();
       } else if (root === IdentityServiceModule) {
         expect(module.get(IdentityController)).toBeDefined();

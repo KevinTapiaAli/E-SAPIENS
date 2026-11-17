@@ -28,6 +28,11 @@ export class EvaluationService {
     const r = await this.db.query(
       `SELECT e.id,e.titulo AS title,m.titulo AS module,e.duracion_minutos AS minutes,
       e.intentos_maximos AS attempts,e.nota_minima::float AS "passingScore",
+      (SELECT max(t.vence_en) FROM lms.intentos_evaluacion t JOIN lms.inscripciones i ON i.id=t.inscripcion_id
+        WHERE t.evaluacion_id=e.id AND $2='estudiante' AND i.estudiante_id=$1 AND t.estado='en_curso' AND t.vence_en>now()) AS "activeExpiresAt",
+      (SELECT CASE WHEN t.estado='en_curso' AND t.vence_en<=now() THEN 'vencido' ELSE t.estado::text END
+        FROM lms.intentos_evaluacion t JOIN lms.inscripciones i ON i.id=t.inscripcion_id
+        WHERE t.evaluacion_id=e.id AND $2='estudiante' AND i.estudiante_id=$1 ORDER BY t.numero DESC LIMIT 1) AS "latestStatus",
       (SELECT count(*)::int FROM lms.intentos_evaluacion t JOIN lms.inscripciones i ON i.id=t.inscripcion_id
         WHERE t.evaluacion_id=e.id AND ($2<>'estudiante' OR i.estudiante_id=$1)) AS "usedAttempts",
       (SELECT max(t.nota)::float FROM lms.intentos_evaluacion t JOIN lms.inscripciones i ON i.id=t.inscripcion_id
@@ -56,7 +61,8 @@ export class EvaluationService {
     await this.teaching.course(user, courseId, q.role);
     const r = await this.db.query(
       `SELECT t.id,u.nombres||' '||u.apellidos AS student,t.numero AS number,
-      t.estado AS status,t.nota::float AS score,t.entregado_en AS "submittedAt"
+      CASE WHEN t.estado='en_curso' AND t.vence_en<=now() THEN 'vencido' ELSE t.estado::text END AS status,
+      t.nota::float AS score,t.entregado_en AS "submittedAt",t.vence_en AS "expiresAt"
       FROM lms.intentos_evaluacion t JOIN lms.inscripciones i ON i.id=t.inscripcion_id
       JOIN lms.usuarios u ON u.id=i.estudiante_id
       WHERE t.curso_id=$1 AND t.evaluacion_id=$2 AND ($3::uuid IS NULL OR t.id>$3)

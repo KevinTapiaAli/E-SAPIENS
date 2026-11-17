@@ -13,6 +13,7 @@ export type PortalSection =
   | "pagos"
   | "biblioteca"
   | "resumen"
+  | "datos"
   | "informes"
   | "docentes"
   | "solicitudes"
@@ -31,6 +32,7 @@ export const sectionDescriptions: Record<PortalSection, string> = {
   materias: "Consulta el estado de tus materias y sus docentes.",
   pagos: "Consulta planes, compras y pagos pendientes de revisión.",
   biblioteca: "Encuentra tus referencias guardadas para estudiar.",
+  datos: "Consulta y exporta indicadores administrativos y académicos.",
   resumen: "Tus accesos y prioridades en un solo lugar.",
   informes: "Consulta resultados e indicadores académicos.",
   docentes: "Organiza las asignaciones y revisa los perfiles docentes.",
@@ -118,6 +120,11 @@ export function portalNavigation(
     },
   ];
   if (role === "administrador") {
+    if (
+      user.permissions.includes("dashboard.admin") &&
+      user.permissions.includes("academic.read")
+    )
+      items.push({ section: "datos", label: "Centro de Datos", icon: "chart" });
     if (user.permissions.includes("identity.review"))
       items.push({
         section: "solicitudes",
@@ -216,7 +223,7 @@ export function portalSectionGroup(
     return "Materias e inscripciones";
   if (section === "cuenta") return "Mi cuenta";
   if (section === "informes") return "Historial e informes";
-  if (["seguimiento", "progreso"].includes(section))
+  if (["datos", "seguimiento", "progreso"].includes(section))
     return "Consultas y seguimiento";
   if (
     role === "administrador" &&
@@ -248,4 +255,10 @@ export const statusLabels: Record<string, string> = {
   cancelada: "Cancelada",
   aprobada: "Aprobada",
   rechazada: "Rechazada",
+  en_curso: "En curso",
+  calificado: "Calificado",
+  anulado: "Vencido o anulado",
+  confirmado: "Confirmado",
+  fallido: "Rechazado",
+  vencido: "Vencido",
 };

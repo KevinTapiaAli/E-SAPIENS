@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type { AcademicCourse, WorkspaceRole } from "@esapiens/contracts";
 import { Icon } from "@/shared/ui/icon";
 import { StatePanel } from "@/shared/ui/state-panel";
@@ -151,6 +152,13 @@ export function CourseCards({
                 >
                   Tareas
                 </Link>
+                <Link
+                  prefetch={false}
+                  className="button button-secondary col-span-2 text-sm"
+                  href={`/portal/estudiante/cursos/${course.id}/evaluaciones`}
+                >
+                  Evaluaciones y resultados
+                </Link>
               </div>
             )}
           {role === "administrador" && (
@@ -232,9 +240,11 @@ export function Distribution({
 export function PortalSearch({
   q,
   placeholder,
+  children,
 }: {
   q: string;
   placeholder: string;
+  children?: ReactNode;
 }) {
   return (
     <form method="get" className="mb-6 flex flex-wrap items-end gap-3">
@@ -248,6 +258,7 @@ export function PortalSearch({
           placeholder={placeholder}
         />
       </label>
+      {children}
       <button className="button button-secondary">Buscar</button>
     </form>
   );
@@ -257,13 +268,16 @@ export function PortalPagination({
   cursor,
   next,
   q = "",
+  filters = {},
 }: {
   base: string;
   cursor?: string;
   next: string | null;
   q?: string;
+  filters?: Record<string, string>;
 }) {
   const query = new URLSearchParams({
+    ...filters,
     ...(q ? { q } : {}),
     ...(next ? { cursor: next } : {}),
   });
@@ -271,7 +285,7 @@ export function PortalPagination({
     <nav aria-label="Paginación" className="mt-6 flex flex-wrap gap-3">
       {cursor && (
         <Link
-          href={q ? `${base}?${new URLSearchParams({ q })}` : base}
+          href={`${base}?${new URLSearchParams({ ...filters, ...(q ? { q } : {}) })}`}
           className="button button-secondary"
         >
           Primera página
