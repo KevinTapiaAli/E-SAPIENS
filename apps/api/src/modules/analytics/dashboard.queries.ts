@@ -1,9 +1,27 @@
+// Shared recorded activity: lessons, submissions and confirmed class attendance.
+export const studentActivitySql = `
+  SELECT i.id AS enrollment_id,i.curso_id AS course_id,i.estudiante_id AS id,p.iniciado_en AS at
+  FROM lms.progreso_lecciones p JOIN lms.inscripciones i ON i.id=p.inscripcion_id
+  UNION ALL
+  SELECT i.id,i.curso_id,i.estudiante_id,p.completado_en
+  FROM lms.progreso_lecciones p JOIN lms.inscripciones i ON i.id=p.inscripcion_id WHERE p.completado_en IS NOT NULL
+  UNION ALL
+  SELECT i.id,i.curso_id,i.estudiante_id,e.entregado_en
+  FROM lms.entregas_tarea e JOIN lms.inscripciones i ON i.id=e.inscripcion_id
+  UNION ALL
+  SELECT i.id,i.curso_id,a.usuario_id,sc.inicia_en
+  FROM lms.asistencias a JOIN lms.sesiones_clase sc ON sc.id=a.sesion_id
+  JOIN lms.inscripciones i ON i.estudiante_id=a.usuario_id AND i.curso_id=sc.curso_id
+  WHERE a.tipo='estudiante' AND (a.verificado_por IS NOT NULL OR a.fuente IN ('meet','zoom'))
+    AND sc.estado IN ('en_curso','finalizada') AND sc.inicia_en>=i.inscrito_en`;
+
 // All values are bound parameters. Keep cohort definitions beside their queries.
 export const trafficSql = `
 WITH visits AS (
   SELECT * FROM lms.web_visits_daily
   WHERE day >= ($1::timestamptz AT TIME ZONE 'UTC')::date
     AND day < ($2::timestamptz AT TIME ZONE 'UTC')::date
+    AND ($4::uuid IS NULL OR course_id=$4)
 ), visitors AS (
   SELECT visitor_hash,min(first_seen_at) AS first_seen FROM visits GROUP BY visitor_hash
 ), prospects AS (
@@ -12,10 +30,12 @@ WITH visits AS (
 ), account_requests AS (
   SELECT u.id,u.created_at,u.web_visitor_hash FROM lms.usuarios u
   WHERE u.created_at >= $1::timestamptz AND u.created_at < $2::timestamptz
+    AND ($4::uuid IS NULL OR u.web_visitor_hash IN (SELECT visitor_hash FROM visitors))
     AND EXISTS (SELECT 1 FROM lms.historial_estado_usuario h
       WHERE h.usuario_id=u.id AND h.estado_nuevo='pendiente' AND h.motivo='Solicitud de registro web')
 ), enrollment_requests AS (
   SELECT * FROM lms.solicitudes_inscripcion WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz
+    AND ($4::uuid IS NULL OR curso_id=$4)
 ), top_courses AS (
   SELECT c.id,c.titulo AS title,count(DISTINCT v.visitor_hash)::int AS visitors,
     (SELECT count(*)::int FROM enrollment_requests s WHERE s.curso_id=c.id) AS requests
@@ -33,7 +53,8 @@ SELECT
   (SELECT count(*)::int FROM visitors) AS visitors,
   (SELECT count(DISTINCT visitor_hash)::int FROM lms.web_visits_daily
     WHERE day >= ($3::timestamptz AT TIME ZONE 'UTC')::date
-      AND day < ($1::timestamptz AT TIME ZONE 'UTC')::date) AS "previousVisitors",
+      AND day < ($1::timestamptz AT TIME ZONE 'UTC')::date
+      AND ($4::uuid IS NULL OR course_id=$4)) AS "previousVisitors",
   (SELECT count(*)::int FROM prospects) AS "courseVisitors",
   (SELECT count(*)::int FROM visitors v WHERE EXISTS (
     SELECT 1 FROM account_requests u WHERE u.web_visitor_hash=v.visitor_hash AND u.created_at>=v.first_seen)) AS "accountConversions",
@@ -52,18 +73,7 @@ WITH enrolled AS (
   WHERE u.estado='aprobado' AND i.estado='activa' AND i.inscrito_en <= $1::timestamptz
   GROUP BY u.id
 ), activity AS (
-  SELECT i.estudiante_id AS id,p.iniciado_en AS at FROM lms.progreso_lecciones p
-    JOIN lms.inscripciones i ON i.id=p.inscripcion_id JOIN enrolled s ON s.id=i.estudiante_id
-  UNION ALL
-  SELECT i.estudiante_id,p.completado_en FROM lms.progreso_lecciones p
-    JOIN lms.inscripciones i ON i.id=p.inscripcion_id JOIN enrolled s ON s.id=i.estudiante_id WHERE p.completado_en IS NOT NULL
-  UNION ALL
-  SELECT i.estudiante_id,e.entregado_en FROM lms.entregas_tarea e
-    JOIN lms.inscripciones i ON i.id=e.inscripcion_id JOIN enrolled s ON s.id=i.estudiante_id
-  UNION ALL
-  SELECT a.usuario_id,sc.inicia_en FROM lms.asistencias a JOIN lms.sesiones_clase sc ON sc.id=a.sesion_id
-    JOIN enrolled s ON s.id=a.usuario_id WHERE a.tipo='estudiante'
-    AND (a.verificado_por IS NOT NULL OR a.fuente IN ('meet','zoom')) AND sc.estado IN ('en_curso','finalizada')
+  SELECT a.id,a.at FROM (${studentActivitySql}) a JOIN enrolled s ON s.id=a.id
 ), last_activity AS (
   SELECT id,max(at) AS last_at,
     bool_or(at >= $1::timestamptz-interval '7 days') AS weekly,

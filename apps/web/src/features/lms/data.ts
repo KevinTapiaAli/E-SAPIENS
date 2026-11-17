@@ -41,6 +41,8 @@ export type Evaluation = {
   passingScore: number;
   usedAttempts: number;
   bestScore: number | null;
+  activeExpiresAt: string | null;
+  latestStatus: string | null;
 };
 export type Attempt = {
   id: string;
@@ -58,6 +60,7 @@ export type EvaluationResult = {
   status: string;
   score: number | null;
   submittedAt: string | null;
+  expiresAt: string;
 };
 export const isEvaluationResults = (
   v: unknown,
@@ -66,7 +69,7 @@ export const isEvaluationResults = (
     v,
     (i: unknown): i is EvaluationResult =>
       isRecord(i) &&
-      strings(i, ["id", "student", "status"]) &&
+      strings(i, ["id", "student", "status", "expiresAt"]) &&
       typeof i.number === "number" &&
       (i.score === null || typeof i.score === "number") &&
       (i.submittedAt === null || typeof i.submittedAt === "string"),
@@ -128,7 +131,9 @@ export const isEvaluations = (v: unknown): v is PublicPage<Evaluation> =>
       ["minutes", "attempts", "passingScore", "usedAttempts"].every(
         (k) => typeof e[k] === "number",
       ) &&
-      (e.bestScore === null || typeof e.bestScore === "number"),
+      (e.bestScore === null || typeof e.bestScore === "number") &&
+      (e.activeExpiresAt === null || typeof e.activeExpiresAt === "string") &&
+      (e.latestStatus === null || typeof e.latestStatus === "string"),
   );
 export const isAttempt = (v: unknown): v is Attempt =>
   isRecord(v) &&
