@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { WorkspaceRole } from "@esapiens/contracts";
 import { Icon } from "@/shared/ui/icon";
 import { LogoutButton } from "@/features/auth/logout-button";
 import { currentPortalSpace, portalSpaces } from "./spaces";
+import { usePortalPreference } from "./use-portal-preference";
 import {
   isPortalItemActive,
   portalSectionGroup,
@@ -27,6 +28,7 @@ export function PortalNavigation({
   pathname,
   onNavigate,
   mobile = false,
+  compact = false,
 }: {
   role: WorkspaceRole;
   roles: WorkspaceRole[];
@@ -34,6 +36,7 @@ export function PortalNavigation({
   pathname: string;
   onNavigate: () => void;
   mobile?: boolean;
+  compact?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const space = currentPortalSpace(pathname, role);
@@ -46,7 +49,7 @@ export function PortalNavigation({
     ...new Set(visible.map((item) => portalSectionGroup(role, item.section))),
   ];
   return (
-    <div className="flex min-h-full flex-col p-5">
+    <div className={`flex min-h-full flex-col ${compact ? "p-3" : "p-5"}`}>
       <div className="flex items-center justify-between gap-2">
         <Link
           href={`/portal/${role}`}
@@ -58,7 +61,7 @@ export function PortalNavigation({
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-on-brand">
             <Icon name="book" />
           </span>
-          E-SAPIENS
+          <span className={compact ? "sr-only" : undefined}>E-SAPIENS</span>
         </Link>
         {mobile && (
           <button
@@ -71,27 +74,35 @@ export function PortalNavigation({
           </button>
         )}
       </div>
-      <p className="mb-4 mt-6 rounded-lg bg-brand-soft px-3 py-2 text-sm font-semibold text-brand">
+      <p
+        className={
+          compact
+            ? "sr-only"
+            : "mb-4 mt-6 rounded-lg bg-brand-soft px-3 py-2 text-sm font-semibold text-brand"
+        }
+      >
         {space ? portalSpaces[space].title : roleLabels[role]}
       </p>
-      <label className="form-label text-sm">
-        Buscar sección
-        <input
-          type="search"
-          className="form-input"
-          placeholder={
-            space === "gestion"
-              ? "Materias, pagos…"
-              : space === "aula"
-                ? "Cursos, progreso…"
-                : "Elige tu espacio"
-          }
-          value={query}
-          maxLength={80}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-      </label>
-      {query && (
+      {!compact && (
+        <label className="form-label text-sm">
+          Buscar sección
+          <input
+            type="search"
+            className="form-input"
+            placeholder={
+              space === "gestion"
+                ? "Materias, pagos…"
+                : space === "aula"
+                  ? "Cursos, progreso…"
+                  : "Elige tu espacio"
+            }
+            value={query}
+            maxLength={80}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </label>
+      )}
+      {!compact && query && (
         <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted">
           <p role="status">{visible.length} secciones</p>
           <button
@@ -107,35 +118,31 @@ export function PortalNavigation({
         aria-label={
           mobile ? "Navegación móvil del portal" : "Navegación del portal"
         }
-        className="mt-5 space-y-5"
+        className={compact ? "mt-5 space-y-2" : "mt-5 space-y-3"}
       >
-        {groups.map((group) => (
-          <div key={group}>
-            <p className="mb-2 px-3 text-xs font-semibold text-muted">
-              {group}
-            </p>
-            {visible
-              .filter(
-                (item) => portalSectionGroup(role, item.section) === group,
-              )
-              .map((item) => (
-                <Link
-                  key={item.section}
-                  href={item.href}
-                  prefetch={false}
-                  onClick={onNavigate}
-                  aria-current={
-                    isPortalItemActive(pathname, item) ? "page" : undefined
-                  }
-                  className={`mb-1 flex min-h-12 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium leading-5 transition-colors ${isPortalItemActive(pathname, item) ? "bg-brand-soft text-brand" : "text-muted hover:bg-surface-soft hover:text-ink"}`}
-                >
-                  <Icon name={item.icon} className="h-5 w-5 shrink-0" />
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-          </div>
+        {(compact
+          ? [
+              ...new Set(
+                items.map((item) => portalSectionGroup(role, item.section)),
+              ),
+            ]
+          : groups
+        ).map((group) => (
+          <NavigationGroup
+            key={group}
+            group={group}
+            role={role}
+            space={space ?? "selector"}
+            items={(compact ? items : visible).filter(
+              (item) => portalSectionGroup(role, item.section) === group,
+            )}
+            pathname={pathname}
+            onNavigate={onNavigate}
+            compact={compact}
+            searching={!compact && !!query.trim()}
+          />
         ))}
-        {!visible.length && (
+        {!compact && !visible.length && (
           <p className="rounded-xl bg-surface-soft p-4 text-sm text-muted">
             No hay una sección con ese nombre. Prueba con «cursos» o limpia la
             búsqueda.
@@ -144,7 +151,11 @@ export function PortalNavigation({
       </nav>
       {roles.length > 1 && (
         <div className="mt-6 border-t border-line pt-4">
-          <p className="text-xs font-semibold text-muted">Cambiar de perfil</p>
+          <p
+            className={compact ? "sr-only" : "text-xs font-semibold text-muted"}
+          >
+            Cambiar de perfil
+          </p>
           {roles
             .filter((item) => item !== role)
             .map((item) => (
@@ -154,8 +165,14 @@ export function PortalNavigation({
                 prefetch={false}
                 onClick={onNavigate}
                 className="nav-link mt-2 block"
+                title={
+                  compact ? `Cambiar al perfil ${roleLabels[item]}` : undefined
+                }
               >
-                {roleLabels[item]}
+                {compact && <Icon name="user" />}
+                <span className={compact ? "sr-only" : undefined}>
+                  {roleLabels[item]}
+                </span>
               </Link>
             ))}
         </div>
@@ -166,17 +183,103 @@ export function PortalNavigation({
           prefetch={false}
           onClick={onNavigate}
           className="text-link inline-flex min-h-11 items-center gap-2 text-sm"
+          title={compact ? "Cambiar de espacio" : undefined}
         >
-          <Icon name="dashboard" /> Cambiar de espacio
+          <Icon name="dashboard" />
+          <span className={compact ? "sr-only" : undefined}>
+            Cambiar de espacio
+          </span>
         </Link>
         <Link
           href="/"
           prefetch={false}
           className="text-link inline-flex min-h-11 items-center gap-2 text-sm"
+          title={compact ? "Ir al sitio público" : undefined}
         >
-          Ir al sitio público <Icon name="arrow" />
+          <Icon name="arrow" />
+          <span className={compact ? "sr-only" : undefined}>
+            Ir al sitio público
+          </span>
         </Link>
-        <LogoutButton />
+        <LogoutButton compact={compact} />
+      </div>
+    </div>
+  );
+}
+
+function NavigationGroup({
+  group,
+  role,
+  space,
+  items,
+  pathname,
+  onNavigate,
+  compact,
+  searching,
+}: {
+  group: string;
+  role: WorkspaceRole;
+  space: string;
+  items: PortalNavItem[];
+  pathname: string;
+  onNavigate: () => void;
+  compact: boolean;
+  searching: boolean;
+}) {
+  const id = useId();
+  const [closed, setClosed] = usePortalPreference(
+    `esapiens:nav:${role}:${space}:${group}`,
+  );
+  const open = searching || !closed;
+  const active = items.some((item) => isPortalItemActive(pathname, item));
+  return (
+    <div
+      className={
+        compact ? "border-t border-line pt-2 first:border-0" : undefined
+      }
+    >
+      {compact ? (
+        <p className="sr-only">{group}</p>
+      ) : (
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={id}
+          className={`mb-1 flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-3 text-left text-xs font-semibold ${active ? "text-brand" : "text-muted"}`}
+          onClick={() => setClosed(searching ? false : !closed)}
+          disabled={searching}
+        >
+          <span>
+            {group}
+            {active && !open && (
+              <span className="sr-only"> · contiene la página actual</span>
+            )}
+          </span>
+          <Icon
+            name="arrow"
+            className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`}
+          />
+        </button>
+      )}
+      <div id={id} hidden={!compact && !open}>
+        {items.map((item) => (
+          <Link
+            key={item.section}
+            href={item.href}
+            prefetch={false}
+            onClick={onNavigate}
+            title={compact ? item.label : undefined}
+            aria-current={
+              isPortalItemActive(pathname, item) ? "page" : undefined
+            }
+            className={`mb-1 flex min-h-12 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium leading-5 transition-colors ${compact ? "justify-center" : ""} ${isPortalItemActive(pathname, item) ? "bg-brand-soft font-semibold text-brand ring-1 ring-inset ring-brand/30" : "text-muted hover:bg-surface-soft hover:text-ink"}`}
+          >
+            <Icon name={item.icon} className="h-5 w-5" />
+            <span className={compact ? "sr-only" : undefined}>
+              {item.label}
+            </span>
+          </Link>
+        ))}
       </div>
     </div>
   );

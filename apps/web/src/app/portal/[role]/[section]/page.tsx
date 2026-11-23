@@ -49,6 +49,7 @@ import { StudentCourses } from "@/features/portal/student-courses";
 import { SpaceHome, SpaceCourses } from "@/features/portal/space-home";
 import { ExecutiveDashboardView } from "@/features/analytics/executive-dashboard";
 import { ExcelDownload } from "@/features/management/excel-download";
+import { TeacherAttention } from "@/features/teaching/teacher-attention";
 
 export default async function PortalSectionPage({
   params,
@@ -64,6 +65,9 @@ export default async function PortalSectionPage({
     const filters = await searchParams;
     return (
       <>
+        {role === "docente" && section === "aula" && (
+          <TeacherAttention timeZone={user.timeZone} />
+        )}
         <SpaceHome role={role} user={user} space={section} />
         {section === "aula" &&
           (role !== "administrador" ||
@@ -256,7 +260,12 @@ export default async function PortalSectionPage({
                 description="Prueba con otro nombre o correo."
               />
             ) : (
-              <div className="ui-card overflow-x-auto">
+              <div
+                className="ui-card overflow-x-auto"
+                role="region"
+                aria-label="Tabla de usuarios, desplazamiento horizontal"
+                tabIndex={0}
+              >
                 <table className="w-full min-w-[620px] text-left text-sm">
                   <caption className="sr-only">
                     Usuarios registrados en E-SAPIENS

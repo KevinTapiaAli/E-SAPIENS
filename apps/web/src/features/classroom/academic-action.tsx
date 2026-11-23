@@ -57,7 +57,7 @@ export function ActionFeedback({
 }) {
   return feedback ? (
     <div
-      role="status"
+      role={feedback.ok ? "status" : "alert"}
       className={`mt-4 rounded-xl border p-4 text-sm ${feedback.ok ? "border-success bg-success-soft text-success" : "border-danger bg-danger-soft text-danger"}`}
     >
       <p>{feedback.message}</p>

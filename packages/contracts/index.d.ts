@@ -108,6 +108,17 @@ export interface AcademicEnrollment {
   reason: string | null;
 }
 export interface AcademicOverview {
+  teachingAttention?: {
+    pendingGrading: { courseId: string; course: string; count: number }[];
+    pendingRequests: number;
+    upcomingClasses: {
+      id: string;
+      title: string;
+      courseId: string;
+      course: string;
+      startsAt: string;
+    }[];
+  };
   metrics: { label: string; value: number }[];
   courses: AcademicCourse[];
   distribution: { label: string; value: number }[];

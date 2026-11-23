@@ -141,7 +141,12 @@ function ResultsTable({
           description="Prueba otra materia, estado o nivel de avance. No se han agregado datos de ejemplo."
         />
       ) : (
-        <div className="ui-card overflow-x-auto">
+        <div
+          className="ui-card overflow-x-auto"
+          role="region"
+          aria-label="Resultados, desplazamiento horizontal"
+          tabIndex={0}
+        >
           <table className="w-full min-w-[760px] text-left text-sm">
             <caption className="sr-only">
               {indicators[data.indicator]}; fechas de registros en{" "}
@@ -859,7 +864,12 @@ export async function DataCenter({
                 />
               </div>
               {data.traffic.topCourses.length > 0 && (
-                <div className="ui-card mt-5 overflow-x-auto">
+                <div
+                  className="ui-card mt-5 overflow-x-auto"
+                  role="region"
+                  aria-label="Reporte detallado, desplazamiento horizontal"
+                  tabIndex={0}
+                >
                   <table className="w-full min-w-[520px] text-left text-sm">
                     <caption className="p-5 text-left font-semibold">
                       Cursos consultados y solicitudes registradas · hasta 6

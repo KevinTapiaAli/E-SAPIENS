@@ -95,6 +95,30 @@ export function isAcademicOverview(value: unknown): value is AcademicOverview {
     isRecord(value) &&
     Array.isArray(value.metrics) &&
     value.metrics.every(metric) &&
+    (value.teachingAttention === undefined ||
+      (isRecord(value.teachingAttention) &&
+        typeof value.teachingAttention.pendingRequests === "number" &&
+        Number.isInteger(value.teachingAttention.pendingRequests) &&
+        value.teachingAttention.pendingRequests >= 0 &&
+        Array.isArray(value.teachingAttention.pendingGrading) &&
+        value.teachingAttention.pendingGrading.every(
+          (p: unknown) =>
+            isRecord(p) &&
+            typeof p.courseId === "string" &&
+            typeof p.course === "string" &&
+            typeof p.count === "number" &&
+            Number.isInteger(p.count) &&
+            p.count >= 0,
+        ) &&
+        Array.isArray(value.teachingAttention.upcomingClasses) &&
+        value.teachingAttention.upcomingClasses.every(
+          (c: unknown) =>
+            isRecord(c) &&
+            [c.id, c.title, c.courseId, c.course, c.startsAt].every(
+              (v) => typeof v === "string",
+            ) &&
+            Number.isFinite(Date.parse(String(c.startsAt))),
+        ))) &&
     Array.isArray(value.distribution) &&
     value.distribution.every(metric) &&
     (value.progressSummary === undefined ||

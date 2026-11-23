@@ -1,13 +1,13 @@
 # E-SAPIENS — Estado actual del proyecto
 
 **Fecha de revisión:** 23 de noviembre de 2026, zona America/La_Paz.
-**Alcance:** clon local de `main`; este documento no certifica el estado del despliegue remoto.
+**Alcance:** rama de trabajo local derivada de `main`; este documento no certifica el estado del despliegue remoto.
 
 ## 1. Resumen
 
 El proyecto contiene las mejoras locales de administración, Centro de Datos, exportaciones Excel y preparación de una demostración académica con cuentas y materias ficticias. La fase 1 volvió a validar los recorridos principales el **23 de noviembre de 2026** y aplicó optimizaciones medidas de frontend y PostgreSQL.
 
-**El entorno está recuperado y operativo al cierre de la fase 1:** Docker, PostgreSQL, Redis, frontend y los cinco procesos backend respondieron correctamente. Las mediciones, cambios, pruebas y límites actuales se registran en [FASE_1_ESTABILIZACION.md](FASE_1_ESTABILIZACION.md).
+**El entorno está operativo al cierre de la fase 2:** Docker, PostgreSQL, Redis, frontend y los cinco procesos backend respondieron correctamente. La navegación desplegable, prioridades docentes y cambios visuales se describen en [FASE_2_UX_NAVEGACION.md](FASE_2_UX_NAVEGACION.md). Las optimizaciones medidas de la fase anterior se conservan en [FASE_1_ESTABILIZACION.md](FASE_1_ESTABILIZACION.md).
 
 ## 2. Repositorio y arquitectura
 
@@ -15,7 +15,7 @@ El proyecto contiene las mejoras locales de administración, Centro de Datos, ex
 |---|---|
 | Rama local | `feat/ux-performance-calendar-assistant` |
 | Commit base de la fase | `d0cb345` — Merge pull request #14 |
-| Implementación posterior | Consolidada en el commit local de la fase 1; consultar `git log -1` |
+| Implementación posterior | Fases 1 y 2 en commits locales de la misma rama; consultar `git log -2` |
 | PR #15 | Funcionalidades compatibles incorporadas localmente; no se realizó merge remoto |
 | Operaciones remotas de esta implementación | Sin push ni despliegue |
 | Frontend | Next.js y React, en `apps/web` |
@@ -35,6 +35,8 @@ Se mantiene la arquitectura existente: el gateway delega por HTTP y no abre cone
 - Gráficos de estudiantes por materia, estados de matrícula, actividad académica, asignaciones docentes y evolución de inscripciones.
 - Consultas reales a PostgreSQL, sin cifras de demostración incrustadas en la interfaz.
 - Búsqueda y filtros administrativos de personas.
+- Barra lateral expandida/compacta con preferencias persistentes, grupos independientes y navegación móvil conservada.
+- Panel organizado por resumen, pendientes, acciones rápidas e información detallada; filtros de personas con limpieza y estados semánticos consistentes.
 
 ### Centro de Datos
 
@@ -56,6 +58,7 @@ Los archivos son `.xlsx` auténticos, generados con ExcelJS. Incluyen encabezado
 - Estudiantes: materias matriculadas, lecciones autorizadas, progreso, tareas, evaluaciones y resultados.
 - Mejoras del PR #15 para mostrar avance, estados y disponibilidad de intentos de evaluación.
 - Permanecen las comprobaciones de rol, propiedad de materias, matrícula y acceso a módulos.
+- Inicio docente con últimas entregas sin nota, solicitudes pendientes y próximas clases de sus materias; formularios de tareas y evaluaciones con errores junto al campo y conservación del texto ante fallos.
 
 ## 4. Datos de demostración
 
@@ -111,7 +114,7 @@ Las materias contienen módulos, lecturas originales, ejemplos, actividades, tar
 | Node.js local para la demo | `24.21.0`, disponible; lo selecciona `scripts/dev-demo.ps1` |
 | pnpm | `10.34.5`, coincide con `packageManager` |
 
-La fase 1 arrancó el supervisor compilado y volvió a ejecutar pruebas dirigidas, tipos, lint y build. Se conservaron el volumen, las cuentas y las materias; los fixtures de integración se revirtieron con rollback. Véase el informe de fase para distinguir las mediciones actuales de los resultados históricos siguientes.
+La fase 2 recompiló y reinició el supervisor de la aplicación, conservando PostgreSQL, Redis, volumen, cuentas y materias. Pasaron tipos, build, lint sin errores, 20 pruebas unitarias LMS, 10 pruebas PostgreSQL con rollback, 36 comprobaciones SSR/lógica cliente, 193 comprobaciones HTTP y 14 pares de contraste. Véase el informe de fase para sus límites y evidencias; los resultados históricos siguientes se conservan como referencia.
 
 ## 6. Validaciones históricas
 
@@ -139,7 +142,7 @@ Las evidencias locales están en `.tmp/verification-final.json`, `.tmp/final-che
 
 ## 7. Direcciones configuradas
 
-Estas direcciones volvieron a responder durante la fase 1 del 23/11, con sesión autorizada cuando correspondía. El gateway mantiene el puerto `4100`; no se modificaron procesos de otros proyectos ni se intentó ocupar el puerto `4000`.
+Estas direcciones volvieron a responder durante la fase 2 del 23/11, con sesión autorizada cuando correspondía. El gateway mantiene el puerto `4100`; no se modificaron procesos de otros proyectos ni se intentó ocupar el puerto `4000`.
 
 | Página o servicio | Dirección |
 |---|---|
@@ -193,6 +196,6 @@ El modo `demo:start` usa los archivos compilados para evitar los bloqueos y rein
 
 - Realizar revisión visual e interactiva en navegador, incluidos tamaños móviles.
 - No se ha validado carga concurrente ni rendimiento en producción.
-- El trabajo está en la rama local de fase 1; no se publicó ni integró en `main` remoto.
+- El trabajo de ambas fases está en la misma rama local; no se publicó ni integró en `main` remoto.
 
-Los servicios permanecen activos al cierre de la fase 1. El informe de rendimiento conserva los resultados que mejoraron y los que no mostraron mejora; no se avanzó a la fase 2.
+Los servicios permanecen activos al cierre de la fase 2. Se conservan las mediciones y optimizaciones de la fase 1. La fase 2 termina con la revisión visual e interactiva pendiente por falta de navegador conectado; no se inicia otra fase.

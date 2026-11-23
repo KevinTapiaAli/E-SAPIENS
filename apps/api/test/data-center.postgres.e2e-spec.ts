@@ -10,6 +10,9 @@ import type { SessionUser } from '@esapiens/contracts';
 import { IdentityService } from '../src/modules/identity/identity.service';
 import { ProgressService } from '../src/modules/academic/progress.service';
 import { ProgressQuery } from '../src/modules/academic/progress.dto';
+import { AcademicService } from '../src/modules/academic/academic.service';
+import { AcademicRole } from '../src/modules/academic/academic.dto';
+import { ForbiddenException } from '@nestjs/common';
 
 describe('Centro de Datos: PostgreSQL fixtures isolated by ROLLBACK', () => {
   let module: TestingModule;
@@ -298,6 +301,64 @@ describe('Centro de Datos: PostgreSQL fixtures isolated by ROLLBACK', () => {
       if (p.day < result.trackingSince.slice(0, 10))
         expect(p.visitors).toBeNull();
     expect(result.total).toBe(90);
+  });
+
+  it('scopes teacher priorities, uses the latest ungraded attempt and limits future classes', async () => {
+    await db.query('SAVEPOINT teaching_attention');
+    try {
+      const database = {
+        query: (sql: string, values: unknown[]) => db.query(sql, values),
+      } as unknown as DatabaseService;
+      const identity = new IdentityService(database);
+      const academic = new AcademicService(
+        database,
+        identity,
+        new ProgressService(database, identity),
+      );
+      const user = {
+        id: teacher,
+        roles: ['docente'],
+        permissions: ['dashboard.teacher', 'teaching.manage'],
+      } as SessionUser;
+      await db.query(
+        `INSERT INTO lms.sesiones_clase(curso_id,modulo_id,docente_id,titulo,plataforma,enlace_privado,inicia_en,termina_en,estado)
+        SELECT $1,$2,$3,'Clase futura '||n,'meet','https://clase.esapiens.test',now()+n*interval '1 day',now()+n*interval '1 day'+interval '1 hour',CASE WHEN n=5 THEN 'cancelada' ELSE 'programada' END FROM generate_series(1,5) n`,
+        [course, mod, teacher],
+      );
+      const result = await academic.overview(user, AcademicRole.Teacher);
+      expect(result.teachingAttention).toMatchObject({
+        pendingGrading: [{ courseId: course, count: 1 }],
+        pendingRequests: 1,
+      });
+      expect(
+        result.teachingAttention?.upcomingClasses.map((c) => c.title),
+      ).toEqual(['Clase futura 1', 'Clase futura 2', 'Clase futura 3']);
+      const unassigned = await academic.overview(
+        { ...user, id: randomUUID() },
+        AcademicRole.Teacher,
+      );
+      expect(unassigned.teachingAttention).toEqual({
+        pendingGrading: [],
+        pendingRequests: 0,
+        upcomingClasses: [],
+      });
+      await expect(
+        academic.overview(
+          { ...user, roles: ['estudiante'] },
+          AcademicRole.Teacher,
+        ),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      await db.query('UPDATE lms.tareas SET publicada=false WHERE id=$1', [
+        task1,
+      ]);
+      expect(
+        (await academic.overview(user, AcademicRole.Teacher)).teachingAttention
+          ?.pendingGrading,
+      ).toEqual([]);
+    } finally {
+      await db.query('ROLLBACK TO SAVEPOINT teaching_attention');
+      await db.query('RELEASE SAVEPOINT teaching_attention');
+    }
   });
 
   it('keeps the latest submission and counts only eligible, confirmed attendance', async () => {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { SessionUser } from "@esapiens/contracts";
 import { readPrivateApi } from "@/features/auth/server";
 import { isRecord } from "@/shared/api/public-api";
 import { Icon, type IconName } from "@/shared/ui/icon";
@@ -125,7 +126,7 @@ function Timeline({
     </section>
   );
 }
-export async function AdminDashboard({ firstName }: { firstName: string }) {
+export async function AdminDashboard({ user }: { user: SessionUser }) {
   const { data } = await readPrivateApi("academic/dashboard", isDashboard);
   if (!data) return <PortalUnavailable />;
   const cards: {
@@ -227,7 +228,7 @@ export async function AdminDashboard({ firstName }: { firstName: string }) {
             Tu comunidad, en perspectiva.
           </h1>
           <p className="mt-4 max-w-xl text-sm leading-7 text-blue-50">
-            Hola, {firstName}. Revisa el ciclo académico, acompaña a tus
+            Hola, {user.firstName}. Revisa el ciclo académico, acompaña a tus
             docentes y transforma los datos en decisiones.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -250,32 +251,136 @@ export async function AdminDashboard({ firstName }: { firstName: string }) {
         <div>
           <h2 className="text-xl font-semibold">Pulso de la institución</h2>
           <p className="mt-1 text-sm text-muted">
-            Indicadores consultados directamente en PostgreSQL.
+            Resumen actualizado de personas, materias y actividad académica.
           </p>
         </div>
         <DashboardRefresh />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map((c) => (
+        {cards
+          .filter(
+            (c) => !["requests", "pendingGrading", "payments"].includes(c.key),
+          )
+          .map((c) => (
+            <Link
+              key={c.key}
+              href={`/portal/administrador/${c.href}`}
+              className={`admin-stat admin-stat-${c.tone} ui-card p-5 transition-transform hover:-translate-y-1`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-muted">
+                  {c.label}
+                </span>
+                <span className="admin-stat-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+                  <Icon name={c.icon} />
+                </span>
+              </div>
+              <p className="mt-4 text-3xl font-bold tabular-nums">
+                {data.counts[c.key]}
+              </p>
+              <p className="mt-2 text-xs text-muted">
+                {c.note ?? "Consultar detalle →"}
+              </p>
+            </Link>
+          ))}
+      </div>
+      <section
+        aria-labelledby="admin-pending-heading"
+        className="ui-card p-5 sm:p-6"
+      >
+        <p className="eyebrow">Pendientes</p>
+        <h2 id="admin-pending-heading" className="mt-2 text-xl font-semibold">
+          Qué necesita atención
+        </h2>
+        <p className="mt-2 text-sm text-muted">
+          Abre cada pendiente para revisar el detalle antes de tomar una
+          decisión.
+        </p>
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          {cards
+            .filter(
+              (c) =>
+                ["requests", "pendingGrading", "payments"].includes(c.key) &&
+                (c.key !== "payments" ||
+                  user.permissions.includes("commerce.manage")),
+            )
+            .map((c) => (
+              <Link
+                key={c.key}
+                href={`/portal/administrador/${c.href}`}
+                className={`flex min-w-0 items-center gap-3 rounded-xl border p-4 ${data.counts[c.key] > 0 ? "border-warning/40 bg-warning-soft text-warning" : "border-line bg-success-soft text-success"}`}
+              >
+                <Icon name={data.counts[c.key] > 0 ? "clock" : "check"} />
+                <span className="min-w-0 flex-1 text-sm font-semibold">
+                  {c.label}
+                  <span className="mt-1 block text-xs font-normal">
+                    {data.counts[c.key] > 0
+                      ? "Revisar pendientes →"
+                      : "Sin pendientes registrados"}
+                  </span>
+                </span>
+                <strong className="text-2xl tabular-nums">
+                  {data.counts[c.key]}
+                </strong>
+              </Link>
+            ))}
+        </div>
+      </section>
+      <section
+        aria-labelledby="admin-actions-heading"
+        className="ui-card p-5 sm:p-6"
+      >
+        <h2 id="admin-actions-heading" className="text-xl font-semibold">
+          Acciones rápidas
+        </h2>
+        <p className="mt-2 text-sm text-muted">
+          Gestiona personas y materias, o descarga los resultados con los
+          filtros de cada sección.
+        </p>
+        <nav
+          aria-label="Acciones administrativas"
+          className="mt-5 flex flex-wrap gap-3"
+        >
           <Link
-            key={c.key}
-            href={`/portal/administrador/${c.href}`}
-            className={`admin-stat admin-stat-${c.tone} ui-card p-5 transition-transform hover:-translate-y-1`}
+            href="/portal/administrador/usuarios?kind=estudiante"
+            className="button button-secondary"
           >
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-sm font-medium text-muted">{c.label}</span>
-              <span className="admin-stat-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
-                <Icon name={c.icon} />
-              </span>
-            </div>
-            <p className="mt-4 text-3xl font-bold tabular-nums">
-              {data.counts[c.key]}
-            </p>
-            <p className="mt-2 text-xs text-muted">
-              {c.note ?? "Consultar detalle →"}
-            </p>
+            Estudiantes y Excel
           </Link>
-        ))}
+          <Link
+            href="/portal/administrador/docentes"
+            className="button button-secondary"
+          >
+            Docentes y Excel
+          </Link>
+          <Link
+            href="/portal/administrador/materias"
+            className="button button-secondary"
+          >
+            Materias y matrículas
+          </Link>
+          {user.permissions.includes("identity.review") && (
+            <Link
+              href="/portal/administrador/solicitudes"
+              className="button button-secondary"
+            >
+              Solicitudes de cuenta
+            </Link>
+          )}
+          <Link
+            href="/portal/administrador/datos?view=reports"
+            className="button button-primary"
+          >
+            Reportes y CSV
+          </Link>
+        </nav>
+      </section>
+      <div>
+        <h2 className="text-xl font-semibold">Información detallada</h2>
+        <p className="mt-2 text-sm text-muted">
+          Distribución y evolución del ciclo académico. Usa el Centro de Datos
+          para aplicar filtros.
+        </p>
       </div>
       <div className="grid items-start gap-5 xl:grid-cols-2">
         <DataBars
@@ -317,36 +422,6 @@ export async function AdminDashboard({ firstName }: { firstName: string }) {
             unit="Nuevas matrículas por semana"
           />
         )}
-        <section className="ui-card p-6">
-          <span className="text-xs font-bold uppercase tracking-widest text-brand">
-            Centro de Datos
-          </span>
-          <h2 className="mt-3 text-xl font-semibold">Del resumen al detalle</h2>
-          <p className="mt-3 text-sm leading-7 text-muted">
-            Consulta estudiantes, cursos, docentes, actividad web y reportes.
-            Aplica filtros y descarga resultados para tu seguimiento académico.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link
-              href="/portal/administrador/usuarios?kind=estudiante"
-              className="button button-secondary"
-            >
-              Estudiantes y Excel
-            </Link>
-            <Link
-              href="/portal/administrador/docentes"
-              className="button button-secondary"
-            >
-              Docentes y Excel
-            </Link>
-            <Link
-              href="/portal/administrador/datos?view=reports"
-              className="button button-primary"
-            >
-              Ver reportes
-            </Link>
-          </div>
-        </section>
       </div>
     </div>
   );

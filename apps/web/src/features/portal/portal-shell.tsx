@@ -18,6 +18,7 @@ import { AgendaDrawer } from "./agenda-drawer";
 import { VisitTracker } from "@/features/analytics/visit-tracker";
 import { MeasurementPreference } from "@/features/analytics/measurement-preference";
 import { currentPortalSpace, portalSpaces, spaceNavigation } from "./spaces";
+import { usePortalPreference } from "./use-portal-preference";
 
 export function PortalShell({
   user,
@@ -32,6 +33,8 @@ export function PortalShell({
 }) {
   const pathname = usePathname();
   const menuId = useId();
+  const sidebarId = useId();
+  const [compact, setCompact] = usePortalPreference("esapiens:sidebar:compact");
   const dialog = useRef<HTMLDialogElement>(null);
   const menuOpener = useRef<HTMLButtonElement | null>(null);
   const help = useRef<HTMLDetailsElement>(null);
@@ -94,14 +97,21 @@ export function PortalShell({
   }
 
   return (
-    <div className="min-h-screen bg-canvas pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0 lg:pl-72">
+    <div
+      data-sidebar-compact={compact}
+      className="portal-shell min-h-screen bg-canvas pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0"
+    >
       {space === "aula" && (
         <AgendaDrawer role={role} timeZone={user.timeZone} />
       )}
       {role === "estudiante" && pathname === "/portal/estudiante/oferta" && (
         <VisitTracker resource="/oferta" />
       )}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 overflow-y-auto border-r border-line bg-surface lg:block">
+      <aside
+        id={sidebarId}
+        aria-label="Barra lateral"
+        className="portal-sidebar fixed inset-y-0 left-0 z-40 hidden overflow-y-auto border-r border-line bg-surface lg:block"
+      >
         <PortalNavigation
           key={space ?? "selector"}
           role={role}
@@ -109,6 +119,7 @@ export function PortalShell({
           items={items}
           pathname={pathname}
           onNavigate={closeMenu}
+          compact={compact}
         />
       </aside>
       <dialog
@@ -137,6 +148,27 @@ export function PortalShell({
       </dialog>
       <header className="sticky top-0 z-30 flex min-h-20 items-center justify-between gap-3 border-b border-line bg-surface px-4 sm:px-8">
         <div className="flex min-w-0 items-center gap-3">
+          <button
+            type="button"
+            className="hidden min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-medium text-muted hover:bg-surface-soft lg:inline-flex"
+            onClick={() => setCompact(!compact)}
+            aria-label={
+              compact ? "Expandir barra lateral" : "Contraer barra lateral"
+            }
+            title={
+              compact ? "Expandir barra lateral" : "Contraer barra lateral"
+            }
+            aria-expanded={!compact}
+            aria-controls={sidebarId}
+          >
+            <Icon
+              name="arrow"
+              className={`h-5 w-5 ${compact ? "" : "rotate-180"}`}
+            />
+            <span className="hidden xl:inline">
+              {compact ? "Expandir" : "Contraer"}
+            </span>
+          </button>
           <button
             type="button"
             className="icon-button lg:hidden"

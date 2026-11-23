@@ -26,11 +26,28 @@ export function PortalHeading({
   );
 }
 export function StatusBadge({ status }: { status: string }) {
-  const color = ["aprobado", "aprobada", "publicado", "activa"].includes(status)
+  const color = [
+    "aprobado",
+    "aprobada",
+    "publicado",
+    "activa",
+    "pagada",
+    "calificada",
+    "completado",
+  ].includes(status)
     ? "bg-success-soft text-success"
-    : ["pendiente", "revision"].includes(status)
+    : ["pendiente", "revision", "reportado", "sin_calificar"].includes(status)
       ? "bg-warning-soft text-warning"
-      : "bg-surface-soft text-muted";
+      : [
+            "rechazado",
+            "rechazada",
+            "suspendido",
+            "suspendida",
+            "cancelada",
+            "vencida",
+          ].includes(status)
+        ? "bg-danger-soft text-danger"
+        : "bg-surface-soft text-muted";
   return (
     <span
       className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${color}`}

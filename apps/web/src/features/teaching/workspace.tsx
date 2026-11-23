@@ -75,7 +75,7 @@ export function CourseWorkspaceLinks({
           className="button button-secondary"
           href={`/portal/${role}/seguimiento?courseId=${id}`}
         >
-          Consultar estudiantes
+          Estudiantes y calificaciones
         </Link>
       )}
     </nav>
@@ -298,10 +298,18 @@ export async function TeachingWorkspace({
                     : "Sin entregas fuera de plazo"}
                 </p>
                 {role !== "estudiante" && (
-                  <div className="mt-3">
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
                     <StatusBadge
                       status={task.published ? "publicado" : "borrador"}
                     />
+                    <span className="text-sm text-muted">
+                      {task.submissionCount} entregas
+                    </span>
+                    {task.pendingReviews > 0 && (
+                      <span className="rounded-full bg-warning-soft px-3 py-1 text-xs font-semibold text-warning">
+                        {task.pendingReviews} sin comentarios del docente
+                      </span>
+                    )}
                   </div>
                 )}
                 <Link
@@ -379,7 +387,7 @@ export async function TaskWorkspace({
       {editor && (
         <div className="mb-6">
           <TaskEditor
-            key={t.revision}
+            key={t.id}
             courseId={courseId}
             modules={course.data.modules}
             task={t}
