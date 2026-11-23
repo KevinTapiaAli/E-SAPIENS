@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nest build",
     "dev": "node ../../scripts/start-backends.mjs",
+    "demo:serve": "node ../../scripts/start-backends.mjs --compiled",
     "typecheck": "tsc --noEmit",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -43,6 +44,7 @@
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "exceljs": "4.4.0",
     "helmet": "^8.3.0",
     "ioredis": "^6.0.0",
     "nestjs-pino": "^5.2.0",

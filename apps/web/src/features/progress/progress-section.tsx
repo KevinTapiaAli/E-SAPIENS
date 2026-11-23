@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExcelDownload } from "@/features/management/excel-download";
 import type { SessionUser } from "@esapiens/contracts";
 import { readPrivateApi } from "@/features/auth/server";
 import { isResourceId } from "@/features/classroom/server";
@@ -92,6 +93,16 @@ export async function ProgressSection({
         }
       />
       <DashboardRefresh />
+      {role === "docente" && stage === "todos" && (
+        <ExcelDownload
+          kind="estudiantes"
+          role="docente"
+          q={q}
+          state={state}
+          courseId={courseId}
+          label="Exportar estudiantes a Excel"
+        />
+      )}
       <form
         method="get"
         className="ui-card mb-6 grid items-end gap-4 p-5 sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr_auto]"

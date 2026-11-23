@@ -47,8 +47,12 @@ function run(command, args, label) {
 
 try {
   const flags = new Set(process.argv.slice(2));
-  if ([...flags].some((flag) => !["--demo", "--prepare-only"].includes(flag)))
-    throw new Error("Opciones admitidas: --demo --prepare-only.");
+  if (
+    [...flags].some(
+      (flag) => !["--demo", "--prepare-only", "--compiled"].includes(flag),
+    )
+  )
+    throw new Error("Opciones admitidas: --demo --prepare-only --compiled.");
   if (!existsSync("node_modules"))
     throw new Error(
       "Instala las dependencias primero: pnpm.cmd install --frozen-lockfile",
@@ -106,9 +110,15 @@ try {
   );
   await pnpm("db:prepare");
   if (flags.has("--demo")) {
-    console.log("Preparando materias, biblioteca y lecturas de demostración.");
-    await pnpm("db:seed:demo");
-    await pnpm("db:seed:classroom");
+    if (new URL(process.env.DATABASE_URL).pathname === "/esapiens_demo_local") {
+      await pnpm("demo:seed");
+    } else {
+      console.log(
+        "Preparando materias, biblioteca y lecturas de demostración.",
+      );
+      await pnpm("db:seed:demo");
+      await pnpm("db:seed:classroom");
+    }
   }
   if (flags.has("--prepare-only")) {
     console.log(
@@ -119,7 +129,13 @@ try {
       "3/3 · Iniciando web, gateway, identidad, académico, contenido y analítica. Mantén esta terminal abierta; usa Ctrl+C para detenerlas.",
     );
     // Separar el supervisor evita invocar este preparador de forma recursiva.
-    await pnpm("dev:apps");
+    if (
+      flags.has("--compiled") &&
+      (!existsSync("apps/web/.next/BUILD_ID") ||
+        !existsSync("apps/api/dist/main.js"))
+    )
+      throw new Error("Ejecuta pnpm build antes de demo:start.");
+    await pnpm(flags.has("--compiled") ? "demo:apps" : "dev:apps");
   }
 } catch (error) {
   console.error(

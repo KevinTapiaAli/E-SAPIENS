@@ -3,6 +3,7 @@ import type { SessionUser, WorkspaceRole } from "@esapiens/contracts";
 import { readPrivateApi } from "@/features/auth/server";
 import { isResourceId } from "@/features/classroom/server";
 import { Icon } from "@/shared/ui/icon";
+import { ProgressBar } from "@/shared/ui/progress-bar";
 import { isAcademicCourses } from "./server";
 import { portalSpaces, spaceNavigation, type PortalSpace } from "./spaces";
 import { sectionDescriptions } from "./navigation";
@@ -131,6 +132,15 @@ export async function SpaceCourses({
         q={typeof q === "string" ? q : ""}
         placeholder="Buscar materia o categoría"
       />
+      {role === "estudiante" && (
+        <p className="mb-5 text-sm text-muted">
+          Aquí aparecen tus matrículas. Las solicitudes pendientes todavía no
+          habilitan el aula.{" "}
+          <Link className="text-link" href="/portal/estudiante/inscripciones">
+            Consultar mis solicitudes
+          </Link>
+        </p>
+      )}
       {!result.data ? (
         <PortalUnavailable />
       ) : (
@@ -161,6 +171,29 @@ export async function SpaceCourses({
                 <p className="mt-2 text-sm text-muted">
                   Docente: {course.teachers.join(", ") || "Por asignar"}
                 </p>
+                {role === "estudiante" && (
+                  <div className="mt-4">
+                    {course.totalLessons > 0 ? (
+                      <ProgressBar
+                        label={`${course.completedLessons ?? 0} de ${course.totalLessons} lecciones completadas`}
+                        value={Math.round(
+                          (100 * (course.completedLessons ?? 0)) /
+                            course.totalLessons,
+                        )}
+                      />
+                    ) : (
+                      <p className="text-sm text-muted">
+                        Sin lecciones publicadas.
+                      </p>
+                    )}
+                    {course.enrollmentStatus !== "activa" && (
+                      <p className="mt-3 text-sm text-warning">
+                        La matrícula no está activa. Consulta con administración
+                        para revisar tu acceso.
+                      </p>
+                    )}
+                  </div>
+                )}
                 {aula ? (
                   <div className="mt-5 grid gap-2 sm:grid-cols-2">
                     <Link
@@ -191,9 +224,12 @@ export async function SpaceCourses({
                 ) : (
                   <Link
                     className="button button-secondary mt-5"
-                    href={`/portal/${role}/cursos/${course.id}${role === "administrador" ? "/materiales" : ""}`}
+                    href={`/portal/${role}/cursos/${course.id}`}
                   >
-                    Ir al aula de esta materia <Icon name="arrow" />
+                    {role === "administrador"
+                      ? "Gestionar materia y temario"
+                      : "Ir al aula de esta materia"}{" "}
+                    <Icon name="arrow" />
                   </Link>
                 )}
               </article>

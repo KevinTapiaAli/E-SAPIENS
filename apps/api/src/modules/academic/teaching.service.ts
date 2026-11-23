@@ -119,8 +119,12 @@ export class TeachingService {
     role: WorkspaceRole,
   ): Promise<TeachingCourse> {
     this.authorize(user, role);
-    const result = await this.db.query<{ id: string; title: string }>(
-      `SELECT c.id,c.titulo AS title FROM lms.cursos c WHERE c.id=$3 AND ${scope}`,
+    const result = await this.db.query<TeachingCourse>(
+      `SELECT c.id,c.titulo AS title,
+      coalesce((SELECT jsonb_agg(jsonb_build_object('id',m.id,'title',m.titulo,'published',m.publicado) ORDER BY m.orden,m.id)
+        FROM lms.modulos m WHERE m.curso_id=c.id
+        AND ($2::text<>'estudiante' OR lms.puede_acceder_modulo($1,m.id))),'[]'::jsonb) AS modules
+      FROM lms.cursos c WHERE c.id=$3 AND ${scope}`,
       [user.id, role, courseId],
     );
     if (!result.rows[0])
@@ -128,12 +132,7 @@ export class TeachingService {
         code: 'TEACHING_COURSE_NOT_FOUND',
         message: 'La materia no está disponible para tu perfil.',
       });
-    const modules = await this.db.query<TeachingCourse['modules'][number]>(
-      `SELECT m.id,m.titulo AS title,m.publicado AS published FROM lms.modulos m WHERE m.curso_id=$3
-      AND ($2::text<>'estudiante' OR lms.puede_acceder_modulo($1,m.id)) ORDER BY m.orden,m.id`,
-      [user.id, role, courseId],
-    );
-    return { ...result.rows[0], modules: modules.rows };
+    return result.rows[0];
   }
   async materials(
     user: SessionUser,

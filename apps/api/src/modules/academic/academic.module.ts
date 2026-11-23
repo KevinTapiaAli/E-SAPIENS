@@ -20,6 +20,8 @@ import { SavedLibraryController } from './saved-library.controller';
 import { CommerceService } from './commerce.service';
 import { EvaluationController } from './evaluation.controller';
 import { EvaluationService } from './evaluation.service';
+import { ExportsController } from './exports.controller';
+import { AdminDashboardController } from './admin-dashboard.controller';
 
 @Module({
   imports: [IdentityAccessModule, DatabaseModule, RedisModule],
@@ -35,6 +37,8 @@ import { EvaluationService } from './evaluation.service';
     TeachingService,
   ],
   controllers: [
+    ExportsController,
+    AdminDashboardController,
     SavedLibraryController,
     CommerceController,
     EvaluationController,

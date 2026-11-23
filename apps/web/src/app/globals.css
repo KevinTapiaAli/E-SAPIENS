@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+.admin-hero { background: radial-gradient(circle at 95% 0%, #8b5cf680, transparent 45%), linear-gradient(120deg, #123e7b, #3348b8 60%, #6d28b0); box-shadow: 0 18px 48px #4338ca20; }
+.admin-stat { border-top: 3px solid var(--brand); }
+.admin-stat-icon { color: #2563eb; background: #dbeafe; }
+.admin-stat-violet { border-top-color: #8b5cf6; }
+.admin-stat-violet .admin-stat-icon { color: #6d28d9; background: #ede9fe; }
+.admin-stat-green { border-top-color: #22a06b; }
+.admin-stat-green .admin-stat-icon { color: #15803d; background: #dcfce7; }
+.admin-stat-amber { border-top-color: #e9a322; }
+.admin-stat-amber .admin-stat-icon { color: #92400e; background: #fef3c7; }
+
 @layer components {
   .portal-mobile-dialog {
     margin: 0;

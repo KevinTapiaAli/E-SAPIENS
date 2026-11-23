@@ -25,7 +25,8 @@ export class HealthController {
 
   @Get('ready')
   @ApiOperation({
-    summary: 'Comprobar API, PostgreSQL, Redis, contenido y analítica',
+    summary:
+      'Comprobar gateway, PostgreSQL, Redis, contenido, analítica, identidad y académico',
   })
   async readiness() {
     const [

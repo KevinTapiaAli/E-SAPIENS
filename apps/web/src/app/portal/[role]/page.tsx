@@ -3,6 +3,7 @@ import { portalSession } from "@/features/portal/server";
 import { isWorkspaceRole } from "@/features/portal/navigation";
 import { PortalHeading } from "@/features/portal/portal-ui";
 import { SpaceChoices } from "@/features/portal/space-home";
+import { AdminDashboard } from "@/features/analytics/admin-dashboard";
 
 export default async function PortalHome({
   params,
@@ -12,6 +13,12 @@ export default async function PortalHome({
   const { role } = await params;
   if (!isWorkspaceRole(role)) notFound();
   const user = await portalSession();
+  if (
+    role === "administrador" &&
+    user.permissions.includes("dashboard.admin") &&
+    user.permissions.includes("academic.read")
+  )
+    return <AdminDashboard firstName={user.firstName} />;
   return (
     <div className="mx-auto max-w-5xl py-6 sm:py-12">
       <PortalHeading
