@@ -7,7 +7,7 @@
 
 El proyecto contiene las mejoras locales de administración, Centro de Datos, exportaciones Excel y preparación de una demostración académica con cuentas y materias ficticias. La fase 1 volvió a validar los recorridos principales el **23 de noviembre de 2026** y aplicó optimizaciones medidas de frontend y PostgreSQL.
 
-**El entorno está operativo al cierre de la fase 2:** Docker, PostgreSQL, Redis, frontend y los cinco procesos backend respondieron correctamente. La navegación desplegable, prioridades docentes y cambios visuales se describen en [FASE_2_UX_NAVEGACION.md](FASE_2_UX_NAVEGACION.md). Las optimizaciones medidas de la fase anterior se conservan en [FASE_1_ESTABILIZACION.md](FASE_1_ESTABILIZACION.md).
+**El entorno está operativo al cierre de la fase 3:** Docker, PostgreSQL, Redis, frontend y los cinco procesos backend respondieron correctamente. La agenda ofrece mes, semana, próximos eventos, filtros, detalles, feriados informativos de Bolivia y exportación iCalendar. Implementación y límites: [FASE_3_CALENDARIO.md](FASE_3_CALENDARIO.md). Se conservan la navegación y prioridades de [FASE_2_UX_NAVEGACION.md](FASE_2_UX_NAVEGACION.md), junto con las optimizaciones medidas de [FASE_1_ESTABILIZACION.md](FASE_1_ESTABILIZACION.md).
 
 ## 2. Repositorio y arquitectura
 
@@ -15,7 +15,7 @@ El proyecto contiene las mejoras locales de administración, Centro de Datos, ex
 |---|---|
 | Rama local | `feat/ux-performance-calendar-assistant` |
 | Commit base de la fase | `d0cb345` — Merge pull request #14 |
-| Implementación posterior | Fases 1 y 2 en commits locales de la misma rama; consultar `git log -2` |
+| Implementación posterior | Fases 1, 2 y 3 en commits locales de la misma rama; consultar `git log -3` |
 | PR #15 | Funcionalidades compatibles incorporadas localmente; no se realizó merge remoto |
 | Operaciones remotas de esta implementación | Sin push ni despliegue |
 | Frontend | Next.js y React, en `apps/web` |
@@ -142,7 +142,7 @@ Las evidencias locales están en `.tmp/verification-final.json`, `.tmp/final-che
 
 ## 7. Direcciones configuradas
 
-Estas direcciones volvieron a responder durante la fase 2 del 23/11, con sesión autorizada cuando correspondía. El gateway mantiene el puerto `4100`; no se modificaron procesos de otros proyectos ni se intentó ocupar el puerto `4000`.
+Estas direcciones volvieron a responder durante la fase 3 del 23/11, con sesión autorizada cuando correspondía. El gateway mantiene el puerto `4100`; no se modificaron procesos de otros proyectos ni se intentó ocupar el puerto `4000`.
 
 | Página o servicio | Dirección |
 |---|---|
@@ -153,6 +153,9 @@ Estas direcciones volvieron a responder durante la fase 2 del 23/11, con sesión
 | Portal administrador | http://localhost:3000/portal/administrador |
 | Portal docente | http://localhost:3000/portal/docente |
 | Portal estudiante | http://localhost:3000/portal/estudiante |
+| Agenda administrativa | http://localhost:3000/portal/administrador/agenda |
+| Agenda docente | http://localhost:3000/portal/docente/agenda |
+| Agenda estudiante | http://localhost:3000/portal/estudiante/agenda |
 | Gestión de docentes | http://localhost:3000/portal/administrador/docentes |
 | Gestión de estudiantes | http://localhost:3000/portal/administrador/usuarios?kind=estudiante |
 | Centro de Datos | http://localhost:3000/portal/administrador/datos |
@@ -196,6 +199,8 @@ El modo `demo:start` usa los archivos compilados para evitar los bloqueos y rein
 
 - Realizar revisión visual e interactiva en navegador, incluidos tamaños móviles.
 - No se ha validado carga concurrente ni rendimiento en producción.
-- El trabajo de ambas fases está en la misma rama local; no se publicó ni integró en `main` remoto.
+- El trabajo de las tres fases está en la misma rama local; no se publicó ni integró en `main` remoto.
 
-Los servicios permanecen activos al cierre de la fase 2. Se conservan las mediciones y optimizaciones de la fase 1. La fase 2 termina con la revisión visual e interactiva pendiente por falta de navegador conectado; no se inicia otra fase.
+Los servicios permanecen activos al cierre de la fase 3. Pasaron 30 pruebas unitarias de agenda, 11 de integración PostgreSQL, 20 comprobaciones controladas del frontend y 350 comprobaciones HTTP de agenda, enlaces y regresión de portales. Tipos y build completos aprobados; se reabrieron ICS con un parser independiente y XLSX con ExcelJS. La validación histórica de la sección 6 se conserva; el detalle actual está en el informe de la fase 3.
+
+Se mantienen las optimizaciones de la fase 1 y la navegación de la fase 2. El calendario reutiliza `/academic/agenda` y no modifica fechas académicas al mostrar feriados. Continúa pendiente la revisión visual e interactiva por falta de navegador conectado. No se inicia otra fase.

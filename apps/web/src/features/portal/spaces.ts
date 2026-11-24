@@ -25,7 +25,7 @@ export function currentPortalSpace(
   if (!section || section === "cuenta") return null;
   if (
     section === "aula" ||
-    ["progreso", "seguimiento", "biblioteca"].includes(section)
+    ["progreso", "seguimiento", "biblioteca", "agenda"].includes(section)
   )
     return "aula";
   if (section === "cursos") {

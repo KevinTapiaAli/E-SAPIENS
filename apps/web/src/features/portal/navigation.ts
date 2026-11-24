@@ -9,6 +9,7 @@ export const roleLabels: Record<WorkspaceRole, string> = {
 export type PortalSection =
   | "gestion"
   | "aula"
+  | "agenda"
   | "materias"
   | "pagos"
   | "biblioteca"
@@ -29,6 +30,8 @@ export type PortalSection =
 export const sectionDescriptions: Record<PortalSection, string> = {
   gestion: "Consulta materias, inscripciones, historial y pagos.",
   aula: "Trabaja en tus contenidos, tareas, evaluaciones y avances.",
+  agenda:
+    "Organiza clases, tareas, evaluaciones y recordatorios; consulta feriados y descarga tu calendario.",
   materias: "Consulta el estado de tus materias y sus docentes.",
   pagos: "Consulta planes, compras y pagos pendientes de revisión.",
   biblioteca: "Encuentra tus referencias guardadas para estudiar.",
@@ -197,6 +200,16 @@ export function portalNavigation(
             : "Indicadores",
       icon: "chart",
     });
+  if (
+    user.permissions.includes(
+      role === "administrador"
+        ? "academic.read"
+        : role === "docente"
+          ? "teaching.manage"
+          : "classroom.study",
+    )
+  )
+    items.push({ section: "agenda", label: "Mi agenda", icon: "calendar" });
   items.push({ section: "biblioteca", label: "Mi biblioteca", icon: "book" });
   items.push({ section: "cuenta", label: "Mi cuenta", icon: "user" });
   if (role !== "administrador" || user.permissions.includes("academic.read"))

@@ -13,6 +13,8 @@ import { ProgressQuery } from '../src/modules/academic/progress.dto';
 import { AcademicService } from '../src/modules/academic/academic.service';
 import { AcademicRole } from '../src/modules/academic/academic.dto';
 import { ForbiddenException } from '@nestjs/common';
+import { AgendaService } from '../src/modules/academic/agenda.service';
+import { AgendaQuery } from '../src/modules/academic/agenda.dto';
 
 describe('Centro de Datos: PostgreSQL fixtures isolated by ROLLBACK', () => {
   let module: TestingModule;
@@ -301,6 +303,140 @@ describe('Centro de Datos: PostgreSQL fixtures isolated by ROLLBACK', () => {
       if (p.day < result.trackingSince.slice(0, 10))
         expect(p.visitors).toBeNull();
     expect(result.total).toBe(90);
+  });
+
+  it('agenda preserves legacy reads and scopes periods, filters, timezones and personal events', async () => {
+    await db.query('SAVEPOINT agenda_regression');
+    try {
+      const database = {
+        query: (sql: string, values: unknown[]) => db.query(sql, values),
+      } as unknown as DatabaseService;
+      const agenda = new AgendaService(database);
+      const actor = (id: string, timeZone = 'America/La_Paz') =>
+        ({ id, timeZone }) as SessionUser;
+      const q = (
+        role: AgendaQuery['role'],
+        view: AgendaQuery['view'] = 'month',
+        day = '2026-11-30',
+        type = 'todos',
+      ) =>
+        Object.assign(new AgendaQuery(), {
+          role,
+          view,
+          day,
+          month: day.slice(0, 7),
+          type,
+        });
+      const personal = randomUUID(),
+        otherReminder = randomUUID(),
+        classId = randomUUID(),
+        hiddenClass = randomUUID(),
+        task = randomUUID(),
+        exam = randomUUID(),
+        question = randomUUID();
+      await db.query(
+        `INSERT INTO lms.agenda_personal(id,usuario_id,titulo,fecha) VALUES($1,$3,'Recordatorio propio','2026-11-30'),($2,$4,'Recordatorio ajeno','2026-11-30')`,
+        [personal, otherReminder, s1, s2],
+      );
+      await db.query(
+        `INSERT INTO lms.sesiones_clase(id,curso_id,modulo_id,docente_id,titulo,plataforma,enlace_privado,inicia_en,termina_en,estado)
+        VALUES($1,$3,$4,$6,'Clase simultánea','meet','https://privado.esapiens.test','2026-12-01T02:30:00Z','2026-12-01T03:30:00Z','programada'),
+          ($2,$3,$5,$6,'Clase de módulo oculto','meet','https://privado.esapiens.test','2026-12-01T02:30:00Z','2026-12-01T03:30:00Z','programada')`,
+        [classId, hiddenClass, course, mod, hiddenMod, teacher],
+      );
+      await db.query(
+        `INSERT INTO lms.tareas(id,curso_id,modulo_id,titulo,instrucciones,fecha_limite) VALUES($1,$2,$3,'Tarea simultánea','Prueba aislada','2026-12-01T02:30:00Z')`,
+        [task, course, mod],
+      );
+      await db.query(
+        `INSERT INTO lms.evaluaciones(id,curso_id,modulo_id,titulo,tipo,publicada,duracion_minutos,created_at) VALUES($1,$2,$3,'Evaluación disponible','modulo',true,30,'2026-11-30T12:00:00Z')`,
+        [exam, course, mod],
+      );
+      await db.query(
+        `INSERT INTO lms.preguntas(id,curso_id,tipo,enunciado) VALUES($1,$2,'unica','Pregunta de prueba')`,
+        [question, course],
+      );
+      await db.query(
+        `INSERT INTO lms.evaluacion_preguntas(evaluacion_id,curso_id,pregunta_id,puntaje,orden) VALUES($1,$2,$3,100,1)`,
+        [exam, course, question],
+      );
+      const result = await agenda.list(actor(s1), q('estudiante'));
+      const ids = result.periodEvents!.map((e) => e.id);
+      expect(ids).toEqual(
+        expect.arrayContaining([personal, classId, task, exam]),
+      );
+      expect(ids).not.toContain(otherReminder);
+      expect(ids).not.toContain(hiddenClass);
+      expect(
+        result.periodEvents!.filter(
+          (e) => e.occursAt === '2026-12-01T02:30:00+00:00',
+        ),
+      ).toHaveLength(2);
+      expect(result.periodEvents!.find((e) => e.id === classId)).toMatchObject({
+        day: '2026-11-30',
+        endsAt: '2026-12-01T03:30:00+00:00',
+      });
+      expect(JSON.stringify(result)).not.toContain('privado.esapiens.test');
+      const filtered = await agenda.list(
+        actor(s1),
+        q('estudiante', 'week', '2026-11-30', 'tarea'),
+      );
+      expect(filtered.period).toMatchObject({
+        from: '2026-11-30',
+        to: '2026-12-06',
+      });
+      expect(filtered.periodEvents!.every((e) => e.kind === 'tarea')).toBe(
+        true,
+      );
+      expect(filtered.periodEvents!.map((e) => e.id)).toContain(task);
+      const utc = await agenda.list(
+        actor(s1, 'UTC'),
+        q('estudiante', 'month', '2026-12-01'),
+      );
+      expect(utc.periodEvents!.find((e) => e.id === classId)?.day).toBe(
+        '2026-12-01',
+      );
+      const oldQuery: AgendaQuery = q('estudiante');
+      oldQuery.view = undefined;
+      const old = await agenda.list(actor(s1), oldQuery);
+      expect(old.periodEvents).toBeUndefined();
+      expect(old.upcoming.length).toBeLessThanOrEqual(8);
+      expect(
+        [...old.events, ...old.upcoming].every((e) =>
+          ['recordatorio', 'tarea', 'clase'].includes(e.kind),
+        ),
+      ).toBe(true);
+      const teacherResult = await agenda.list(actor(teacher), q('docente'));
+      expect(teacherResult.periodEvents!.map((e) => e.id)).toContain(
+        hiddenClass,
+      );
+      expect(teacherResult.periodEvents!.map((e) => e.id)).not.toContain(
+        personal,
+      );
+      expect(
+        (await agenda.list(actor(randomUUID()), q('docente'))).periodEvents,
+      ).toEqual([]);
+      const other = await agenda.list(actor(s2), q('estudiante'));
+      expect(other.periodEvents!.map((e) => e.id)).toEqual([otherReminder]);
+      await db.query(
+        'UPDATE lms.evaluaciones SET publicada=false WHERE id=$1',
+        [exam],
+      );
+      expect(
+        (await agenda.list(actor(s1), q('estudiante'))).periodEvents!.map(
+          (e) => e.id,
+        ),
+      ).not.toContain(exam);
+      const empty = await agenda.list(
+        actor(s1),
+        q('estudiante', 'month', '2001-02-01'),
+      );
+      expect(empty.periodEvents).toEqual([]);
+      expect(empty.days).toEqual([]);
+    } finally {
+      await db.query('ROLLBACK TO SAVEPOINT agenda_regression');
+      await db.query('RELEASE SAVEPOINT agenda_regression');
+    }
   });
 
   it('scopes teacher priorities, uses the latest ungraded attempt and limits future classes', async () => {

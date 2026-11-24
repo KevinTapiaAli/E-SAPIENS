@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { WorkspaceRole } from "@esapiens/contracts";
@@ -82,6 +83,13 @@ export function AgendaDrawer({
               <Icon name="close" />
             </button>
           </div>
+          <Link
+            href={`/portal/${role}/agenda`}
+            className="text-link mb-4 inline-flex min-h-11 items-center text-sm"
+            onClick={() => dialog.current?.close()}
+          >
+            Abrir agenda completa: mes, semana y próximos eventos →
+          </Link>
           {open && (
             <Calendar key={role} role={role} timeZone={timeZone} compact />
           )}

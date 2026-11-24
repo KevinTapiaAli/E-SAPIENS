@@ -19,6 +19,7 @@ export function ReminderForm({
   return (
     <form
       className="mt-5 space-y-3 border-t border-line pt-5"
+      aria-busy={action.pending}
       onSubmit={async (e) => {
         e.preventDefault();
         const form = e.currentTarget;

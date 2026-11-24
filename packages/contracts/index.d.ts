@@ -186,17 +186,29 @@ export interface AgendaEvent {
   id: string;
   title: string;
   day: string;
-  kind: "recordatorio" | "tarea" | "clase";
+  kind: "recordatorio" | "tarea" | "clase" | "evaluacion" | "feriado";
   done: boolean;
   courseId: string | null;
   course: string | null;
   occursAt: string | null;
+  endsAt?: string | null;
+  detail?: string;
+  activityId?: string;
 }
 export interface PersonalAgenda {
-  days: { day: string; count: number }[];
+  days: { day: string; count: number; pending?: number }[];
   events: AgendaEvent[];
   upcoming: AgendaEvent[];
   total: number;
+  periodEvents?: AgendaEvent[];
+  period?: { from: string; to: string; total: number; limit: number };
+}
+export interface AgendaHolidays {
+  year: number;
+  country: "BO";
+  status: "available" | "unavailable";
+  events: AgendaEvent[];
+  source: string;
 }
 
 export interface ExecutiveDashboard {

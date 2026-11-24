@@ -101,9 +101,14 @@ export function PortalShell({
       data-sidebar-compact={compact}
       className="portal-shell min-h-screen bg-canvas pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0"
     >
-      {space === "aula" && (
-        <AgendaDrawer role={role} timeZone={user.timeZone} />
-      )}
+      {pathname !== `${base}/agenda` &&
+        user.permissions.includes(
+          role === "administrador"
+            ? "academic.read"
+            : role === "docente"
+              ? "teaching.manage"
+              : "classroom.study",
+        ) && <AgendaDrawer role={role} timeZone={user.timeZone} />}
       {role === "estudiante" && pathname === "/portal/estudiante/oferta" && (
         <VisitTracker resource="/oferta" />
       )}

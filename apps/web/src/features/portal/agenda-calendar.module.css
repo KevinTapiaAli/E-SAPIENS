@@ -24,6 +24,36 @@
   animation: reveal 180ms ease-out;
 }
 
+.clase {
+  color: var(--brand);
+}
+.tarea {
+  color: var(--warning);
+}
+.evaluacion {
+  color: #6d28d9;
+}
+.recordatorio {
+  color: var(--muted);
+}
+.feriado {
+  color: var(--success);
+}
+:global(:root[data-theme="dark"]) .evaluacion {
+  color: #d6bbff;
+}
+.dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+.selectedDot {
+  color: var(--on-brand);
+}
+
 @keyframes reveal {
   from {
     opacity: 0.4;

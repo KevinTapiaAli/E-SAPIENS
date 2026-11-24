@@ -13,6 +13,8 @@ import { ProgressController } from './progress.controller';
 import { TeachingService } from './teaching.service';
 import { TeachingController } from './teaching.controller';
 import { AgendaController } from './agenda.controller';
+import { AgendaService } from './agenda.service';
+import { AgendaHolidaysService } from './agenda-holidays.service';
 import { CommerceController } from './commerce.controller';
 import { RedisModule } from '../../infrastructure/redis/redis.module';
 import { AcademicWriteLimiter } from './academic-write-limiter';
@@ -26,6 +28,8 @@ import { AdminDashboardController } from './admin-dashboard.controller';
 @Module({
   imports: [IdentityAccessModule, DatabaseModule, RedisModule],
   providers: [
+    AgendaService,
+    AgendaHolidaysService,
     AcademicWriteLimiter,
     CommerceService,
     EvaluationService,

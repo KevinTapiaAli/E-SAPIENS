@@ -12,6 +12,7 @@ export function AgendaCalendar({
   pending,
   onMonthChange,
   children,
+  unit = "mes",
 }: {
   month: string;
   heading: string;
@@ -21,6 +22,7 @@ export function AgendaCalendar({
   pending: boolean;
   onMonthChange: (month: string) => void;
   children: ReactNode;
+  unit?: "mes" | "semana";
 }) {
   const hintId = useId();
   const gesture = useRef<{
@@ -43,7 +45,7 @@ export function AgendaCalendar({
           <button
             type="button"
             disabled={pending}
-            aria-label="Mes anterior"
+            aria-label={unit === "mes" ? "Mes anterior" : "Semana anterior"}
             onClick={() => navigate(previousMonth)}
             className="button button-secondary"
           >
@@ -53,7 +55,7 @@ export function AgendaCalendar({
           <button
             type="button"
             disabled
-            aria-label="Mes anterior"
+            aria-label={unit === "mes" ? "Mes anterior" : "Semana anterior"}
             className="button button-secondary opacity-40"
           >
             <span aria-hidden="true">←</span>
@@ -70,7 +72,7 @@ export function AgendaCalendar({
           <button
             type="button"
             disabled={pending}
-            aria-label="Mes siguiente"
+            aria-label={unit === "mes" ? "Mes siguiente" : "Semana siguiente"}
             onClick={() => navigate(nextMonth)}
             className="button button-secondary"
           >
@@ -80,7 +82,7 @@ export function AgendaCalendar({
           <button
             type="button"
             disabled
-            aria-label="Mes siguiente"
+            aria-label={unit === "mes" ? "Mes siguiente" : "Semana siguiente"}
             className="button button-secondary opacity-40"
           >
             <span aria-hidden="true">→</span>
@@ -176,7 +178,8 @@ export function AgendaCalendar({
         </div>
       </div>
       <p id={hintId} className="mt-3 text-xs leading-5 text-muted">
-        Desliza a los lados o usa las flechas para cambiar de mes.
+        Desliza a los lados o usa las flechas para cambiar de {unit}. Dentro del
+        calendario, las flechas recorren los días.
       </p>
       <span role="status" className="sr-only">
         {pending ? "Cargando calendario…" : ""}
