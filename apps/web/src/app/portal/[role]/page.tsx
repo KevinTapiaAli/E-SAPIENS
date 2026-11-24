@@ -3,6 +3,8 @@ import { portalSession } from "@/features/portal/server";
 import { isWorkspaceRole } from "@/features/portal/navigation";
 import { PortalHeading } from "@/features/portal/portal-ui";
 import { SpaceChoices } from "@/features/portal/space-home";
+import { AdminDashboard } from "@/features/analytics/admin-dashboard";
+import { TeacherAttention } from "@/features/teaching/teacher-attention";
 
 export default async function PortalHome({
   params,
@@ -12,6 +14,12 @@ export default async function PortalHome({
   const { role } = await params;
   if (!isWorkspaceRole(role)) notFound();
   const user = await portalSession();
+  if (
+    role === "administrador" &&
+    user.permissions.includes("dashboard.admin") &&
+    user.permissions.includes("academic.read")
+  )
+    return <AdminDashboard user={user} />;
   return (
     <div className="mx-auto max-w-5xl py-6 sm:py-12">
       <PortalHeading
@@ -19,6 +27,7 @@ export default async function PortalHome({
         title={`Hola, ${user.firstName}`}
         description="¿Qué necesitas hacer hoy? Elige un espacio. Puedes cambiar de uno a otro sin cerrar sesión."
       />
+      {role === "docente" && <TeacherAttention timeZone={user.timeZone} />}
       <SpaceChoices role={role} />
     </div>
   );

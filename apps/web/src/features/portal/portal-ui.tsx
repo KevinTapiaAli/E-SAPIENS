@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type { AcademicCourse, WorkspaceRole } from "@esapiens/contracts";
 import { Icon } from "@/shared/ui/icon";
 import { StatePanel } from "@/shared/ui/state-panel";
@@ -25,11 +26,28 @@ export function PortalHeading({
   );
 }
 export function StatusBadge({ status }: { status: string }) {
-  const color = ["aprobado", "aprobada", "publicado", "activa"].includes(status)
+  const color = [
+    "aprobado",
+    "aprobada",
+    "publicado",
+    "activa",
+    "pagada",
+    "calificada",
+    "completado",
+  ].includes(status)
     ? "bg-success-soft text-success"
-    : ["pendiente", "revision"].includes(status)
+    : ["pendiente", "revision", "reportado", "sin_calificar"].includes(status)
       ? "bg-warning-soft text-warning"
-      : "bg-surface-soft text-muted";
+      : [
+            "rechazado",
+            "rechazada",
+            "suspendido",
+            "suspendida",
+            "cancelada",
+            "vencida",
+          ].includes(status)
+        ? "bg-danger-soft text-danger"
+        : "bg-surface-soft text-muted";
   return (
     <span
       className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${color}`}
@@ -151,6 +169,13 @@ export function CourseCards({
                 >
                   Tareas
                 </Link>
+                <Link
+                  prefetch={false}
+                  className="button button-secondary col-span-2 text-sm"
+                  href={`/portal/estudiante/cursos/${course.id}/evaluaciones`}
+                >
+                  Evaluaciones y resultados
+                </Link>
               </div>
             )}
           {role === "administrador" && (
@@ -232,9 +257,11 @@ export function Distribution({
 export function PortalSearch({
   q,
   placeholder,
+  children,
 }: {
   q: string;
   placeholder: string;
+  children?: ReactNode;
 }) {
   return (
     <form method="get" className="mb-6 flex flex-wrap items-end gap-3">
@@ -248,6 +275,7 @@ export function PortalSearch({
           placeholder={placeholder}
         />
       </label>
+      {children}
       <button className="button button-secondary">Buscar</button>
     </form>
   );
@@ -257,13 +285,16 @@ export function PortalPagination({
   cursor,
   next,
   q = "",
+  filters = {},
 }: {
   base: string;
   cursor?: string;
   next: string | null;
   q?: string;
+  filters?: Record<string, string>;
 }) {
   const query = new URLSearchParams({
+    ...filters,
     ...(q ? { q } : {}),
     ...(next ? { cursor: next } : {}),
   });
@@ -271,7 +302,7 @@ export function PortalPagination({
     <nav aria-label="Paginación" className="mt-6 flex flex-wrap gap-3">
       {cursor && (
         <Link
-          href={q ? `${base}?${new URLSearchParams({ q })}` : base}
+          href={`${base}?${new URLSearchParams({ ...filters, ...(q ? { q } : {}) })}`}
           className="button button-secondary"
         >
           Primera página

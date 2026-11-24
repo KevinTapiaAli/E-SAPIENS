@@ -137,7 +137,33 @@ export class AcademicService {
         'SELECT c.estado AS label,count(*)::int AS value FROM lms.cursos c JOIN lms.curso_docentes d ON d.curso_id=c.id WHERE d.docente_id=$1 GROUP BY c.estado ORDER BY c.estado',
         [user.id],
       );
+      const attention = await this.database.query<
+        NonNullable<AcademicOverview['teachingAttention']>
+      >(
+        `WITH assigned AS (
+          SELECT c.id,c.titulo FROM lms.cursos c WHERE EXISTS (
+            SELECT 1 FROM lms.curso_docentes d WHERE d.curso_id=c.id AND d.docente_id=$1
+          )
+        ), latest AS (
+          SELECT DISTINCT ON(e.inscripcion_id,e.tarea_id) t.curso_id,e.nota
+          FROM lms.entregas_tarea e JOIN lms.tareas t ON t.id=e.tarea_id
+          JOIN assigned c ON c.id=t.curso_id
+          WHERE t.publicada ORDER BY e.inscripcion_id,e.tarea_id,e.numero DESC
+        ) SELECT
+          (SELECT coalesce(jsonb_agg(p ORDER BY lower(p.course),p."courseId"),'[]'::jsonb) FROM (
+            SELECT c.id AS "courseId",c.titulo AS course,count(*)::int AS count
+            FROM latest e JOIN assigned c ON c.id=e.curso_id WHERE e.nota IS NULL GROUP BY c.id,c.titulo
+          ) p) AS "pendingGrading",
+          (SELECT count(*)::int FROM lms.solicitudes_inscripcion s JOIN assigned c ON c.id=s.curso_id WHERE s.estado='pendiente') AS "pendingRequests",
+          (SELECT coalesce(jsonb_agg(p ORDER BY p."startsAt",p.id),'[]'::jsonb) FROM (
+            SELECT sc.id,sc.titulo AS title,c.id AS "courseId",c.titulo AS course,sc.inicia_en AS "startsAt"
+            FROM lms.sesiones_clase sc JOIN assigned c ON c.id=sc.curso_id
+            WHERE sc.estado='programada' AND sc.inicia_en>=now() ORDER BY sc.inicia_en,sc.id LIMIT 3
+          ) p) AS "upcomingClasses"`,
+        [user.id],
+      );
       return {
+        teachingAttention: attention.rows[0],
         courses: courses.items,
         metrics: [
           { label: 'Cursos asignados', value: row.courses },

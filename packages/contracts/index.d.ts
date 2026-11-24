@@ -108,6 +108,17 @@ export interface AcademicEnrollment {
   reason: string | null;
 }
 export interface AcademicOverview {
+  teachingAttention?: {
+    pendingGrading: { courseId: string; course: string; count: number }[];
+    pendingRequests: number;
+    upcomingClasses: {
+      id: string;
+      title: string;
+      courseId: string;
+      course: string;
+      startsAt: string;
+    }[];
+  };
   metrics: { label: string; value: number }[];
   courses: AcademicCourse[];
   distribution: { label: string; value: number }[];
@@ -175,17 +186,29 @@ export interface AgendaEvent {
   id: string;
   title: string;
   day: string;
-  kind: "recordatorio" | "tarea" | "clase";
+  kind: "recordatorio" | "tarea" | "clase" | "evaluacion" | "feriado";
   done: boolean;
   courseId: string | null;
   course: string | null;
   occursAt: string | null;
+  endsAt?: string | null;
+  detail?: string;
+  activityId?: string;
 }
 export interface PersonalAgenda {
-  days: { day: string; count: number }[];
+  days: { day: string; count: number; pending?: number }[];
   events: AgendaEvent[];
   upcoming: AgendaEvent[];
   total: number;
+  periodEvents?: AgendaEvent[];
+  period?: { from: string; to: string; total: number; limit: number };
+}
+export interface AgendaHolidays {
+  year: number;
+  country: "BO";
+  status: "available" | "unavailable";
+  events: AgendaEvent[];
+  source: string;
 }
 
 export interface ExecutiveDashboard {
@@ -342,6 +365,83 @@ export interface ClassroomLesson extends ClassroomLessonSummary {
 export interface PublicPage<T> {
   items: T[];
   nextCursor: string | null;
+}
+
+export type DataCenterIndicator =
+  "students" | "courses" | "teachers" | "requests" | "traffic";
+export type DataCenterCell = string | number | boolean | null;
+export interface DataCenterRow {
+  id: string;
+  label: string;
+  courseId: string | null;
+  courses: { id: string; title: string }[];
+  values: Record<string, DataCenterCell>;
+}
+export interface DataCenterColumn {
+  key: string;
+  label: string;
+  unit?: "percent" | "date" | "boolean";
+}
+export interface DataCenterSummary {
+  users: number;
+  approvedUsers: number;
+  approvedStudents: number;
+  approvedTeachers: number;
+  publishedCourses: number;
+  draftCourses: number;
+  reviewCourses: number;
+  archivedCourses: number;
+  activeEnrollments: number;
+  enrolledStudents: number;
+  pendingRequests: number;
+  averageProgress: number | null;
+  progressDenominator: number;
+  inactiveStudents: number;
+  withoutCoverage: number;
+  withCoverage: number;
+  pendingSubmissions: number;
+  gradedSubmissions: number;
+  unassignedCourses: number;
+  activeParticipants: number;
+  previousParticipants: number;
+}
+export interface DataCenterRecommendation {
+  indicator: string;
+  value: number;
+  title: string;
+  detail: string;
+  target: "students" | "courses" | "teachers" | "requests";
+}
+export interface DataCenterResult {
+  generatedAt: string;
+  period: ExecutiveDashboard["period"];
+  trackingSince: string;
+  traffic: ExecutiveDashboard["traffic"];
+  trafficComparable: boolean;
+  summary: DataCenterSummary;
+  recommendations: DataCenterRecommendation[];
+  indicator: DataCenterIndicator;
+  columns: DataCenterColumn[];
+  items: DataCenterRow[];
+  page: number;
+  pageSize: number;
+  total: number;
+  courseOptions: { id: string; title: string }[];
+  courseOptionsTruncated: boolean;
+  courseComparison: {
+    id: string;
+    title: string;
+    students: number;
+    averageProgress: number | null;
+  }[];
+  requestStates: { pending: number; approved: number; rejected: number };
+}
+export interface DataCenterExport {
+  filename: string;
+  csv: string;
+  rows: number;
+  total: number;
+  truncated: boolean;
 }
 
 export interface PublicCourse {

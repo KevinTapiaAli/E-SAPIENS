@@ -10,13 +10,16 @@ import {
   useAcademicAction,
 } from "@/features/classroom/academic-action";
 import { SaveButton } from "@/features/management/editor-forms";
+import { useFormErrors } from "@/shared/ui/use-form-errors";
 
 function ModuleField({
   modules,
   value,
+  validation,
 }: {
   modules: TeachingCourse["modules"];
   value?: string;
+  validation?: ReturnType<typeof useFormErrors>;
 }) {
   return (
     <label className="form-label">
@@ -26,6 +29,7 @@ function ModuleField({
         className="form-input"
         defaultValue={value ?? ""}
         required
+        {...validation?.field("moduleId")}
       >
         <option value="">Selecciona un módulo</option>
         {modules.map((m) => (
@@ -35,6 +39,7 @@ function ModuleField({
           </option>
         ))}
       </select>
+      {validation?.message("moduleId")}
     </label>
   );
 }
@@ -170,17 +175,22 @@ export function TaskEditor({
     `teaching/${courseId}/tasks${task ? `/${task.id}` : ""}`,
   );
   const [editDate, setEditDate] = useState(!task);
+  const validation = useFormErrors();
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const f = new FormData(form);
+    const dueAt = editDate ? new Date(String(f.get("dueAt"))) : null;
+    if (dueAt && !Number.isFinite(dueAt.getTime())) {
+      validation.setError("dueAt", "Selecciona una fecha y hora válidas.");
+      return;
+    }
+    validation.clear();
     const result = await action.submit({
       moduleId: f.get("moduleId"),
       title: f.get("title"),
       instructions: f.get("instructions"),
-      dueAt: editDate
-        ? new Date(String(f.get("dueAt"))).toISOString()
-        : task!.dueAt,
+      dueAt: editDate ? dueAt!.toISOString() : task!.dueAt,
       allowLate: f.get("allowLate") === "on",
       maxSubmissions: Number(f.get("maxSubmissions")),
       published: f.get("published") === "on",
@@ -195,11 +205,21 @@ export function TaskEditor({
       </summary>
       <form
         onSubmit={submit}
+        onInvalidCapture={validation.onInvalid}
+        onInputCapture={validation.onInput}
         className="mt-4 space-y-4"
         aria-busy={action.pending}
       >
         <fieldset disabled={action.pending} className="space-y-4">
-          <ModuleField modules={modules} value={task?.moduleId} />
+          <p className="text-sm text-muted">
+            Completa módulo, título, instrucciones y fecha límite. Tus cambios
+            se conservan si la solicitud falla.
+          </p>
+          <ModuleField
+            modules={modules}
+            value={task?.moduleId}
+            validation={validation}
+          />
           <label className="form-label">
             Título
             <input
@@ -209,7 +229,9 @@ export function TaskEditor({
               minLength={3}
               maxLength={180}
               defaultValue={task?.title}
+              {...validation.field("title")}
             />
+            {validation.message("title")}
           </label>
           <label className="form-label">
             Instrucciones
@@ -221,7 +243,9 @@ export function TaskEditor({
               maxLength={12000}
               rows={6}
               defaultValue={task?.instructions}
+              {...validation.field("instructions")}
             />
+            {validation.message("instructions")}
           </label>
           {task && (
             <label className="flex items-center gap-3 text-sm">
@@ -242,7 +266,9 @@ export function TaskEditor({
                 name="dueAt"
                 required
                 className="form-input"
+                {...validation.field("dueAt")}
               />
+              {validation.message("dueAt")}
               <span className="text-xs font-normal text-muted">
                 Se utilizará la zona horaria de este dispositivo.
               </span>
@@ -258,7 +284,9 @@ export function TaskEditor({
               defaultValue={task?.maxSubmissions ?? 2}
               required
               className="form-input"
+              {...validation.field("maxSubmissions")}
             />
+            {validation.message("maxSubmissions")}
           </label>
           <label className="flex items-center gap-3 text-sm">
             <input

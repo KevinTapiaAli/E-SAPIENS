@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExcelDownload } from "@/features/management/excel-download";
 import { notFound } from "next/navigation";
 import type { SessionUser, WorkspaceRole } from "@esapiens/contracts";
 import { readPrivateApi } from "@/features/auth/server";
@@ -74,7 +75,7 @@ export function CourseWorkspaceLinks({
           className="button button-secondary"
           href={`/portal/${role}/seguimiento?courseId=${id}`}
         >
-          Consultar estudiantes
+          Estudiantes y calificaciones
         </Link>
       )}
     </nav>
@@ -95,6 +96,12 @@ export async function TeacherCourse({ id }: { id: string }) {
         description="Selecciona lo que necesitas gestionar en esta materia."
       />
       <CourseWorkspaceLinks role="docente" id={id} />
+      <ExcelDownload
+        kind="estudiantes"
+        role="docente"
+        courseId={id}
+        label="Exportar estudiantes a Excel"
+      />
       <section className="ui-card p-6">
         <h2 className="text-xl font-semibold">Preparación y acompañamiento</h2>
         <p className="mt-3 text-muted">
@@ -129,17 +136,32 @@ export async function TeachingWorkspace({
 }) {
   const root = `academic/teaching/${courseId}`;
   const query = new URLSearchParams({ role, q, ...(cursor ? { cursor } : {}) });
-  const course = await readPrivateApi(`${root}?role=${role}`, isTeachingCourse);
+  // Both endpoints enforce their own role/course scope. Start the selected
+  // section while loading the course, retaining the course's 403/404 priority.
+  const courseRequest = readPrivateApi(
+    `${root}?role=${role}`,
+    isTeachingCourse,
+  );
+  const materialsRequest =
+    section === "materiales"
+      ? readPrivateApi(`${root}/materials?${query}`, isMaterials)
+      : undefined;
+  const tasksRequest =
+    section === "tareas"
+      ? readPrivateApi(`${root}/tasks?${query}`, isTasks)
+      : undefined;
+  const [course, materials, tasks] = await Promise.all([
+    courseRequest,
+    materialsRequest,
+    tasksRequest,
+  ]);
   if (course.status === 404 || course.status === 403) notFound();
   if (!course.data) return <PortalUnavailable />;
   const editor =
     role === "docente" && user.permissions.includes("teaching.manage");
   const base = `/portal/${role}/cursos/${courseId}/${section}`;
   if (section === "materiales") {
-    const result = await readPrivateApi(
-      `${root}/materials?${query}`,
-      isMaterials,
-    );
+    const result = materials!;
     return (
       <>
         <PortalHeading
@@ -231,7 +253,7 @@ export async function TeachingWorkspace({
       </>
     );
   }
-  const result = await readPrivateApi(`${root}/tasks?${query}`, isTasks);
+  const result = tasks!;
   return (
     <>
       <PortalHeading
@@ -276,10 +298,18 @@ export async function TeachingWorkspace({
                     : "Sin entregas fuera de plazo"}
                 </p>
                 {role !== "estudiante" && (
-                  <div className="mt-3">
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
                     <StatusBadge
                       status={task.published ? "publicado" : "borrador"}
                     />
+                    <span className="text-sm text-muted">
+                      {task.submissionCount} entregas
+                    </span>
+                    {task.pendingReviews > 0 && (
+                      <span className="rounded-full bg-warning-soft px-3 py-1 text-xs font-semibold text-warning">
+                        {task.pendingReviews} sin comentarios del docente
+                      </span>
+                    )}
                   </div>
                 )}
                 <Link
@@ -357,7 +387,7 @@ export async function TaskWorkspace({
       {editor && (
         <div className="mb-6">
           <TaskEditor
-            key={t.revision}
+            key={t.id}
             courseId={courseId}
             modules={course.data.modules}
             task={t}

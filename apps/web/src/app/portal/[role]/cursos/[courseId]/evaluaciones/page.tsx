@@ -6,7 +6,12 @@ import { readPrivateApi } from "@/features/auth/server";
 import { isResourceId } from "@/features/classroom/server";
 import { isTeachingCourse } from "@/features/teaching/server";
 import { CourseWorkspaceLinks } from "@/features/teaching/workspace";
-import { PortalHeading, PortalUnavailable } from "@/features/portal/portal-ui";
+import {
+  PortalHeading,
+  PortalUnavailable,
+  StatusBadge,
+} from "@/features/portal/portal-ui";
+import { formatAccountDate } from "@/features/auth/format-date";
 import { isEvaluations, isEvaluationResults } from "@/features/lms/data";
 import {
   EvaluationEditor,
@@ -25,7 +30,7 @@ export default async function Page({
 }) {
   const { role, courseId } = await params;
   if (!isWorkspaceRole(role) || !isResourceId(courseId)) notFound();
-  await portalSession();
+  const user = await portalSession();
   const { cursor: raw, evaluation, resultCursor } = await searchParams;
   const cursor = isResourceId(raw ?? "") ? raw : undefined;
   const [course, evaluations, results] = await Promise.all([
@@ -73,8 +78,37 @@ export default async function Page({
               :{" "}
               {e.bestScore === null ? "Sin resultados" : e.bestScore.toFixed(2)}
             </p>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+              <span>
+                Plazo: {e.minutes} minutos desde el inicio de cada intento.
+              </span>
+              {role === "estudiante" && (
+                <>
+                  <span>
+                    {Math.max(0, e.attempts - e.usedAttempts)} intentos
+                    restantes
+                  </span>
+                  {e.latestStatus ? (
+                    <StatusBadge status={e.latestStatus} />
+                  ) : (
+                    <span>Sin intentos registrados</span>
+                  )}
+                  {e.activeExpiresAt && (
+                    <time dateTime={e.activeExpiresAt}>
+                      Entrega antes de{" "}
+                      {formatAccountDate(e.activeExpiresAt, user.timeZone)}
+                    </time>
+                  )}
+                </>
+              )}
+            </div>
             {role === "estudiante" ? (
-              <TakeEvaluation courseId={courseId} id={e.id} />
+              <TakeEvaluation
+                courseId={courseId}
+                id={e.id}
+                timeZone={user.timeZone}
+                exhausted={e.usedAttempts >= e.attempts && !e.activeExpiresAt}
+              />
             ) : (
               <Link
                 className="button button-secondary mt-3"
@@ -116,6 +150,8 @@ export default async function Page({
                     <th scope="col">Intento</th>
                     <th scope="col">Estado</th>
                     <th scope="col">Nota / 100</th>
+                    <th scope="col">Entregado</th>
+                    <th scope="col">Plazo del intento</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -125,10 +161,18 @@ export default async function Page({
                         {t.student}
                       </th>
                       <td>{t.number}</td>
-                      <td>{t.status}</td>
+                      <td>
+                        <StatusBadge status={t.status} />
+                      </td>
                       <td>
                         {t.score === null ? "Pendiente" : t.score.toFixed(2)}
                       </td>
+                      <td>
+                        {t.submittedAt
+                          ? formatAccountDate(t.submittedAt, user.timeZone)
+                          : "Sin entrega"}
+                      </td>
+                      <td>{formatAccountDate(t.expiresAt, user.timeZone)}</td>
                     </tr>
                   ))}
                 </tbody>

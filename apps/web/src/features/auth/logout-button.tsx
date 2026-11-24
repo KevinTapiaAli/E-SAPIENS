@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
+import { Icon } from "@/shared/ui/icon";
 
-export function LogoutButton() {
+export function LogoutButton({ compact = false }: { compact?: boolean }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
   return (
@@ -9,6 +10,7 @@ export function LogoutButton() {
       <button
         className="button button-secondary"
         disabled={pending}
+        title={compact ? "Cerrar sesión" : undefined}
         onClick={async () => {
           setPending(true);
           setError(false);
@@ -28,7 +30,10 @@ export function LogoutButton() {
           }
         }}
       >
-        {pending ? "Cerrando sesión…" : "Cerrar sesión"}
+        {compact && <Icon name="arrow" />}
+        <span className={compact ? "sr-only" : undefined}>
+          {pending ? "Cerrando sesión…" : "Cerrar sesión"}
+        </span>
       </button>
       {error && (
         <p role="alert" className="mt-2 text-sm text-danger">

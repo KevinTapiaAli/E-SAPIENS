@@ -9,10 +9,12 @@ export const roleLabels: Record<WorkspaceRole, string> = {
 export type PortalSection =
   | "gestion"
   | "aula"
+  | "agenda"
   | "materias"
   | "pagos"
   | "biblioteca"
   | "resumen"
+  | "datos"
   | "informes"
   | "docentes"
   | "solicitudes"
@@ -28,9 +30,12 @@ export type PortalSection =
 export const sectionDescriptions: Record<PortalSection, string> = {
   gestion: "Consulta materias, inscripciones, historial y pagos.",
   aula: "Trabaja en tus contenidos, tareas, evaluaciones y avances.",
+  agenda:
+    "Organiza clases, tareas, evaluaciones y recordatorios; consulta feriados y descarga tu calendario.",
   materias: "Consulta el estado de tus materias y sus docentes.",
   pagos: "Consulta planes, compras y pagos pendientes de revisión.",
   biblioteca: "Encuentra tus referencias guardadas para estudiar.",
+  datos: "Consulta y exporta indicadores administrativos y académicos.",
   resumen: "Tus accesos y prioridades en un solo lugar.",
   informes: "Consulta resultados e indicadores académicos.",
   docentes: "Organiza las asignaciones y revisa los perfiles docentes.",
@@ -118,6 +123,11 @@ export function portalNavigation(
     },
   ];
   if (role === "administrador") {
+    if (
+      user.permissions.includes("dashboard.admin") &&
+      user.permissions.includes("academic.read")
+    )
+      items.push({ section: "datos", label: "Centro de Datos", icon: "chart" });
     if (user.permissions.includes("identity.review"))
       items.push({
         section: "solicitudes",
@@ -190,6 +200,16 @@ export function portalNavigation(
             : "Indicadores",
       icon: "chart",
     });
+  if (
+    user.permissions.includes(
+      role === "administrador"
+        ? "academic.read"
+        : role === "docente"
+          ? "teaching.manage"
+          : "classroom.study",
+    )
+  )
+    items.push({ section: "agenda", label: "Mi agenda", icon: "calendar" });
   items.push({ section: "biblioteca", label: "Mi biblioteca", icon: "book" });
   items.push({ section: "cuenta", label: "Mi cuenta", icon: "user" });
   if (role !== "administrador" || user.permissions.includes("academic.read"))
@@ -216,7 +236,7 @@ export function portalSectionGroup(
     return "Materias e inscripciones";
   if (section === "cuenta") return "Mi cuenta";
   if (section === "informes") return "Historial e informes";
-  if (["seguimiento", "progreso"].includes(section))
+  if (["datos", "seguimiento", "progreso"].includes(section))
     return "Consultas y seguimiento";
   if (
     role === "administrador" &&
@@ -248,4 +268,10 @@ export const statusLabels: Record<string, string> = {
   cancelada: "Cancelada",
   aprobada: "Aprobada",
   rechazada: "Rechazada",
+  en_curso: "En curso",
+  calificado: "Calificado",
+  anulado: "Vencido o anulado",
+  confirmado: "Confirmado",
+  fallido: "Rechazado",
+  vencido: "Vencido",
 };

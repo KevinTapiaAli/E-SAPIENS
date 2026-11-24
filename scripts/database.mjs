@@ -29,7 +29,9 @@ if (command !== "check") {
   }
   if (
     !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) ||
-    !["/esapiens", "/esapiens_test"].includes(url.pathname)
+    !["/esapiens", "/esapiens_test", "/esapiens_demo_local"].includes(
+      url.pathname,
+    )
   ) {
     throw new Error(
       "Este comando solo admite esapiens o esapiens_test en PostgreSQL local.",

@@ -11,41 +11,30 @@ import {
   Post,
   Query,
   Req,
+  Res,
 } from '@nestjs/common';
+import { IsBoolean, IsString, IsUUID, Length, Matches } from 'class-validator';
+import type { Request, Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 import {
-  IsBoolean,
-  IsIn,
-  IsString,
-  IsUUID,
-  Length,
-  Matches,
-} from 'class-validator';
-import type { Request } from 'express';
-import { ApiCookieAuth, ApiProperty, ApiTags } from '@nestjs/swagger';
-import type { PersonalAgenda, WorkspaceRole } from '@esapiens/contracts';
+  AgendaQuery,
+  AgendaRoleQuery,
+  AgendaHolidaysQuery,
+} from './agenda.dto';
+import { AgendaService, agendaPeriod, calendarDay } from './agenda.service';
+import { AgendaHolidaysService } from './agenda-holidays.service';
+import { agendaIcal } from './agenda-ical';
+import {
+  ApiCookieAuth,
+  ApiProperty,
+  ApiTags,
+  ApiProduces,
+} from '@nestjs/swagger';
+import type { WorkspaceRole } from '@esapiens/contracts';
 import { DatabaseService } from '../../infrastructure/database/database.service';
 import { IdentityService } from '../identity/identity.service';
 import { IdentitySecurityService } from '../identity/identity-security.service';
 
-class AgendaRoleQuery {
-  @ApiProperty({
-    enum: ['administrador', 'docente', 'estudiante'],
-    default: 'administrador',
-  })
-  @IsIn(['administrador', 'docente', 'estudiante'])
-  role: WorkspaceRole = 'administrador';
-}
-class AgendaQuery extends AgendaRoleQuery {
-  @ApiProperty({ example: '2026-10', pattern: '^20\\d{2}-(0[1-9]|1[0-2])$' })
-  @Matches(/^20\d{2}-(0[1-9]|1[0-2])$/)
-  month: string;
-  @ApiProperty({
-    example: '2026-10-28',
-    description: 'Fecha dentro del mes consultado (YYYY-MM-DD).',
-  })
-  @Matches(/^20\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/)
-  day: string;
-}
 class ReminderDto {
   @ApiProperty({
     format: 'uuid',
@@ -83,6 +72,9 @@ export class AgendaController {
     private readonly db: DatabaseService,
     private readonly identity: IdentityService,
     private readonly security: IdentitySecurityService,
+    private readonly agenda: AgendaService,
+    private readonly holidays: AgendaHolidaysService,
+    private readonly config: ConfigService,
   ) {}
   private async user(request: Request, role: WorkspaceRole, write = false) {
     if (write) this.security.checkOrigin(request);
@@ -98,81 +90,76 @@ export class AgendaController {
     );
     return user;
   }
-  private day(value: string) {
-    const parsed = new Date(`${value}T12:00:00Z`);
-    if (
-      !Number.isFinite(parsed.getTime()) ||
-      parsed.toISOString().slice(0, 10) !== value
-    )
-      throw new BadRequestException({
-        code: 'INVALID_CALENDAR_DATE',
-        message: 'Elige una fecha válida.',
-      });
-  }
   @Get()
   @Header('Cache-Control', 'no-store')
   async list(@Query() query: AgendaQuery, @Req() request: Request) {
+    return this.agenda.list(await this.user(request, query.role), query);
+  }
+  @Get('holidays')
+  @Header('Cache-Control', 'no-store')
+  async publicHolidays(
+    @Query() query: AgendaHolidaysQuery,
+    @Req() request: Request,
+  ) {
+    await this.user(request, query.role);
+    return this.holidays.forYear(query.year);
+  }
+  @Get('export.ics')
+  @ApiProduces('text/calendar')
+  @Header('Cache-Control', 'no-store')
+  @Header('Content-Type', 'text/calendar; charset=utf-8')
+  async export(
+    @Query() query: AgendaQuery,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const user = await this.user(request, query.role);
-    this.day(query.day);
-    if (!query.day.startsWith(query.month))
+    const enhanced = Object.assign(new AgendaQuery(), query, {
+      view: query.view ?? 'month',
+    });
+    const period = agendaPeriod(enhanced, user.timeZone);
+    const data = await this.agenda.list(user, enhanced, 10000);
+    if (data.period!.total > 10000)
       throw new BadRequestException({
-        code: 'INVALID_CALENDAR_MONTH',
-        message: 'La fecha debe pertenecer al mes consultado.',
+        code: 'AGENDA_EXPORT_LIMIT',
+        message:
+          'Hay demasiados eventos. Exporta una semana o aplica un filtro.',
       });
-    const result = await this.db.query<PersonalAgenda>(
-      `WITH bounds AS (
-        SELECT ($2||'-01')::date AS month_start,
-          (($2||'-01')::date+interval '1 month')::date AS month_end,
-          (now() AT TIME ZONE $4)::date AS today,
-          (now() AT TIME ZONE $4)::date+30 AS upcoming_end
-      ), courses AS (
-        SELECT c.id,c.titulo FROM lms.cursos c WHERE
-          $5::text='administrador'
-          OR ($5='docente' AND EXISTS (
-            SELECT 1 FROM lms.curso_docentes d WHERE d.curso_id=c.id AND d.docente_id=$1
-          ))
-          OR ($5='estudiante' AND c.estado='publicado' AND EXISTS (
-            SELECT 1 FROM lms.inscripciones i WHERE i.curso_id=c.id AND i.estudiante_id=$1 AND i.estado='activa'
-          ))
-      ), events AS (
-      SELECT a.id,a.titulo AS title,to_char(a.fecha,'YYYY-MM-DD') AS day,'recordatorio'::text AS kind,a.completado AS done,null::uuid AS "courseId",null::text AS course,null::timestamptz AS "occursAt"
-      FROM lms.agenda_personal a CROSS JOIN bounds b WHERE a.usuario_id=$1 AND (
-        (a.fecha>=b.month_start AND a.fecha<b.month_end) OR (a.fecha>=b.today AND a.fecha<b.upcoming_end)
-      )
-      UNION ALL
-      SELECT t.id,t.titulo,to_char(t.fecha_limite AT TIME ZONE $4,'YYYY-MM-DD'),'tarea',
-        ($5='estudiante' AND EXISTS (
-          SELECT 1 FROM lms.entregas_tarea e JOIN lms.inscripciones i ON i.id=e.inscripcion_id
-          WHERE e.tarea_id=t.id AND i.estudiante_id=$1
-        )),t.curso_id,c.titulo,t.fecha_limite
-      FROM lms.tareas t JOIN courses c ON c.id=t.curso_id CROSS JOIN bounds b
-      WHERE t.publicada AND ($5<>'estudiante' OR lms.puede_acceder_modulo($1,t.modulo_id)) AND (
-        (t.fecha_limite>=(b.month_start::timestamp AT TIME ZONE $4) AND t.fecha_limite<(b.month_end::timestamp AT TIME ZONE $4))
-        OR (t.fecha_limite>=now() AND t.fecha_limite<(b.upcoming_end::timestamp AT TIME ZONE $4))
-      )
-      UNION ALL
-      SELECT sc.id,sc.titulo,to_char(sc.inicia_en AT TIME ZONE $4,'YYYY-MM-DD'),'clase',sc.estado='finalizada',sc.curso_id,c.titulo,sc.inicia_en
-      FROM lms.sesiones_clase sc JOIN courses c ON c.id=sc.curso_id CROSS JOIN bounds b
-      WHERE sc.estado<>'cancelada' AND ($5<>'estudiante' OR lms.puede_acceder_modulo($1,sc.modulo_id))
-        AND sc.inicia_en>=(b.month_start::timestamp AT TIME ZONE $4) AND sc.inicia_en<(b.month_end::timestamp AT TIME ZONE $4)
-    ), counts AS (
-      SELECT day,count(*)::int AS count FROM events WHERE left(day,7)=$2 GROUP BY day
-    ), selected AS (
-      SELECT * FROM events WHERE day=$3 ORDER BY "occursAt" NULLS FIRST,kind,lower(title),id LIMIT 100
-    ), upcoming AS (
-      SELECT e.* FROM events e CROSS JOIN bounds b
-      WHERE e.kind IN ('tarea','recordatorio') AND NOT e.done
-        AND e.day>=to_char(b.today,'YYYY-MM-DD') AND e.day<to_char(b.upcoming_end,'YYYY-MM-DD')
-        AND (e."occursAt" IS NULL OR e."occursAt">=now())
-      ORDER BY e.day,e."occursAt" NULLS FIRST,e.kind,lower(e.title),e.id LIMIT 8
-    )
-    SELECT coalesce((SELECT jsonb_agg(counts ORDER BY day) FROM counts),'[]') AS days,
-      coalesce((SELECT jsonb_agg(selected ORDER BY "occursAt" NULLS FIRST,kind,lower(title),id) FROM selected),'[]') AS events,
-      coalesce((SELECT jsonb_agg(upcoming ORDER BY day,"occursAt" NULLS FIRST,kind,lower(title),id) FROM upcoming),'[]') AS upcoming,
-      (SELECT count(*)::int FROM events WHERE day=$3) AS total`,
-      [user.id, query.month, query.day, user.timeZone, query.role],
+    const events = [...(data.periodEvents ?? [])];
+    if (enhanced.type === 'todos' || enhanced.type === 'feriado') {
+      const years = [
+        ...new Set([
+          Number(period.from.slice(0, 4)),
+          Number(period.to.slice(0, 4)),
+        ]),
+      ];
+      const holidays = await Promise.all(
+        years.map((year) => this.holidays.forYear(year)),
+      );
+      if (holidays.every((h) => h.status === 'available'))
+        events.push(
+          ...holidays
+            .flatMap((h) => h.events)
+            .filter((e) => e.day >= period.from && e.day <= period.to),
+        );
+    }
+    events.sort(
+      (a, b) =>
+        a.day.localeCompare(b.day) ||
+        (a.occursAt ?? '').localeCompare(b.occursAt ?? '') ||
+        a.id.localeCompare(b.id),
     );
-    return result.rows[0];
+    response.setHeader(
+      'Content-Disposition',
+      `attachment; filename="esapiens-agenda-${period.from}-${period.to}.ics"`,
+    );
+    return agendaIcal(
+      events,
+      user.id,
+      query.role,
+      user.timeZone,
+      this.config.getOrThrow<string>('APP_URL'),
+    );
   }
   @Post()
   @Header('Cache-Control', 'no-store')
@@ -182,7 +169,7 @@ export class AgendaController {
     @Req() request: Request,
   ) {
     const user = await this.user(request, query.role, true);
-    this.day(dto.day);
+    calendarDay(dto.day);
     const title = dto.title.trim();
     if (title.length < 3)
       throw new BadRequestException({

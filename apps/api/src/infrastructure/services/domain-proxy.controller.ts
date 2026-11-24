@@ -56,7 +56,13 @@ export class DomainProxyController {
         'El servicio no pudo completar la respuesta.',
       );
     }
-    for (const name of ['content-type', 'cache-control', 'retry-after']) {
+    for (const name of [
+      'content-type',
+      'content-disposition',
+      'x-export-rows',
+      'cache-control',
+      'retry-after',
+    ]) {
       const value = upstream.headers.get(name);
       if (value) res.setHeader(name, value);
     }

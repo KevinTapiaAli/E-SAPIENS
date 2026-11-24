@@ -15,6 +15,8 @@ async function proxy(
       ? [
           "courses",
           "agenda",
+          "agenda/holidays",
+          "agenda/export.ics",
           "people",
           "enrollments",
           "offerings",
@@ -115,6 +117,23 @@ async function proxy(
         },
       },
     );
+    if (path === "agenda/export.ics" && response.ok) {
+      const disposition = response.headers.get("Content-Disposition");
+      return new NextResponse(await response.text(), {
+        status: response.status,
+        headers: {
+          ...privateHeaders,
+          "Content-Type": "text/calendar; charset=utf-8",
+          "Content-Disposition":
+            disposition &&
+            /^attachment; filename="esapiens-agenda-[\d-]+\.ics"$/.test(
+              disposition,
+            )
+              ? disposition
+              : 'attachment; filename="esapiens-agenda.ics"',
+        },
+      });
+    }
     return new NextResponse(await response.text(), {
       status: response.status,
       headers,

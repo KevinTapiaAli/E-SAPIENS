@@ -37,99 +37,6 @@ function Kpi({
   );
 }
 
-function TrafficTrend({
-  points,
-}: {
-  points: ExecutiveDashboard["traffic"]["trend"];
-}) {
-  const maximum = Math.max(1, ...points.map((p) => p.visitors ?? 0));
-  const width = 640,
-    height = 150,
-    step = width / Math.max(1, points.length);
-  return (
-    <>
-      <svg
-        viewBox={`0 0 ${width} ${height + 10}`}
-        className="mt-5 w-full text-brand"
-        role="img"
-        aria-label="Visitantes únicos estimados por día. Valores disponibles en la tabla desplegable."
-      >
-        {[0, 0.5, 1].map((y) => (
-          <line
-            key={y}
-            x1="0"
-            x2={width}
-            y1={height * y}
-            y2={height * y}
-            stroke="var(--line)"
-          />
-        ))}
-        {points.map((p, i) => {
-          if (p.visitors === null) return null;
-          const h = (p.visitors / maximum) * (height - 6);
-          return (
-            <rect
-              key={p.day}
-              x={i * step + 1}
-              y={height - h}
-              width={Math.max(1, step - 3)}
-              height={h}
-              rx="2"
-              fill="currentColor"
-            >
-              <title>
-                {p.day}: {p.visitors} visitantes
-              </title>
-            </rect>
-          );
-        })}
-      </svg>
-      <div className="mt-2 flex justify-between text-xs text-muted">
-        <span>{points[0]?.day}</span>
-        <span>
-          Máximo diario:{" "}
-          {number.format(
-            maximum === 1 && !points.some((p) => p.visitors) ? 0 : maximum,
-          )}
-        </span>
-        <span>{points.at(-1)?.day}</span>
-      </div>
-      <details className="mt-4 text-sm">
-        <summary className="text-link min-h-11 cursor-pointer py-2">
-          Ver datos diarios
-        </summary>
-        <div className="max-h-64 overflow-auto">
-          <table className="w-full text-left text-sm">
-            <caption className="sr-only">Visitas diarias en UTC</caption>
-            <thead>
-              <tr>
-                <th scope="col" className="py-2">
-                  Día UTC
-                </th>
-                <th scope="col">Visitantes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {points.map((p) => (
-                <tr key={p.day} className="border-t border-line">
-                  <th scope="row" className="py-2 font-normal">
-                    {p.day}
-                  </th>
-                  <td>
-                    {p.visitors === null
-                      ? "Sin medición"
-                      : number.format(p.visitors)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </details>
-    </>
-  );
-}
-
 function DecisionBrief({
   data,
   user,
@@ -281,6 +188,16 @@ export async function ExecutiveDashboardView({
           Análisis académico detallado →
         </Link>
       </div>
+      <div className="flex flex-wrap gap-3">
+        <Link href={`${base}/datos`} className="button button-secondary">
+          Centro de Datos: gráficos y exportaciones
+        </Link>
+        {user.permissions.includes("commerce.manage") && (
+          <Link href={`${base}/pagos`} className="button button-secondary">
+            Revisar pagos manuales
+          </Link>
+        )}
+      </div>
       <DashboardRefresh />
       {!data ? (
         <PortalUnavailable />
@@ -363,70 +280,6 @@ function DashboardContent({
           />
         </div>
       </section>
-      <div className="grid items-start gap-5 xl:grid-cols-2">
-        <section className="ui-card p-5 sm:p-7">
-          <h2 className="text-xl font-semibold">Evolución de visitantes</h2>
-          <p className="mt-2 text-sm text-muted">
-            Únicos por día; su suma no equivale a únicos del periodo.
-          </p>
-          {t.visitors ? (
-            <TrafficTrend points={t.trend} />
-          ) : (
-            <p className="mt-6 rounded-xl bg-surface-soft p-5 text-sm text-muted">
-              Todavía no hay visitas medidas en los días completos
-              seleccionados.
-            </p>
-          )}
-        </section>
-        <section className="ui-card min-w-0 p-5 sm:p-7">
-          <h2 className="text-xl font-semibold">Materias más consultadas</h2>
-          <p className="mt-2 text-sm text-muted">
-            Navegadores únicos por ficha pública y solicitudes reales de cada
-            materia.
-          </p>
-          {t.topCourses.length ? (
-            <ol className="mt-5 space-y-4">
-              {t.topCourses.map((course, i) => (
-                <li
-                  key={course.id}
-                  className="rounded-xl border border-line p-4"
-                >
-                  <div className="flex gap-3">
-                    <span className="font-mono text-sm text-muted">
-                      0{i + 1}
-                    </span>
-                    <Link
-                      className="text-link text-sm"
-                      href={`${base}/cursos/${course.id}`}
-                    >
-                      {course.title}
-                    </Link>
-                  </div>
-                  <div
-                    className="mt-3 h-2 overflow-hidden rounded-full bg-surface-soft"
-                    aria-hidden="true"
-                  >
-                    <div
-                      className="h-full rounded-full bg-brand"
-                      style={{
-                        width: `${(course.visitors / Math.max(1, t.topCourses[0].visitors)) * 100}%`,
-                      }}
-                    />
-                  </div>
-                  <p className="mt-2 text-xs text-muted">
-                    {number.format(course.visitors)} visitantes ·{" "}
-                    {number.format(course.requests)} solicitudes de inscripción
-                  </p>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p className="mt-6 rounded-xl bg-surface-soft p-5 text-sm text-muted">
-              Las materias aparecerán cuando sus fichas reciban visitas medidas.
-            </p>
-          )}
-        </section>
-      </div>
       <section aria-labelledby="learning-heading">
         <h2 id="learning-heading" className="mb-5 text-xl font-semibold">
           Participación y operación actual

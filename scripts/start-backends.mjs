@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 
 const cwd = fileURLToPath(new URL("../apps/api/", import.meta.url));
 const production = process.argv.includes("--production");
+const compiled = production || process.argv.includes("--compiled");
 const children = [];
 let stopping = false;
 
@@ -38,9 +39,9 @@ for (const name of [
   "academic-main",
   "main",
 ]) {
-  const args = production
+  const args = compiled
     ? [`dist/${name}.js`]
-    : ["--watch", "-r", "ts-node/register", `src/${name}.ts`];
+    : ["--watch-path=src", "-r", "ts-node/register", `src/${name}.ts`];
   const child = spawn(process.execPath, args, {
     cwd,
     stdio: "inherit",

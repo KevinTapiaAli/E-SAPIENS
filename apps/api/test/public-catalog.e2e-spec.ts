@@ -44,7 +44,10 @@ describe('Catálogo público contra PostgreSQL (e2e)', () => {
       config.get('NODE_ENV') === 'production' ||
       !['local', 'test'].includes(config.get<string>('APP_ENV') ?? '') ||
       !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) ||
-      !['/esapiens', '/esapiens_test'].includes(url.pathname)
+      !(
+        ['/esapiens', '/esapiens_test'].includes(url.pathname) ||
+        (url.pathname === '/esapiens_demo_local' && url.port === '55433')
+      )
     ) {
       throw new Error(
         'Las pruebas de integración solo pueden usar PostgreSQL local con APP_ENV local/test.',

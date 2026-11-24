@@ -83,7 +83,10 @@ describe('Identidad, permisos y sesiones contra PostgreSQL/Redis (e2e)', () => {
       config.get('NODE_ENV') === 'production' ||
       !['local', 'test'].includes(config.get<string>('APP_ENV') ?? '') ||
       !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) ||
-      !['/esapiens', '/esapiens_test'].includes(url.pathname)
+      !(
+        ['/esapiens', '/esapiens_test'].includes(url.pathname) ||
+        (url.pathname === '/esapiens_demo_local' && url.port === '55433')
+      )
     )
       throw new Error('Identity E2E requires a local test database.');
     origin = new URL(config.getOrThrow<string>('APP_URL')).origin;

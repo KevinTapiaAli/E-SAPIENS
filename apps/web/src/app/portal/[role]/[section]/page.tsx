@@ -41,16 +41,22 @@ import {
 import { ProfilePhotoEditor } from "@/features/portal/profile-photo";
 import MetricsPage from "@/features/portal/metrics-page";
 import { TeachersSection } from "@/features/management/teachers-section";
+import {
+  PeopleSearch,
+  peopleFilters,
+} from "@/features/management/people-filters";
 import { StudentCourses } from "@/features/portal/student-courses";
 import { SpaceHome, SpaceCourses } from "@/features/portal/space-home";
 import { ExecutiveDashboardView } from "@/features/analytics/executive-dashboard";
+import { ExcelDownload } from "@/features/management/excel-download";
+import { TeacherAttention } from "@/features/teaching/teacher-attention";
 
 export default async function PortalSectionPage({
   params,
   searchParams,
 }: {
   params: Promise<{ role: string; section: string }>;
-  searchParams: Promise<ProgressFilters & { days?: string }>;
+  searchParams: Promise<ProgressFilters & { days?: string; kind?: string }>;
 }) {
   const { role, section } = await params;
   if (!isWorkspaceRole(role)) notFound();
@@ -59,6 +65,9 @@ export default async function PortalSectionPage({
     const filters = await searchParams;
     return (
       <>
+        {role === "docente" && section === "aula" && (
+          <TeacherAttention timeZone={user.timeZone} />
+        )}
         <SpaceHome role={role} user={user} space={section} />
         {section === "aula" &&
           (role !== "administrador" ||
@@ -103,7 +112,14 @@ export default async function PortalSectionPage({
   if (section === "cursos" && role === "estudiante")
     return <StudentCourses q={q} cursor={cursor} />;
   if (section === "docentes" && role === "administrador")
-    return <TeachersSection user={user} q={q} cursor={cursor} />;
+    return (
+      <TeachersSection
+        user={user}
+        q={q}
+        cursor={cursor}
+        state={filters.state}
+      />
+    );
   const query = new URLSearchParams({ q, ...(cursor ? { cursor } : {}) });
   const base = `/portal/${role}/${section}`;
   if (section === "oferta" || section === "inscripciones")
@@ -211,8 +227,9 @@ export default async function PortalSectionPage({
     );
   }
   if (section === "usuarios") {
+    const people = peopleFilters(filters.state, filters.kind);
     const result = await readPrivateApi(
-      `academic/people?${query}`,
+      `academic/people?${new URLSearchParams({ q, ...people, ...(cursor ? { cursor } : {}) })}`,
       isAcademicPeople,
     );
     return (
@@ -226,10 +243,13 @@ export default async function PortalSectionPage({
             generalAdmin={user.roles.includes("administrador_general")}
           />
         )}
-        <PortalSearch
-          q={q}
-          placeholder="Nombre, apellido o correo electrónico"
-        />
+        <PeopleSearch q={q} {...people} />
+        {people.kind !== "docente" && (
+          <ExcelDownload kind="estudiantes" q={q} state={people.state} />
+        )}
+        {people.kind === "docente" && (
+          <ExcelDownload kind="docentes" q={q} state={people.state} />
+        )}
         {!result.data ? (
           <PortalUnavailable />
         ) : (
@@ -240,7 +260,12 @@ export default async function PortalSectionPage({
                 description="Prueba con otro nombre o correo."
               />
             ) : (
-              <div className="ui-card overflow-x-auto">
+              <div
+                className="ui-card overflow-x-auto"
+                role="region"
+                aria-label="Tabla de usuarios, desplazamiento horizontal"
+                tabIndex={0}
+              >
                 <table className="w-full min-w-[620px] text-left text-sm">
                   <caption className="sr-only">
                     Usuarios registrados en E-SAPIENS
@@ -314,6 +339,7 @@ export default async function PortalSectionPage({
               cursor={cursor}
               next={result.data.nextCursor}
               q={q}
+              filters={people}
             />
           </>
         )}
