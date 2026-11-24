@@ -1,10 +1,10 @@
-# Pull request preparado: fases 1–4
+# Publicación del pull request: fases 1–4
 
 Destino: `main`. Origen: `feat/ux-performance-calendar-assistant`.
 
 ## Título
 
-Consolidar demostración local: rendimiento, navegación, agenda y ayuda por perfil
+feat: optimización general, navegación, calendario y asistente E-SAPIENS
 
 ## Descripción propuesta
 
@@ -24,7 +24,11 @@ El responsable debe acordar cuál propuesta incorporar y cómo cerrar la otra. E
 
 ### Validación
 
-Resultados finales y alcance verificable en `FASE_4_ASISTENTE_CIERRE.md`. Incluye tipos, lint, compilación completa, pruebas unitarias, seis suites E2E con rollback y verificaciones HTTP por rol de portales, agenda y exportaciones. Las pruebas de ayuda se conservan en `apps/web/test/help-assistant.test.cjs` y se ejecutan con `pnpm --dir apps/web test`.
+Resultados finales y alcance verificable en `FASE_4_ASISTENTE_CIERRE.md`: 110 pruebas unitarias API, 78 E2E con rollback y 74 de FAQ; 27 comprobaciones controladas de interfaz y 430 HTTP por rol. Tipos, lint sin errores, compilación y formato aprobados. Las pruebas de ayuda se conservan en `apps/web/test/help-assistant.test.cjs` y se ejecutan con `pnpm --dir apps/web test`.
+
+### Capturas disponibles
+
+No se adjuntan capturas: no hubo navegador conectado durante la validación. La guía final documenta el recorrido para revisión local; las comprobaciones de interfaz disponibles fueron de lógica, SSR y CSS.
 
 ### Límites
 
@@ -32,6 +36,6 @@ No hubo navegador conectado para revisión visual/interactiva real; las pruebas 
 
 ## Estado de publicación
 
-**Preparado localmente; no publicado.** La rama permanece local. La integración del repositorio produjo un preview Vercel real para el PR #15; un push/PR nuevo puede activar otro. Se conserva la instrucción previa de no desplegar en Vercel, por lo que no se publica la rama ni se modifica esa integración sin autorización específica. También queda señalado el solapamiento con el PR #15 antes de cualquier publicación.
+El 24/11/2026 el usuario autorizó explícitamente publicar esta rama mediante `git push -u origin HEAD` y crear el PR hacia `main`, con el título indicado. Esa orden sustituye la retención de publicación del cierre anterior. Se informó que la integración existente puede generar un preview Vercel; no se ejecuta ningún despliegue manual ni se certifica producción.
 
-No existe URL de un PR nuevo. Este archivo contiene el título y cuerpo revisables; su publicación y cualquier preview externo quedan pendientes. No se hizo push, merge, cierre de PR ajeno ni despliegue desde esta tarea.
+La publicación se realiza únicamente desde la rama de trabajo, sin `--force`, sin push a `main` o `develop` y sin modificar/cerrar el PR #15. El enlace directo y el resultado remoto se entregan al concluir la operación. El estado verificable del PR de esta rama puede consultarse en [GitHub](https://github.com/KevinTapiaAli/E-SAPIENS/pulls?q=is%3Apr+head%3Afeat%2Fux-performance-calendar-assistant). La integración queda pendiente de revisión del propietario; no se habilita merge automático.

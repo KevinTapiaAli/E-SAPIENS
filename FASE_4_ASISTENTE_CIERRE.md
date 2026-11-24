@@ -109,4 +109,8 @@ Se verificó `origin/main` en `d0cb345`, sin pull ni merge. El PR #15 sigue abie
 
 La propuesta completa hacia `main` está preparada en [PULL_REQUEST_FASES_1_4.md](PULL_REQUEST_FASES_1_4.md). **No se publicó**: el repositorio generó un preview Vercel real para el PR #15 y publicar esta rama puede disparar otro, mientras sigue vigente la instrucción previa de no desplegar en Vercel. No se alteró esa integración ni el PR ajeno. No existe URL de un PR nuevo; publicación y tratamiento del solapamiento quedan pendientes.
 
-Pendientes reales: revisión visual/interactiva en navegador conectado y publicación de la propuesta bajo las condiciones anteriores. No se afirma funcionamiento en producción.
+Pendientes al cierre de la fase 4: revisión visual/interactiva en navegador conectado y publicación de la propuesta bajo las condiciones anteriores. No se afirma funcionamiento en producción.
+
+### Actualización de publicación — 24/11/2026
+
+El usuario autorizó expresamente subir únicamente la rama de trabajo y crear un PR hacia `main`, sin force ni merge automático. Se revisaron de nuevo los commits, la base remota y el PR #15, conservando sus funcionalidades. Esta orden sustituye la pausa de publicación descrita en el cierre histórico anterior. El título/cuerpo actualizados y las condiciones de publicación están en [PULL_REQUEST_FASES_1_4.md](PULL_REQUEST_FASES_1_4.md); el resultado remoto se entrega al concluir. No se modifica la configuración de despliegue ni se certifica producción.

@@ -205,8 +205,8 @@ El modo `demo:start` usa los archivos compilados para evitar los bloqueos y rein
 
 - Realizar revisión visual e interactiva en navegador, incluidos tamaños móviles.
 - No se ha validado carga concurrente ni rendimiento en producción.
-- La publicación del PR está pendiente: sigue abierto el PR #15 con funciones incorporadas en esta propuesta y la integración Vercel puede crear un preview al publicar. Se respeta la instrucción de no desplegar en Vercel. Título y cuerpo revisables: [PULL_REQUEST_FASES_1_4.md](PULL_REQUEST_FASES_1_4.md).
+- El 24/11/2026 se autorizó expresamente publicar la rama y crear un PR hacia `main`. Sigue abierto el PR #15, cuyo solapamiento está declarado en la propuesta. No se modifica ni cierra ese PR ni se realiza merge. Título, cuerpo y condiciones: [PULL_REQUEST_FASES_1_4.md](PULL_REQUEST_FASES_1_4.md).
 
 La validación histórica de la sección 6 se conserva. La fase 4 ejecutó las 110 pruebas unitarias API y las 78 E2E completas; los conteos de las 84 tablas permanecieron intactos. También incorpora pruebas mantenidas de FAQ con `node:test`, verificaciones controladas de interfaz y regresión HTTP de los cuatro bloques. Las cifras finales y el estado de servicios están en su informe.
 
-Se mantienen las optimizaciones de la fase 1, la navegación de la fase 2 y la agenda de la fase 3. Continúa pendiente la revisión visual e interactiva por falta de navegador conectado. El trabajo de las cuatro fases queda en la misma rama local, sin publicación, merge ni certificación de producción.
+Se mantienen las optimizaciones de la fase 1, la navegación de la fase 2 y la agenda de la fase 3. Continúa pendiente la revisión visual e interactiva por falta de navegador conectado. El trabajo de las cuatro fases queda en la misma rama de trabajo, autorizada para publicación independiente y pendiente de revisión del propietario, sin merge ni certificación de producción.
