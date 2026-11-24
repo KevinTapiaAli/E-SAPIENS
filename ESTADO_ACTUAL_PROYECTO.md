@@ -7,22 +7,22 @@
 
 El proyecto contiene las mejoras locales de administración, Centro de Datos, exportaciones Excel y preparación de una demostración académica con cuentas y materias ficticias. La fase 1 volvió a validar los recorridos principales el **23 de noviembre de 2026** y aplicó optimizaciones medidas de frontend y PostgreSQL.
 
-**El entorno está operativo al cierre de la fase 3:** Docker, PostgreSQL, Redis, frontend y los cinco procesos backend respondieron correctamente. La agenda ofrece mes, semana, próximos eventos, filtros, detalles, feriados informativos de Bolivia y exportación iCalendar. Implementación y límites: [FASE_3_CALENDARIO.md](FASE_3_CALENDARIO.md). Se conservan la navegación y prioridades de [FASE_2_UX_NAVEGACION.md](FASE_2_UX_NAVEGACION.md), junto con las optimizaciones medidas de [FASE_1_ESTABILIZACION.md](FASE_1_ESTABILIZACION.md).
+**La entrega integra las cuatro fases.** Conserva las optimizaciones, navegación y portales anteriores, la agenda con tres vistas, feriados informativos de Bolivia y exportación iCalendar. Incorpora el Asistente E-SAPIENS con ayuda local por rol y página. Estado final de ejecución, pruebas y propuesta de integración: [FASE_4_ASISTENTE_CIERRE.md](FASE_4_ASISTENTE_CIERRE.md). Recorrido: [GUIA_DEMOSTRACION_FINAL.md](GUIA_DEMOSTRACION_FINAL.md).
 
 ## 2. Repositorio y arquitectura
 
-| Elemento | Estado |
-|---|---|
-| Rama local | `feat/ux-performance-calendar-assistant` |
-| Commit base de la fase | `d0cb345` — Merge pull request #14 |
-| Implementación posterior | Fases 1, 2 y 3 en commits locales de la misma rama; consultar `git log -3` |
-| PR #15 | Funcionalidades compatibles incorporadas localmente; no se realizó merge remoto |
-| Operaciones remotas de esta implementación | Sin push ni despliegue |
-| Frontend | Next.js y React, en `apps/web` |
-| Backend | NestJS, en `apps/api` |
-| Servicios | Gateway, identidad, académico, contenido y analítica |
-| Persistencia | PostgreSQL compartido por los servicios de dominio y Redis |
-| Contratos | Tipos compartidos en `packages/contracts` |
+| Elemento                                   | Estado                                                                          |
+| ------------------------------------------ | ------------------------------------------------------------------------------- |
+| Rama local                                 | `feat/ux-performance-calendar-assistant`                                        |
+| Commit base de la fase                     | `d0cb345` — Merge pull request #14                                              |
+| Implementación posterior                   | Fases 1, 2, 3 y 4 en commits locales de la misma rama; consultar `git log -4`   |
+| PR #15                                     | Funcionalidades compatibles incorporadas localmente; no se realizó merge remoto |
+| Operaciones remotas de esta implementación | Sin push ni despliegue                                                          |
+| Frontend                                   | Next.js y React, en `apps/web`                                                  |
+| Backend                                    | NestJS, en `apps/api`                                                           |
+| Servicios                                  | Gateway, identidad, académico, contenido y analítica                            |
+| Persistencia                               | PostgreSQL compartido por los servicios de dominio y Redis                      |
+| Contratos                                  | Tipos compartidos en `packages/contracts`                                       |
 
 Se mantiene la arquitectura existente: el gateway delega por HTTP y no abre conexiones SQL. No se añadieron microservicios.
 
@@ -44,11 +44,11 @@ Se incorporaron las seis vistas del PR #15: **Resumen, Estudiantes, Cursos, Doce
 
 ### Excel
 
-| Exportación | Acceso | Datos |
-|---|---|---|
-| Docentes | Administración → Docentes | Nombre, correo, especialidad, estado, materias y cantidad de materias |
-| Estudiantes | Administración → Usuarios → Estudiantes | Nombre, correo, estado, materias, cantidad de matrículas y progreso |
-| Estudiantes del docente | Materia o seguimiento docente | Materia, estudiante, correo, estado de matrícula, progreso y notas disponibles |
+| Exportación             | Acceso                                  | Datos                                                                          |
+| ----------------------- | --------------------------------------- | ------------------------------------------------------------------------------ |
+| Docentes                | Administración → Docentes               | Nombre, correo, especialidad, estado, materias y cantidad de materias          |
+| Estudiantes             | Administración → Usuarios → Estudiantes | Nombre, correo, estado, materias, cantidad de matrículas y progreso            |
+| Estudiantes del docente | Materia o seguimiento docente           | Materia, estudiante, correo, estado de matrícula, progreso y notas disponibles |
 
 Los archivos son `.xlsx` auténticos, generados con ExcelJS. Incluyen encabezados, autofiltros y cabecera fija. Las exportaciones administrativas respetan búsqueda y estado; las docentes comprueban la asignación de materias en el backend. Las celdas de texto cuentan con protección frente a inyección de fórmulas.
 
@@ -60,35 +60,41 @@ Los archivos son `.xlsx` auténticos, generados con ExcelJS. Incluyen encabezado
 - Permanecen las comprobaciones de rol, propiedad de materias, matrícula y acceso a módulos.
 - Inicio docente con últimas entregas sin nota, solicitudes pendientes y próximas clases de sus materias; formularios de tareas y evaluaciones con errores junto al campo y conservación del texto ante fallos.
 
+### Calendario y ayuda
+
+La agenda completa en `/portal/{perfil}/agenda` ofrece mes, semana, próximos eventos, filtros, pendientes y descarga `.ics`. Conserva el calendario lateral compacto. Los feriados proceden de Nager.Date v4 desde el servidor y no modifican fechas académicas; su fallo no bloquea eventos internos. Detalle: [FASE_3_CALENDARIO.md](FASE_3_CALENDARIO.md).
+
+El botón flotante «Ayuda» abre el Asistente E-SAPIENS bajo demanda, dentro de los portales autenticados. Sus 24 FAQ verificadas ofrecen sugerencias contextuales, búsqueda tolerante, enlaces permitidos y reinicio. No usa IA externa, no envía consultas a red, no almacena conversaciones ni ejecuta acciones administrativas o académicas. Las rutas se filtran por permisos sin asumir pertenencia por el UUID de la página.
+
 ## 4. Datos de demostración
 
 **Datos de la demostración preparada el 20/11/2026, conservados y comprobados nuevamente contra PostgreSQL durante la fase 1 del 23/11/2026.** No se ejecutó nuevamente el seed ni se sustituyeron las cuentas existentes.
 
-| Elemento | Último valor comprobado |
-|---|---:|
-| Administrador general | 1 |
-| Administrador | 1 |
-| Docentes | 3 |
-| Estudiantes | 15 |
-| Total de cuentas aprobadas | 20 |
-| Materias publicadas | 5 |
-| Matrículas totales / activas | 40 / 37 |
-| Lecciones | 28 |
-| Tareas publicadas | 10 |
-| Intentos de evaluación resueltos | 49 |
-| Solicitudes pendientes | 3 |
-| Entregas pendientes de calificación | 22 |
-| Pagos pendientes | 0 |
+| Elemento                            | Último valor comprobado |
+| ----------------------------------- | ----------------------: |
+| Administrador general               |                       1 |
+| Administrador                       |                       1 |
+| Docentes                            |                       3 |
+| Estudiantes                         |                      15 |
+| Total de cuentas aprobadas          |                      20 |
+| Materias publicadas                 |                       5 |
+| Matrículas totales / activas        |                 40 / 37 |
+| Lecciones                           |                      28 |
+| Tareas publicadas                   |                      10 |
+| Intentos de evaluación resueltos    |                      49 |
+| Solicitudes pendientes              |                       3 |
+| Entregas pendientes de calificación |                      22 |
+| Pagos pendientes                    |                       0 |
 
 Los valores reflejan también las operaciones reales realizadas durante la validación; no son únicamente los registros iniciales del seed.
 
-| Materia | Docente | Matriculados | Activos |
-|---|---|---:|---:|
-| Contabilidad Básica I | Lucía Paredes Soto | 15 | 15 |
-| Contabilidad de Costos | Andrés Rojas Molina | 6 | 5 |
-| Elaboración de Estados Financieros | Lucía Paredes Soto | 7 | 6 |
-| Análisis e Interpretación Financiera | Andrés Rojas Molina | 6 | 5 |
-| Auditoría Contable I | Camila Vargas León | 6 | 6 |
+| Materia                              | Docente             | Matriculados | Activos |
+| ------------------------------------ | ------------------- | -----------: | ------: |
+| Contabilidad Básica I                | Lucía Paredes Soto  |           15 |      15 |
+| Contabilidad de Costos               | Andrés Rojas Molina |            6 |       5 |
+| Elaboración de Estados Financieros   | Lucía Paredes Soto  |            7 |       6 |
+| Análisis e Interpretación Financiera | Andrés Rojas Molina |            6 |       5 |
+| Auditoría Contable I                 | Camila Vargas León  |            6 |       6 |
 
 Las materias contienen módulos, lecturas originales, ejemplos, actividades, tareas y evaluaciones. Para mostrar avances distintos en Contabilidad Básica se prepararon Daniela Fuentes (100 %), Mateo Castro (50 %) y Sofía Navarro (17 %). La matrícula adicional respecto del seed inicial ya existía al comenzar la fase 1 y se conservó.
 
@@ -103,16 +109,16 @@ Las materias contienen módulos, lecturas originales, ejemplos, actividades, tar
 
 ## 5. Estado operativo comprobado el 23/11/2026
 
-| Componente | Resultado actual |
-|---|---|
-| Docker | Motor Linux disponible |
-| Frontend: `http://localhost:3000/login` | HTTP 200 |
+| Componente                                           | Resultado actual                                                         |
+| ---------------------------------------------------- | ------------------------------------------------------------------------ |
+| Docker                                               | Motor Linux disponible                                                   |
+| Frontend: `http://localhost:3000/login`              | HTTP 200                                                                 |
 | Gateway: `http://localhost:4100/api/v1/health/ready` | HTTP 200; contenido, analítica, identidad, académico y Redis disponibles |
-| PostgreSQL y Redis de demostración | Contenedores saludables; consultas reales y autenticación verificadas |
-| Archivos compilados API / web | Presentes: `apps/api/dist/main.js` y `apps/web/.next/BUILD_ID` |
-| Node.js predeterminado del sistema | `26.12.1`, fuera del rango admitido por el proyecto |
-| Node.js local para la demo | `24.21.0`, disponible; lo selecciona `scripts/dev-demo.ps1` |
-| pnpm | `10.34.5`, coincide con `packageManager` |
+| PostgreSQL y Redis de demostración                   | Contenedores saludables; consultas reales y autenticación verificadas    |
+| Archivos compilados API / web                        | Presentes: `apps/api/dist/main.js` y `apps/web/.next/BUILD_ID`           |
+| Node.js predeterminado del sistema                   | `26.12.1`, fuera del rango admitido por el proyecto                      |
+| Node.js local para la demo                           | `24.21.0`, disponible; lo selecciona `scripts/dev-demo.ps1`              |
+| pnpm                                                 | `10.34.5`, coincide con `packageManager`                                 |
 
 La fase 2 recompiló y reinició el supervisor de la aplicación, conservando PostgreSQL, Redis, volumen, cuentas y materias. Pasaron tipos, build, lint sin errores, 20 pruebas unitarias LMS, 10 pruebas PostgreSQL con rollback, 36 comprobaciones SSR/lógica cliente, 193 comprobaciones HTTP y 14 pares de contraste. Véase el informe de fase para sus límites y evidencias; los resultados históricos siguientes se conservan como referencia.
 
@@ -120,21 +126,21 @@ La fase 2 recompiló y reinició el supervisor de la aplicación, conservando Po
 
 Resultados registrados durante la implementación del **20/11/2026**:
 
-| Verificación | Resultado registrado |
-|---|---|
-| Instalación inicial con lockfile congelado | Completada |
-| Comprobación de tipos | Aprobada |
-| Build completo de API y web | Aprobado |
-| Pruebas unitarias seleccionadas | 52 aprobadas |
-| E2E del Centro de Datos, incluidas consultas PostgreSQL con rollback | 43 aprobadas |
-| Comprobaciones funcionales y de integración consolidadas | 132 aprobadas, 0 fallidas |
-| Login de las 20 cuentas | Aprobado |
-| Portales y seis vistas del Centro de Datos | Respuestas HTTP verificadas con sesión autorizada |
-| Exportaciones Excel | Descargadas y reabiertas programáticamente |
-| Autorización | Accesos anónimos, estudiantes y materias ajenas rechazados |
-| Flujo académico real | Entrega, calificación persistida y evaluación resuelta mediante las rutas del frontend |
-| Idempotencia del seed | Segunda ejecución sin duplicar cuentas ni materias |
-| Lint | Sin errores; dos advertencias en backend |
+| Verificación                                                         | Resultado registrado                                                                   |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Instalación inicial con lockfile congelado                           | Completada                                                                             |
+| Comprobación de tipos                                                | Aprobada                                                                               |
+| Build completo de API y web                                          | Aprobado                                                                               |
+| Pruebas unitarias seleccionadas                                      | 52 aprobadas                                                                           |
+| E2E del Centro de Datos, incluidas consultas PostgreSQL con rollback | 43 aprobadas                                                                           |
+| Comprobaciones funcionales y de integración consolidadas             | 132 aprobadas, 0 fallidas                                                              |
+| Login de las 20 cuentas                                              | Aprobado                                                                               |
+| Portales y seis vistas del Centro de Datos                           | Respuestas HTTP verificadas con sesión autorizada                                      |
+| Exportaciones Excel                                                  | Descargadas y reabiertas programáticamente                                             |
+| Autorización                                                         | Accesos anónimos, estudiantes y materias ajenas rechazados                             |
+| Flujo académico real                                                 | Entrega, calificación persistida y evaluación resuelta mediante las rutas del frontend |
+| Idempotencia del seed                                                | Segunda ejecución sin duplicar cuentas ni materias                                     |
+| Lint                                                                 | Sin errores; dos advertencias en backend                                               |
 
 Las evidencias locales están en `.tmp/verification-final.json`, `.tmp/final-check.json`, `.tmp/dashboard-stats.json` y `.tmp/demo-courses.json`. `.tmp` está excluido de Git; estos archivos no acompañarán un clon nuevo.
 
@@ -142,32 +148,32 @@ Las evidencias locales están en `.tmp/verification-final.json`, `.tmp/final-che
 
 ## 7. Direcciones configuradas
 
-Estas direcciones volvieron a responder durante la fase 3 del 23/11, con sesión autorizada cuando correspondía. El gateway mantiene el puerto `4100`; no se modificaron procesos de otros proyectos ni se intentó ocupar el puerto `4000`.
+La comprobación final de estas direcciones está registrada en el informe de la fase 4, con sesión autorizada cuando correspondía. El gateway mantiene el puerto `4100`; no se modificaron procesos de otros proyectos ni se intentó ocupar el puerto `4000`.
 
-| Página o servicio | Dirección |
-|---|---|
-| Frontend | http://localhost:3000 |
-| Login | http://localhost:3000/login |
-| Catálogo | http://localhost:3000/cursos |
-| Biblioteca | http://localhost:3000/biblioteca |
-| Portal administrador | http://localhost:3000/portal/administrador |
-| Portal docente | http://localhost:3000/portal/docente |
-| Portal estudiante | http://localhost:3000/portal/estudiante |
-| Agenda administrativa | http://localhost:3000/portal/administrador/agenda |
-| Agenda docente | http://localhost:3000/portal/docente/agenda |
-| Agenda estudiante | http://localhost:3000/portal/estudiante/agenda |
-| Gestión de docentes | http://localhost:3000/portal/administrador/docentes |
-| Gestión de estudiantes | http://localhost:3000/portal/administrador/usuarios?kind=estudiante |
-| Centro de Datos | http://localhost:3000/portal/administrador/datos |
-| Reportes | http://localhost:3000/portal/administrador/datos?view=reports |
-| Swagger principal | http://localhost:4100/api/docs |
-| Salud del gateway y dependencias | http://localhost:4100/api/v1/health/ready |
-| Swagger contenido | http://127.0.0.1:4001/api/docs |
-| Swagger analítica | http://127.0.0.1:4002/api/docs |
-| Swagger identidad | http://127.0.0.1:4003/api/docs |
-| Swagger académico | http://127.0.0.1:4004/api/docs |
-| PostgreSQL de demostración | `127.0.0.1:55433`, base `esapiens_demo_local` |
-| Redis de demostración | `127.0.0.1:56379` |
+| Página o servicio                | Dirección                                                           |
+| -------------------------------- | ------------------------------------------------------------------- |
+| Frontend                         | http://localhost:3000                                               |
+| Login                            | http://localhost:3000/login                                         |
+| Catálogo                         | http://localhost:3000/cursos                                        |
+| Biblioteca                       | http://localhost:3000/biblioteca                                    |
+| Portal administrador             | http://localhost:3000/portal/administrador                          |
+| Portal docente                   | http://localhost:3000/portal/docente                                |
+| Portal estudiante                | http://localhost:3000/portal/estudiante                             |
+| Agenda administrativa            | http://localhost:3000/portal/administrador/agenda                   |
+| Agenda docente                   | http://localhost:3000/portal/docente/agenda                         |
+| Agenda estudiante                | http://localhost:3000/portal/estudiante/agenda                      |
+| Gestión de docentes              | http://localhost:3000/portal/administrador/docentes                 |
+| Gestión de estudiantes           | http://localhost:3000/portal/administrador/usuarios?kind=estudiante |
+| Centro de Datos                  | http://localhost:3000/portal/administrador/datos                    |
+| Reportes                         | http://localhost:3000/portal/administrador/datos?view=reports       |
+| Swagger principal                | http://localhost:4100/api/docs                                      |
+| Salud del gateway y dependencias | http://localhost:4100/api/v1/health/ready                           |
+| Swagger contenido                | http://127.0.0.1:4001/api/docs                                      |
+| Swagger analítica                | http://127.0.0.1:4002/api/docs                                      |
+| Swagger identidad                | http://127.0.0.1:4003/api/docs                                      |
+| Swagger académico                | http://127.0.0.1:4004/api/docs                                      |
+| PostgreSQL de demostración       | `127.0.0.1:55433`, base `esapiens_demo_local`                       |
+| Redis de demostración            | `127.0.0.1:56379`                                                   |
 
 Las vistas del Centro de Datos usan `?view=overview`, `students`, `courses`, `teachers`, `traffic` y `reports`. Los endpoints internos mantienen su autenticación de servicio; publicar Swagger no elimina ese requisito.
 
@@ -199,8 +205,8 @@ El modo `demo:start` usa los archivos compilados para evitar los bloqueos y rein
 
 - Realizar revisión visual e interactiva en navegador, incluidos tamaños móviles.
 - No se ha validado carga concurrente ni rendimiento en producción.
-- El trabajo de las tres fases está en la misma rama local; no se publicó ni integró en `main` remoto.
+- La publicación del PR está pendiente: sigue abierto el PR #15 con funciones incorporadas en esta propuesta y la integración Vercel puede crear un preview al publicar. Se respeta la instrucción de no desplegar en Vercel. Título y cuerpo revisables: [PULL_REQUEST_FASES_1_4.md](PULL_REQUEST_FASES_1_4.md).
 
-Los servicios permanecen activos al cierre de la fase 3. Pasaron 30 pruebas unitarias de agenda, 11 de integración PostgreSQL, 20 comprobaciones controladas del frontend y 350 comprobaciones HTTP de agenda, enlaces y regresión de portales. Tipos y build completos aprobados; se reabrieron ICS con un parser independiente y XLSX con ExcelJS. La validación histórica de la sección 6 se conserva; el detalle actual está en el informe de la fase 3.
+La validación histórica de la sección 6 se conserva. La fase 4 ejecutó las 110 pruebas unitarias API y las 78 E2E completas; los conteos de las 84 tablas permanecieron intactos. También incorpora pruebas mantenidas de FAQ con `node:test`, verificaciones controladas de interfaz y regresión HTTP de los cuatro bloques. Las cifras finales y el estado de servicios están en su informe.
 
-Se mantienen las optimizaciones de la fase 1 y la navegación de la fase 2. El calendario reutiliza `/academic/agenda` y no modifica fechas académicas al mostrar feriados. Continúa pendiente la revisión visual e interactiva por falta de navegador conectado. No se inicia otra fase.
+Se mantienen las optimizaciones de la fase 1, la navegación de la fase 2 y la agenda de la fase 3. Continúa pendiente la revisión visual e interactiva por falta de navegador conectado. El trabajo de las cuatro fases queda en la misma rama local, sin publicación, merge ni certificación de producción.

@@ -1,0 +1,120 @@
+.trigger {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(9rem + env(safe-area-inset-bottom));
+  z-index: 35;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--brand);
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+}
+.trigger:hover {
+  background: var(--brand-soft);
+}
+.question {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.panel {
+  position: fixed;
+  inset: auto 1rem calc(1rem + env(safe-area-inset-bottom)) auto;
+  margin: 0;
+  width: min(26rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  height: min(
+    42rem,
+    calc(100dvh - 2rem - env(safe-area-inset-bottom) - env(safe-area-inset-top))
+  );
+  max-height: calc(
+    100dvh - 2rem - env(safe-area-inset-bottom) - env(safe-area-inset-top)
+  );
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.panel::backdrop {
+  background: rgb(10 20 40 / 35%);
+}
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.header {
+  display: flex;
+  align-items: start;
+  gap: 0.5rem;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.header > div {
+  min-width: 0;
+}
+.header > button {
+  flex-shrink: 0;
+}
+.messages {
+  flex: 1;
+  min-height: 0;
+  padding: 1rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+}
+.response {
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem 1rem 1rem 0.25rem;
+  background: var(--surface-soft);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.questionMessage {
+  margin-left: 1.5rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 1rem 1rem 0.25rem 1rem;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 0.875rem;
+}
+.suggestion {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  color: var(--brand);
+  text-align: left;
+  font-size: 0.875rem;
+}
+.suggestion:hover {
+  background: var(--brand-soft);
+}
+.composer {
+  flex-shrink: 0;
+  padding: 0.8rem 1rem max(0.5rem, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+}
+.composer input {
+  margin-top: 0;
+}
+@media (min-width: 1024px) {
+  .trigger {
+    bottom: 1.25rem;
+  }
+}

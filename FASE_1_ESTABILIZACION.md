@@ -45,29 +45,29 @@ La primera serie posterior coincidió con lint; se conservó en `.tmp/phase1/aft
 
 ### HTTP
 
-| Ruta representativa | Mediana antes (ms) | Mediana después (ms) | P95 antes → después (ms) | Bytes antes → después |
-|---|---:|---:|---:|---:|
-| Portal administrador | 42.25 | 36.65 | 49.23 → 40.89 | 84341 → 84341 |
-| Centro de Datos (página) | 64.29 | 68.99 | 129.76 → 88.84 | 148020 → 148020 |
-| Materiales del docente | 45.20 | 30.92 | 59.63 → 33.75 | 48331 → 48331 |
-| Tareas del docente | 51.28 | 31.01 | 71.73 → 59.17 | 42248 → 42248 |
-| API panel administrativo | 24.14 | 23.86 | 25.30 → 34.26 | 1460 → 1460 |
-| API Centro de Datos | 46.47 | 34.82 | 57.47 → 44.29 | 12103 → 12103 |
-| API evaluaciones estudiante | 13.75 | 11.78 | 17.41 → 14.40 | 288 → 288 |
+| Ruta representativa         | Mediana antes (ms) | Mediana después (ms) | P95 antes → después (ms) | Bytes antes → después |
+| --------------------------- | -----------------: | -------------------: | -----------------------: | --------------------: |
+| Portal administrador        |              42.25 |                36.65 |            49.23 → 40.89 |         84341 → 84341 |
+| Centro de Datos (página)    |              64.29 |                68.99 |           129.76 → 88.84 |       148020 → 148020 |
+| Materiales del docente      |              45.20 |                30.92 |            59.63 → 33.75 |         48331 → 48331 |
+| Tareas del docente          |              51.28 |                31.01 |            71.73 → 59.17 |         42248 → 42248 |
+| API panel administrativo    |              24.14 |                23.86 |            25.30 → 34.26 |           1460 → 1460 |
+| API Centro de Datos         |              46.47 |                34.82 |            57.47 → 44.29 |         12103 → 12103 |
+| API evaluaciones estudiante |              13.75 |                11.78 |            17.41 → 14.40 |             288 → 288 |
 
 Materiales y tareas docentes reducen su mediana en estas muestras. **La mediana HTML del Centro de Datos no mejoró**: pasó de 64,29 a 68,99 ms, aunque su P95 y el endpoint de datos bajaron. No se atribuye una mejora general de esa página. El panel y el listado de materias son controles sin optimización específica.
 
 ### Consultas PostgreSQL
 
-| Operación | Consultas antes → después | Mediana servicio antes → después (ms) | Ejecución EXPLAIN antes → después (ms) | Bloques compartidos hit antes → después |
-|---|---:|---:|---:|---:|
-| Listado de materias (control) | 1 → 1 | 2.95 → 2.97 | 0.432 → 0.487 | 47 → 49 |
-| Progreso académico | 1 → 1 | 20.79 → 7.88 | 2.785 → 2.557 | 387 → 407 |
-| Curso y módulos | 2 → 1 | 14.71 → 1.86 | 0.136 → 0.087 | 6 → 6 |
-| Centro de Datos | 4 → 2 | 45.14 → 27.42 | 18.905 → 7.492 | 518 → 344 |
-| CSV del Centro de Datos | 1 → 1 | 24.54 → 13.33 | 6.705 → 3.536 | 485 → 109 |
-| Evaluaciones estudiante | 3 → 2 | 8.38 → 7.35 | 1.984 → 1.211 | 196 → 187 |
-| Evaluaciones docente | 3 → 2 | 6.60 → 4.48 | 0.399 → 0.322 | 48 → 40 |
+| Operación                     | Consultas antes → después | Mediana servicio antes → después (ms) | Ejecución EXPLAIN antes → después (ms) | Bloques compartidos hit antes → después |
+| ----------------------------- | ------------------------: | ------------------------------------: | -------------------------------------: | --------------------------------------: |
+| Listado de materias (control) |                     1 → 1 |                           2.95 → 2.97 |                          0.432 → 0.487 |                                 47 → 49 |
+| Progreso académico            |                     1 → 1 |                          20.79 → 7.88 |                          2.785 → 2.557 |                               387 → 407 |
+| Curso y módulos               |                     2 → 1 |                          14.71 → 1.86 |                          0.136 → 0.087 |                                   6 → 6 |
+| Centro de Datos               |                     4 → 2 |                         45.14 → 27.42 |                         18.905 → 7.492 |                               518 → 344 |
+| CSV del Centro de Datos       |                     1 → 1 |                         24.54 → 13.33 |                          6.705 → 3.536 |                               485 → 109 |
+| Evaluaciones estudiante       |                     3 → 2 |                           8.38 → 7.35 |                          1.984 → 1.211 |                               196 → 187 |
+| Evaluaciones docente          |                     3 → 2 |                           6.60 → 4.48 |                          0.399 → 0.322 |                                 48 → 40 |
 
 Las siete respuestas académicas normalizadas coincidieron antes y después, excluyendo únicamente `generatedAt`. No se alteraron datos académicos para las mediciones; la autenticación creó sesiones mediante el flujo habitual. Las lecturas de bloques compartidos desde disco fueron cero en ambas series; eran mediciones con datos calientes. Progreso no reduce los bloques hit en esta muestra, por lo que no se afirma una reducción de I/O de esa consulta.
 
@@ -75,12 +75,12 @@ Las siete respuestas académicas normalizadas coincidieron antes y después, exc
 
 Las trazas de una respuesta completa conservaron estos valores antes y después:
 
-| Página | Peticiones al gateway | Llamadas internas adicionales | GET identity/me desde Next.js |
-|---|---:|---:|---:|
-| Portal administrador | 2 | 2 | 1 |
-| Centro de Datos | 2 | 3 | 1 |
-| Materiales docente | 3 | 3 | 1 |
-| Tareas docente | 3 | 3 | 1 |
+| Página               | Peticiones al gateway | Llamadas internas adicionales | GET identity/me desde Next.js |
+| -------------------- | --------------------: | ----------------------------: | ----------------------------: |
+| Portal administrador |                     2 |                             2 |                             1 |
+| Centro de Datos      |                     2 |                             3 |                             1 |
+| Materiales docente   |                     3 |                             3 |                             1 |
+| Tareas docente       |                     3 |                             3 |                             1 |
 
 El frontend mejora la concurrencia de sus lecturas; no se afirma que disminuya su cantidad. Los servicios siguen autenticando cada operación. Las llamadas internas no son peticiones adicionales del navegador. El tamaño de las respuestas también se mantuvo.
 

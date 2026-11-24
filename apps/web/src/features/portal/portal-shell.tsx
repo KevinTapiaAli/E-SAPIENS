@@ -15,6 +15,7 @@ import {
 } from "./navigation";
 import { PortalNavigation } from "./portal-navigation";
 import { AgendaDrawer } from "./agenda-drawer";
+import { HelpAssistant } from "./help-assistant";
 import { VisitTracker } from "@/features/analytics/visit-tracker";
 import { MeasurementPreference } from "@/features/analytics/measurement-preference";
 import { currentPortalSpace, portalSpaces, spaceNavigation } from "./spaces";
@@ -101,6 +102,11 @@ export function PortalShell({
       data-sidebar-compact={compact}
       className="portal-shell min-h-screen bg-canvas pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0"
     >
+      <HelpAssistant
+        key={`${user.id}:${role}`}
+        role={role}
+        permissions={user.permissions}
+      />
       {pathname !== `${base}/agenda` &&
         user.permissions.includes(
           role === "administrador"

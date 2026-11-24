@@ -9,11 +9,11 @@ Se amplió el calendario existente, conservando sus recordatorios, formularios, 
 
 La agenda está disponible desde «Mi agenda» en Aula virtual y desde el botón lateral en Gestión académica. En la página completa se suprime la instancia lateral para evitar lecturas duplicadas. Se conservaron la barra desplegable, portales, prioridades docentes, Centro de Datos, Excel/CSV y optimizaciones anteriores. No se agregaron frameworks visuales ni dependencias de ejecución.
 
-| Perfil | Agenda completa |
-|---|---|
+| Perfil         | Agenda completa                                   |
+| -------------- | ------------------------------------------------- |
 | Administración | http://localhost:3000/portal/administrador/agenda |
-| Docente | http://localhost:3000/portal/docente/agenda |
-| Estudiante | http://localhost:3000/portal/estudiante/agenda |
+| Docente        | http://localhost:3000/portal/docente/agenda       |
+| Estudiante     | http://localhost:3000/portal/estudiante/agenda    |
 
 Los botones y filtros tienen nombres accesibles, estados de carga, errores y reintento. Se conservan los gestos horizontales sin capturar el desplazamiento vertical; las flechas seleccionan días, arriba/abajo cambian una semana y Home/End recorren los extremos de la semana. Las animaciones respetan movimiento reducido. El diseño usa una columna en móvil/tableta y dos desde el punto de corte `xl`, con contenedores que pueden reducir su ancho.
 
@@ -63,18 +63,18 @@ Se conserva el mismo control de acceso de la consulta, `Cache-Control: no-store`
 
 ## Validación ejecutada
 
-| Verificación | Resultado |
-|---|---|
-| Tipos de API y web | Aprobados |
-| Build completo de API y web | Aprobado |
-| Lint de los archivos web modificados | Sin errores ni advertencias |
-| Lint de API | Sin errores; permanecen dos advertencias previas del exportador Excel |
-| Pruebas unitarias de agenda | 30 aprobadas |
-| Integración PostgreSQL del Centro de Datos y agenda | 11 aprobadas, con savepoint/rollback |
-| Lógica y renderizado controlado del frontend | 20 comprobaciones aprobadas |
-| Agenda por HTTP, filtros, permisos y descargas | 142 comprobaciones aprobadas |
-| Enlaces de actividades extraídos de los ICS | 12 rutas autorizadas respondieron correctamente |
-| Regresión de portales, 20 logins, servicios, Centro de Datos, Excel y CSV | 196 comprobaciones aprobadas |
+| Verificación                                                              | Resultado                                                             |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Tipos de API y web                                                        | Aprobados                                                             |
+| Build completo de API y web                                               | Aprobado                                                              |
+| Lint de los archivos web modificados                                      | Sin errores ni advertencias                                           |
+| Lint de API                                                               | Sin errores; permanecen dos advertencias previas del exportador Excel |
+| Pruebas unitarias de agenda                                               | 30 aprobadas                                                          |
+| Integración PostgreSQL del Centro de Datos y agenda                       | 11 aprobadas, con savepoint/rollback                                  |
+| Lógica y renderizado controlado del frontend                              | 20 comprobaciones aprobadas                                           |
+| Agenda por HTTP, filtros, permisos y descargas                            | 142 comprobaciones aprobadas                                          |
+| Enlaces de actividades extraídos de los ICS                               | 12 rutas autorizadas respondieron correctamente                       |
+| Regresión de portales, 20 logins, servicios, Centro de Datos, Excel y CSV | 196 comprobaciones aprobadas                                          |
 
 Se cubrieron febrero bisiesto, meses/años y límites 2000/2099, días vacíos, eventos simultáneos, zonas horarias, acceso al módulo y pertenencia a materias, recordatorios propios, evaluaciones ocultas, filtros, contrato anterior, cargas, reintento y solicitudes sin duplicar. Los casos de proveedor caído, timeout, error HTTP y respuesta malformada se probaron mediante sustitución controlada del proveedor en pruebas unitarias; no se provocó una caída del servicio real.
 

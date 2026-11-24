@@ -2,10 +2,11 @@
 
 Plataforma educativa web para consultar materias y bibliografía, gestionar cuentas e inscripciones, organizar la docencia y acompañar el progreso de los estudiantes. Proyecto académico de Tecnologías Web II, organizado como monorepo TypeScript con frontend y API independientes.
 
-Este README concentra la instalación, arquitectura, operación, demostración y mantenimiento del proyecto. La rama de integración es [`develop`](https://github.com/KevinTapiaAli/E-SAPIENS/tree/develop).
+Este README concentra la instalación, arquitectura, operación, demostración y mantenimiento del proyecto. Las cuatro fases de estabilización, navegación, calendario y ayuda se consolidan en `feat/ux-performance-calendar-assistant`, para revisión hacia `main`. La publicación y los resultados de la validación final se registran en [FASE_4_ASISTENTE_CIERRE.md](FASE_4_ASISTENTE_CIERRE.md).
 
 ## Contenido
 
+- [Entrega local de las cuatro fases](#entrega-local-de-las-cuatro-fases)
 - [Dos espacios de trabajo](#dos-espacios-de-trabajo)
 - [Evolución LMS: pagos, evaluaciones e identidad](#evolución-lms-pagos-evaluaciones-e-identidad)
 - [Guía rápida para defender el proyecto](#guía-rápida-para-defender-el-proyecto)
@@ -28,6 +29,36 @@ Este README concentra la instalación, arquitectura, operación, demostración y
 - [Capturas de ejecución](#capturas-de-ejecución)
 - [Problemas frecuentes](#problemas-frecuentes)
 - [Calidad y alcance](#calidad-y-alcance)
+
+## Entrega local de las cuatro fases
+
+El recorrido de la versión integrada está en [GUIA_DEMOSTRACION_FINAL.md](GUIA_DEMOSTRACION_FINAL.md). Los informes [fase 1](FASE_1_ESTABILIZACION.md), [fase 2](FASE_2_UX_NAVEGACION.md), [fase 3](FASE_3_CALENDARIO.md) y [fase 4](FASE_4_ASISTENTE_CIERRE.md) distinguen implementación, pruebas y limitaciones. La versión local no implica que exista un despliegue de producción verificado.
+
+Esta computadora conserva una base ficticia aislada: proyecto Docker `esapiens_demo_local`, PostgreSQL en `127.0.0.1:55433/esapiens_demo_local` y Redis en `127.0.0.1:56379`. El gateway utiliza **4100** porque 4000 pertenece a otra aplicación. Los ejemplos de instalación nueva posteriores conservan el puerto predeterminado **4000**; para esta demostración utilizar las siguientes direcciones:
+
+| Acceso                   | Dirección local                                                                |
+| ------------------------ | ------------------------------------------------------------------------------ |
+| Web / acceso             | http://localhost:3000 / http://localhost:3000/login                            |
+| Administración           | http://localhost:3000/portal/administrador                                     |
+| Centro de Datos          | http://localhost:3000/portal/administrador/datos                               |
+| Docente / estudiante     | http://localhost:3000/portal/docente / http://localhost:3000/portal/estudiante |
+| Swagger / disponibilidad | http://localhost:4100/api/docs / http://localhost:4100/api/v1/health/ready     |
+
+Con Docker Desktop disponible, arrancar desde PowerShell en la raíz:
+
+```powershell
+.\scripts\dev-demo.ps1
+```
+
+El script selecciona la instalación local de Node **24.21.0**, si existe, y ejecuta `pnpm.cmd demo:start` con los artefactos compilados. El proyecto fija pnpm **10.34.5**. Si se cambió código, seleccionar primero Node 24 y ejecutar `pnpm.cmd build`; para desarrollar con recarga, usar `pnpm.cmd dev`. No iniciar otro supervisor si esta copia ya está funcionando. `Ctrl+C` detiene sus procesos sin eliminar los datos.
+
+Las **20 cuentas ficticias** y sus contraseñas individuales están en `CREDENCIALES_DEMO_LOCAL.txt`, excluido de Git. No se vuelven a crear para reiniciar la aplicación. El preparador completo `pnpm.cmd demo:seed` es idempotente y exige la base local aislada; conservar el archivo de credenciales y la configuración existente. Las cinco materias de contabilidad, sus docentes, matrículas y actividades proceden de PostgreSQL. Los datos de esta copia pueden haber evolucionado después del seed.
+
+- **Rendimiento:** lecturas docentes en paralelo, curso y módulos en una consulta, agregaciones de evaluaciones/progreso y reducción de cuatro a dos consultas en el Centro de Datos. Las mediciones y sus límites están en la fase 1; no se afirma una mejora general de todas las páginas.
+- **Navegación:** barra lateral expandida/compacta, grupos independientes, preferencia local con estado inicial estable, menú móvil y accesos por permiso. Administración organiza resumen, pendientes, acciones e información detallada; docencia prioriza entregas y próximas clases.
+- **Datos y exportaciones:** seis vistas del Centro de Datos, Excel de docentes y estudiantes con filtros, Excel docente limitado a sus materias y CSV del Centro de Datos. No se duplican los módulos existentes.
+- **Agenda:** calendario lateral conservado y agenda completa mensual, semanal y de próximos 30 días; filtros, detalles y descarga `.ics` con el alcance del usuario. Los feriados nacionales de Bolivia se consultan desde el servidor con [Nager.Date v4](https://github.com/nager/Nager.Date/blob/main/doc/examples/rest-api.md), timeout y caché por año. Su ausencia no bloquea actividades internas ni modifica fechas académicas.
+- **Asistente E-SAPIENS:** ayuda local en los portales autenticados, cerrada inicialmente y cargada bajo demanda. Responde preguntas frecuentes verificadas, sugiere temas de la página y del perfil y ofrece enlaces permitidos. No usa IA externa, no envía mensajes a proveedores y no ejecuta operaciones académicas o administrativas.
 
 ## Guía rápida para defender el proyecto
 
@@ -122,7 +153,7 @@ E-SAPIENS es una **versión académica en desarrollo** con catálogo público, i
 | Docente        | Materias asignadas, materiales, tareas, revisión de entregas, calificaciones, solicitudes de inscripción y seguimiento de estudiantes.                    |
 | Administración | Panel ejecutivo, gestión de personas y materias, revisión de formación docente, asignaciones, matrículas, autorizaciones por módulo y análisis académico. |
 
-Los tres espacios comparten navegación con búsqueda, accesos móviles, ayuda contextual, preferencias y calendario lateral. La agenda permanece cerrada hasta abrirla, permite cambiar de mes y muestra próximos pendientes. El carrusel institucional cambia cada cinco segundos y ofrece controles de pausa. Las opciones visibles dependen de los permisos; la API vuelve a comprobar la autorización en cada operación.
+Los tres portales comparten navegación con búsqueda, accesos móviles, ayuda contextual y preferencias. La barra de escritorio puede contraerse y sus grupos son independientes. El calendario lateral permanece cerrado hasta abrirlo; la agenda completa añade vistas de mes, semana y próximos eventos, filtros y exportación `.ics`. El Asistente E-SAPIENS ofrece preguntas frecuentes según rol, permisos y página, sin consultar datos académicos privados. El carrusel institucional cambia cada cinco segundos y ofrece controles de pausa. Las opciones visibles dependen de los permisos; la API vuelve a comprobar la autorización en cada operación.
 
 ## Tecnologías y decisiones
 
@@ -148,6 +179,8 @@ Se utiliza una **arquitectura de servicios HTTP con gateway y base compartida**.
 ```mermaid
 flowchart LR
     Browser[Navegador] --> Web[Next.js · web]
+    Browser --> Assistant[Asistente E-SAPIENS · cliente bajo demanda]
+    Assistant --> FAQ[FAQ locales y enlaces por perfil y permiso]
     Web --> API[NestJS · API principal :4000]
     API --> Content[Contenido público :4001]
     API --> Analytics[Analítica :4002]
@@ -155,6 +188,7 @@ flowchart LR
     API --> Academic[Académico :4004]
     Identity --> DB[(PostgreSQL compartido)]
     Academic --> DB
+    Academic --> Holidays[Nager.Date v4 · feriados BO por año]
     Content --> DB
     Analytics --> DB
     API --> Redis[(Redis)]
@@ -164,6 +198,8 @@ flowchart LR
     Contracts[Contratos TypeScript] -.-> Web
     Contracts -.-> API
 ```
+
+El puerto del gateway del diagrama es el predeterminado; esta demostración usa 4100. La ayuda local se resuelve en el navegador y no incorpora un backend adicional. La consulta externa de feriados pertenece únicamente al servicio académico; no transmite conversaciones, sesiones ni datos privados y su fallo no interrumpe la agenda interna.
 
 ## Estructura del código
 
@@ -602,22 +638,24 @@ El backend, PostgreSQL, Redis y los cuatro servicios internos deben desplegarse 
 
 Todos se ejecutan desde la raíz con `pnpm.cmd <comando>`.
 
-| Comando                              | Propósito                                                                     |
-| ------------------------------------ | ----------------------------------------------------------------------------- |
-| `dev` / `dev:local`                  | Preparar infraestructura y migraciones e iniciar web/API.                     |
-| `dev:apps`                           | Iniciar solo web/API cuando la infraestructura ya está preparada.             |
-| `setup:demo`                         | Preparar una instalación local con materias, biblioteca y lecturas ficticias. |
-| `infra:up`                           | Iniciar PostgreSQL y Redis y esperar su disponibilidad.                       |
-| `db:prepare`                         | Crear el esquema si falta y aplicar migraciones pendientes.                   |
-| `db:migrate`                         | Aplicar solo migraciones incrementales y verificar sus checksums.             |
-| `db:check`                           | Consultar información del esquema local.                                      |
-| `db:init`                            | Instalar el esquema inicial únicamente en una base sin esquema `lms`.         |
-| `db:seed:demo` / `db:seed:classroom` | Cargar catálogo ficticio / completar sus lecturas vacías.                     |
-| `account:create <perfil>`            | Crear una cuenta aprobada mediante terminal interactiva.                      |
-| `analytics:prune`                    | Limpiar medición y atribución antigua en lotes acotados.                      |
-| `format:check`, `lint`, `typecheck`  | Comprobar formato, reglas y tipos.                                            |
-| `test`, `test:e2e`                   | Ejecutar pruebas automáticas.                                                 |
-| `build`                              | Compilar las aplicaciones. No inicia los servidores.                          |
+| Comando                              | Propósito                                                                                                      |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `dev` / `dev:local`                  | Preparar infraestructura y migraciones e iniciar web/API.                                                      |
+| `dev:apps`                           | Iniciar solo web/API cuando la infraestructura ya está preparada.                                              |
+| `setup:demo`                         | Preparar una instalación local con materias, biblioteca y lecturas ficticias.                                  |
+| `demo:seed`                          | Preparar las 20 cuentas y cinco materias completas en la base demo aislada; guardar credenciales fuera de Git. |
+| `demo:start`                         | Ejecutar la web y los cinco backend compilados con el supervisor local.                                        |
+| `infra:up`                           | Iniciar PostgreSQL y Redis y esperar su disponibilidad.                                                        |
+| `db:prepare`                         | Crear el esquema si falta y aplicar migraciones pendientes.                                                    |
+| `db:migrate`                         | Aplicar solo migraciones incrementales y verificar sus checksums.                                              |
+| `db:check`                           | Consultar información del esquema local.                                                                       |
+| `db:init`                            | Instalar el esquema inicial únicamente en una base sin esquema `lms`.                                          |
+| `db:seed:demo` / `db:seed:classroom` | Cargar catálogo ficticio / completar sus lecturas vacías.                                                      |
+| `account:create <perfil>`            | Crear una cuenta aprobada mediante terminal interactiva.                                                       |
+| `analytics:prune`                    | Limpiar medición y atribución antigua en lotes acotados.                                                       |
+| `format:check`, `lint`, `typecheck`  | Comprobar formato, reglas y tipos.                                                                             |
+| `test`, `test:e2e`                   | Ejecutar pruebas automáticas.                                                                                  |
+| `build`                              | Compilar las aplicaciones. No inicia los servidores.                                                           |
 
 ## Actualizar después de un cambio
 
@@ -896,6 +934,6 @@ Al ingresar a `/portal/{perfil}`, cada usuario elige entre dos opciones:
 | **Gestión académica** (`/gestion`) | Registro de materias, inscripciones, historial, pagos y herramientas administrativas según los permisos del perfil. |
 | **Aula virtual** (`/aula`)         | Materias para estudiar o impartir, contenidos, materiales, tareas, evaluaciones, progreso y biblioteca personal.    |
 
-Los menús y accesos móviles muestran únicamente las opciones del espacio actual. Las dos opciones permanecen visibles para cambiar sin cerrar sesión. **Materias inscritas** es una consulta académica; **Mis aulas** permite trabajar en las actividades. El calendario se muestra dentro del aula. El panel ejecutivo de administración se encuentra en Gestión académica.
+Los menús y accesos móviles muestran únicamente las opciones del espacio actual. Las dos opciones permanecen visibles para cambiar sin cerrar sesión. **Materias inscritas** es una consulta académica; **Mis aulas** permite trabajar en las actividades. **Mi agenda** pertenece al Aula virtual; el calendario lateral también puede abrirse desde Gestión académica. En la agenda completa se omite el calendario lateral para evitar duplicación. El panel ejecutivo de administración se encuentra en Gestión académica.
 
 La separación conserva la sesión, los permisos y los enlaces existentes. Los accesos directos a tareas o pagos seleccionan automáticamente el espacio correspondiente. Mi cuenta es una opción común. La configuración se encuentra en `apps/web/src/features/portal/spaces.ts` y las pantallas de entrada en `space-home.tsx`.

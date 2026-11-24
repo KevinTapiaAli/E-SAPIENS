@@ -44,17 +44,17 @@ No cambian las reglas de notas, intentos ni autorización del servidor.
 
 ## Validación ejecutada
 
-| Comprobación | Resultado |
-|---|---|
-| Tipos de API y web | Aprobados |
-| Build completo de API y web | Aprobado |
-| Lint de los componentes web modificados | Sin errores ni advertencias |
-| Lint de API | Sin errores; permanecen las dos advertencias previas del exportador Excel |
-| Pruebas unitarias LMS de autorización y operaciones | 20 aprobadas |
-| PostgreSQL, Centro de Datos y regresiones académicas | 10 aprobadas, con rollback |
-| Componentes SSR y lógica cliente | 36 comprobaciones aprobadas |
-| Recorridos y autorizaciones mediante HTTP | 193 comprobaciones aprobadas |
-| Contraste de colores semánticos, temas claro y oscuro | 14 pares con relación ≥ 4,5:1; mínimo 4,515:1 |
+| Comprobación                                          | Resultado                                                                 |
+| ----------------------------------------------------- | ------------------------------------------------------------------------- |
+| Tipos de API y web                                    | Aprobados                                                                 |
+| Build completo de API y web                           | Aprobado                                                                  |
+| Lint de los componentes web modificados               | Sin errores ni advertencias                                               |
+| Lint de API                                           | Sin errores; permanecen las dos advertencias previas del exportador Excel |
+| Pruebas unitarias LMS de autorización y operaciones   | 20 aprobadas                                                              |
+| PostgreSQL, Centro de Datos y regresiones académicas  | 10 aprobadas, con rollback                                                |
+| Componentes SSR y lógica cliente                      | 36 comprobaciones aprobadas                                               |
+| Recorridos y autorizaciones mediante HTTP             | 193 comprobaciones aprobadas                                              |
+| Contraste de colores semánticos, temas claro y oscuro | 14 pares con relación ≥ 4,5:1; mínimo 4,515:1                             |
 
 La regresión PostgreSQL nueva comprueba ámbito docente, último intento sin calificar, exclusión de tareas sin publicar, límite y orden de clases futuras y rechazo de un rol estudiante. La prueba de componentes comprueba renderizado inicial, enlaces por rol, identificadores accesibles, persistencia y fallos del almacenamiento, envíos simultáneos y conservación/limpieza de formularios. Estas comprobaciones de lógica usan dobles controlados y no sustituyen una interacción en navegador.
 
@@ -64,11 +64,11 @@ Las evidencias están en `.tmp/phase2/`, excluido de Git: `verification.json`, `
 
 ### Responsive y límites de la revisión
 
-| Anchura solicitada | Comportamiento definido en el código | Verificación disponible |
-|---|---|---|
-| 360 px | Menú móvil superpuesto, barra inferior, tarjetas en una columna y tablas con desplazamiento propio | Revisión de CSS y componentes; falta inspección visual |
-| 768 px | Menú móvil superpuesto y rejillas adaptadas a tableta | Revisión de CSS y componentes; falta inspección visual |
-| 1440 px | Barra lateral expandida/compacta con espacio reservado al contenido | Invariantes CSS y estado comprobados; falta inspección visual |
+| Anchura solicitada | Comportamiento definido en el código                                                               | Verificación disponible                                       |
+| ------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 360 px             | Menú móvil superpuesto, barra inferior, tarjetas en una columna y tablas con desplazamiento propio | Revisión de CSS y componentes; falta inspección visual        |
+| 768 px             | Menú móvil superpuesto y rejillas adaptadas a tableta                                              | Revisión de CSS y componentes; falta inspección visual        |
+| 1440 px            | Barra lateral expandida/compacta con espacio reservado al contenido                                | Invariantes CSS y estado comprobados; falta inspección visual |
 
 El navegador automatizado no está conectado: la selección indicó `No browser is available` y la lista disponible estaba vacía. No se certifican capturas, ausencia de errores de hidratación en consola, tabulación real, cierre con Escape, foco del diálogo ni dimensiones de elementos en esos tres tamaños. Los nombres, relaciones ARIA, reglas de foco, semántica de diálogo y contraste se revisaron por código, SSR y cálculo de colores. Tampoco se ejecutaron pruebas de carga ni nuevas mediciones de rendimiento en esta fase.
 
