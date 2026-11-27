@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type {
   ExecutiveDashboard,
+  DataCenterResult,
+  DataCenterExport,
   PublicCourse,
   PublicCourseDetail,
   PublicLibraryDetail,
@@ -65,5 +67,48 @@ export class RemoteAnalyticsService {
       visitor,
       path: resource,
     });
+  }
+}
+
+@Injectable()
+export class RemoteDataCenterService {
+  constructor(private readonly client: ServiceClient) {}
+  private params(
+    query: import('../../modules/analytics/data-center.dto').DataCenterQuery,
+  ) {
+    const params = new URLSearchParams();
+    for (const key of [
+      'days',
+      'courseId',
+      'state',
+      'courseState',
+      'requestState',
+      'stage',
+      'indicator',
+      'page',
+      'pageSize',
+      'sort',
+      'direction',
+    ] as const) {
+      const value = query[key];
+      if (value !== undefined) params.set(key, String(value));
+    }
+    return params.toString();
+  }
+  query(
+    query: import('../../modules/analytics/data-center.dto').DataCenterQuery,
+  ) {
+    return this.client.request<DataCenterResult>(
+      'analytics',
+      `analytics/data-center?${this.params(query)}`,
+    );
+  }
+  export(
+    query: import('../../modules/analytics/data-center.dto').DataCenterQuery,
+  ) {
+    return this.client.request<DataCenterExport>(
+      'analytics',
+      `analytics/data-center/export?${this.params(query)}`,
+    );
   }
 }

@@ -51,6 +51,14 @@ describe('Service OpenAPI documents without network listeners', () => {
           expect(document.paths['/api/v1/library/{id}'].get).toBeDefined();
         } else {
           expect(
+            document.paths['/api/v1/analytics/data-center'].get?.responses[
+              '200'
+            ],
+          ).toBeDefined();
+          expect(
+            document.paths['/api/v1/analytics/data-center/export'].get,
+          ).toBeDefined();
+          expect(
             document.paths['/api/v1/analytics/dashboard'].get?.responses['200'],
           ).toBeDefined();
           expect(
