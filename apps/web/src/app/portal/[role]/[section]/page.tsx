@@ -41,6 +41,10 @@ import {
 import { ProfilePhotoEditor } from "@/features/portal/profile-photo";
 import MetricsPage from "@/features/portal/metrics-page";
 import { TeachersSection } from "@/features/management/teachers-section";
+import {
+  PeopleSearch,
+  peopleFilters,
+} from "@/features/management/people-filters";
 import { StudentCourses } from "@/features/portal/student-courses";
 import { SpaceHome, SpaceCourses } from "@/features/portal/space-home";
 import { ExecutiveDashboardView } from "@/features/analytics/executive-dashboard";
@@ -50,7 +54,7 @@ export default async function PortalSectionPage({
   searchParams,
 }: {
   params: Promise<{ role: string; section: string }>;
-  searchParams: Promise<ProgressFilters & { days?: string }>;
+  searchParams: Promise<ProgressFilters & { days?: string; kind?: string }>;
 }) {
   const { role, section } = await params;
   if (!isWorkspaceRole(role)) notFound();
@@ -103,7 +107,14 @@ export default async function PortalSectionPage({
   if (section === "cursos" && role === "estudiante")
     return <StudentCourses q={q} cursor={cursor} />;
   if (section === "docentes" && role === "administrador")
-    return <TeachersSection user={user} q={q} cursor={cursor} />;
+    return (
+      <TeachersSection
+        user={user}
+        q={q}
+        cursor={cursor}
+        state={filters.state}
+      />
+    );
   const query = new URLSearchParams({ q, ...(cursor ? { cursor } : {}) });
   const base = `/portal/${role}/${section}`;
   if (section === "oferta" || section === "inscripciones")
@@ -211,8 +222,9 @@ export default async function PortalSectionPage({
     );
   }
   if (section === "usuarios") {
+    const people = peopleFilters(filters.state, filters.kind);
     const result = await readPrivateApi(
-      `academic/people?${query}`,
+      `academic/people?${new URLSearchParams({ q, ...people, ...(cursor ? { cursor } : {}) })}`,
       isAcademicPeople,
     );
     return (
@@ -226,10 +238,7 @@ export default async function PortalSectionPage({
             generalAdmin={user.roles.includes("administrador_general")}
           />
         )}
-        <PortalSearch
-          q={q}
-          placeholder="Nombre, apellido o correo electrónico"
-        />
+        <PeopleSearch q={q} {...people} />
         {!result.data ? (
           <PortalUnavailable />
         ) : (
@@ -314,6 +323,7 @@ export default async function PortalSectionPage({
               cursor={cursor}
               next={result.data.nextCursor}
               q={q}
+              filters={people}
             />
           </>
         )}

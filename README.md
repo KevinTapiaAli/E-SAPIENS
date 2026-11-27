@@ -2,7 +2,7 @@
 
 Plataforma educativa web para consultar materias y bibliografía, gestionar cuentas e inscripciones, organizar la docencia y acompañar el progreso de los estudiantes. Proyecto académico de Tecnologías Web II, organizado como monorepo TypeScript con frontend y API independientes.
 
-Este README concentra la instalación, arquitectura, operación, demostración y mantenimiento del proyecto. La rama de integración es [`develop`](https://github.com/KevinTapiaAli/E-SAPIENS/tree/develop).
+Este README concentra la instalación, arquitectura, operación, demostración y mantenimiento del proyecto. La referencia publicada es [`main`](https://github.com/KevinTapiaAli/E-SAPIENS/tree/main). Las mejoras se revisan mediante pull requests hacia `main`; `develop` conserva el historial anterior.
 
 ## Contenido
 
@@ -25,6 +25,7 @@ Este README concentra la instalación, arquitectura, operación, demostración y
 - [Base de datos y seguridad](#base-de-datos-y-seguridad)
 - [Cómo explicar la relación entre estudiantes, docentes y pagos](#cómo-explicar-la-relación-entre-estudiantes-docentes-y-pagos)
 - [Indicadores ejecutivos](#indicadores-ejecutivos)
+- [Centro de Datos administrativo](#centro-de-datos-administrativo)
 - [Capturas de ejecución](#capturas-de-ejecución)
 - [Problemas frecuentes](#problemas-frecuentes)
 - [Calidad y alcance](#calidad-y-alcance)
@@ -37,13 +38,13 @@ Este README concentra la instalación, arquitectura, operación, demostración y
 
 ### Autorizar el Swagger que aparece en pantalla
 
-En esta computadora, la API principal está configurada en **http://localhost:4100/api/docs** porque el puerto 4000 está ocupado por otro proyecto. Los ejemplos generales del README conservan el puerto predeterminado 4000. La web local está en http://localhost:3000.
+La API principal usa por defecto **http://localhost:4000/api/docs**. Si se configura el puerto alternativo 4100, ajustar `API_PORT`, `API_URL` y `SWAGGER_ORIGIN` como se indica en Configuración. La web local usa http://localhost:3000.
 
-| Interfaz                                   | Cómo autenticarte                                                                                                                       | Cómo confirmar el acceso                                                                      |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Principal, puerto 4100 en esta instalación | **Identity → POST /api/v1/identity/login → Try it out**. Introducir tu correo y contraseña de una cuenta aprobada y pulsar **Execute**. | Login `200`; después `GET /api/v1/identity/me` debe devolver tu identidad, roles y permisos.  |
-| Contenido, http://127.0.0.1:4001/api/docs  | **Authorize → internal-service**: introducir el valor de `INTERNAL_SERVICE_TOKEN` del `.env` local, sin `Bearer` ni comillas.           | `GET /api/v1/courses` devuelve contenido; sin clave devuelve `401`.                           |
-| Analítica, http://127.0.0.1:4002/api/docs  | Autorizar por separado con la misma clave interna de esta instalación.                                                                  | `GET /api/v1/analytics/dashboard?days=30` devuelve los indicadores; sin clave devuelve `401`. |
+| Interfaz                                        | Cómo autenticarte                                                                                                                       | Cómo confirmar el acceso                                                                      |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Principal, puerto 4000 (o 4100 si se configura) | **Identity → POST /api/v1/identity/login → Try it out**. Introducir tu correo y contraseña de una cuenta aprobada y pulsar **Execute**. | Login `200`; después `GET /api/v1/identity/me` debe devolver tu identidad, roles y permisos.  |
+| Contenido, http://127.0.0.1:4001/api/docs       | **Authorize → internal-service**: introducir el valor de `INTERNAL_SERVICE_TOKEN` del `.env` local, sin `Bearer` ni comillas.           | `GET /api/v1/courses` devuelve contenido; sin clave devuelve `401`.                           |
+| Analítica, http://127.0.0.1:4002/api/docs       | Autorizar por separado con la misma clave interna de esta instalación.                                                                  | `GET /api/v1/analytics/dashboard?days=30` devuelve los indicadores; sin clave devuelve `401`. |
 
 En Swagger principal **no pegues contraseñas en Authorize**: se usa una cookie `HttpOnly` que el navegador recibe al iniciar sesión y envía automáticamente. El candado representa el requisito de seguridad; no es un indicador fiable de que la sesión esté activa. La comprobación es `identity/me`. Los correos de ejemplo no son cuentas creadas ni tienen contraseña predeterminada.
 
@@ -55,11 +56,13 @@ Si el login responde `403 ORIGIN_NOT_ALLOWED`, abre exactamente `http://localhos
 
 > Tenemos un gateway y cuatro servicios HTTP: identidad, académico, contenido y analítica. Cada servicio tiene su proceso y puerto; el gateway no abre conexiones SQL. Las llamadas internas llevan una clave privada y las rutas privadas mantienen sus controles de sesión y permisos. PostgreSQL sigue compartido: la independencia de ejecución no implica independencia de datos.
 
-| Proceso                 | Qué hace                                                                   | Qué mostrar durante la defensa                                                                                                       |
-| ----------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| API principal / gateway | Sesiones, permisos, administración, docencia, aula y llamadas a servicios. | Login, `identity/me` y una consulta de materias de tu perfil.                                                                        |
-| Contenido               | Lecturas públicas de cursos, temarios y biblioteca.                        | Consultar `/api/v1/courses` en Swagger principal y en Swagger de contenido autorizado: proceden del mismo servicio y datos.          |
-| Analítica               | Registra visitas y calcula indicadores.                                    | En Swagger principal, consultar `/api/v1/analytics/dashboard` como administrador; en el interno, autorizar con la clave de servicio. |
+| Proceso                 | Qué hace                                                               | Qué mostrar durante la defensa                                                                                                       |
+| ----------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| API principal / gateway | Autoriza el Centro de Datos y delega por HTTP; no abre conexiones SQL. | Login, `identity/me` y una consulta de materias de tu perfil.                                                                        |
+| Contenido               | Lecturas públicas de cursos, temarios y biblioteca.                    | Consultar `/api/v1/courses` en Swagger principal y en Swagger de contenido autorizado: proceden del mismo servicio y datos.          |
+| Analítica               | Registra visitas y calcula indicadores.                                | En Swagger principal, consultar `/api/v1/analytics/dashboard` como administrador; en el interno, autorizar con la clave de servicio. |
+| Identidad               | Cuentas, sesiones, contraseñas y permisos.                             | Puerto 4003; consultas por gateway.                                                                                                  |
+| Académico               | Materias, matrículas, docencia, tareas, evaluaciones y pagos manuales. | Puerto 4004; operaciones por gateway.                                                                                                |
 
 Para mostrar separación, abre los documentos Swagger y sus archivos de entrada. No necesitas detener servicios durante la exposición. `GET /api/v1/health/ready` de la API principal permite mostrar si identidad, académico, contenido, analítica y Redis están disponibles. La documentación por sí sola no prueba un despliegue distribuido: explica también la llamada HTTP del gateway.
 
@@ -71,7 +74,7 @@ Las líneas son referencias de esta revisión y pueden moverse con futuras edici
 
 | Tema                  | Archivo y línea de inicio                                                                                                                                                      | Qué explicar                                                               |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| Composición principal | [app.module.ts](apps/api/src/app.module.ts#L8), línea 8                                                                                                                        | Reúne identidad, académico, salud y gateway.                               |
+| Composición principal | [app.module.ts](apps/api/src/app.module.ts#L8), línea 8                                                                                                                        | Reúne salud y gateway; identidad y académico son procesos remotos.         |
 | Entrada de contenido  | [content-main.ts](apps/api/src/content-main.ts#L4), línea 4                                                                                                                    | Inicia el proceso de contenido en 4001.                                    |
 | Entrada de analítica  | [analytics-main.ts](apps/api/src/analytics-main.ts#L4), línea 4                                                                                                                | Inicia el proceso de analítica en 4002.                                    |
 | Módulos internos      | [content.module.ts](apps/api/src/services/content.module.ts#L10), línea 10; [analytics.module.ts](apps/api/src/services/analytics.module.ts#L71), línea 71                     | Dependencias, controladores y guard de cada servicio.                      |
@@ -278,7 +281,7 @@ docker compose version
 
 ```powershell
 npm.cmd install --global pnpm@10.34.5
-git clone --branch develop https://github.com/KevinTapiaAli/E-SAPIENS.git
+git clone --branch main https://github.com/KevinTapiaAli/E-SAPIENS.git
 Set-Location E-SAPIENS
 pnpm.cmd install --frozen-lockfile
 ```
@@ -291,7 +294,7 @@ Si ya se creó una carpeta **vacía**, entrar en ella y usar el punto final para
 
 ```powershell
 Set-Location "C:\proyectos\E-SAPIENS"
-git clone --branch develop https://github.com/KevinTapiaAli/E-SAPIENS.git .
+git clone --branch main https://github.com/KevinTapiaAli/E-SAPIENS.git .
 pnpm.cmd install --frozen-lockfile
 ```
 
@@ -366,13 +369,15 @@ Usar el nombre real del proyecto existente y mantener `DATABASE_URL` y `REDIS_UR
 
 ### Swagger de los microservicios
 
-Después de arrancar con `pnpm.cmd dev`, hay tres documentos separados:
+Después de arrancar con `pnpm.cmd dev`, hay cinco documentos separados. El principal agrega las operaciones de identidad y académico:
 
 | API                                           | Swagger interactivo            | OpenAPI JSON                        |
 | --------------------------------------------- | ------------------------------ | ----------------------------------- |
 | Principal: sesiones y operaciones de usuarios | http://localhost:4000/api/docs | http://localhost:4000/api/docs-json |
 | Contenido: catálogo y biblioteca              | http://127.0.0.1:4001/api/docs | http://127.0.0.1:4001/api/docs-json |
 | Analítica: visitas e indicadores              | http://127.0.0.1:4002/api/docs | http://127.0.0.1:4002/api/docs-json |
+| Identidad: cuentas y sesiones                 | http://127.0.0.1:4003/api/docs | http://127.0.0.1:4003/api/docs-json |
+| Académico: gestión y aula                     | http://127.0.0.1:4004/api/docs | http://127.0.0.1:4004/api/docs-json |
 
 Los puertos corresponden a la configuración local predeterminada. Swagger de los cuatro servicios internos está habilitado para desarrollo y deshabilitado cuando `NODE_ENV=production`. Consultar su documentación local no requiere una sesión de usuario; ejecutar sus endpoints requiere la clave interna y, en las rutas privadas de identidad y académico, también una sesión autorizada. Las escrituras conservan la comprobación de origen.
 
@@ -592,11 +597,11 @@ Esta guía describe **un despliegue nuevo**, no ejecutado por esta revisión. Ut
 
 10. **Comprobar y mantener el despliegue.** Al publicarlo, revisar `https://aula.example.com/api/v1/health/ready`, el catálogo, un login y una operación autorizada por perfil. Revisar `systemctl status` y los registros de las unidades si algo falla; nunca divulgar cookies ni claves. Programar respaldos de PostgreSQL, renovación TLS y `analytics:prune` según la política de retención. En actualizaciones: guardar backup, descargar el commit revisado, instalar dependencias, aplicar migraciones, compilar y reiniciar las cuatro unidades. Estos pasos de comprobación se indican para el operador; no se ejecutaron durante la edición de esta guía.
 
-### Si mantienes el frontend en Vercel
+### Si publicas únicamente el frontend en Vercel
 
 Importar el repositorio y seleccionar `apps/web` como directorio raíz, con acceso al workspace compartido, Node 24 y las variables de servidor `APP_URL=https://tu-dominio-web` y `API_URL=https://tu-api`. Configurarlas en el entorno correspondiente y desplegar la versión revisada; no usar prefijos `NEXT_PUBLIC_` para secretos. La configuración de proyectos por directorio está descrita en la [guía oficial de monorepos de Vercel](https://vercel.com/docs/monorepos).
 
-El backend, PostgreSQL, Redis y los cuatro servicios internos deben desplegarse por separado: importar solamente `apps/web` no los publica. Para la API principal, `APP_URL` debe coincidir con la web de Vercel. Si Swagger se abre desde otro dominio, su login y escrituras serán rechazados por la protección de origen; las cookies host-only tampoco se comparten entre dominios. Para ofrecer Swagger interactivo autenticado en esa variante se necesita configurar un proxy del mismo origen para `/api/docs...` y `/api/v1/...`, que conserve las cabeceras y cookies. **Esa configuración adicional de Vercel no se incorpora automáticamente con esta guía.** No resolverlo desactivando verificaciones ni cambiando `APP_URL` al dominio de Swagger. La receta completa del servidor anterior evita esa diferencia de origen.
+El backend, PostgreSQL, Redis y los cuatro servicios internos deben desplegarse por separado: importar solamente `apps/web` no los publica. Para la API principal, `APP_URL` debe coincidir con la web de Vercel. Si Swagger se abre desde otro dominio, su login y escrituras serán rechazados por la protección de origen; las cookies host-only tampoco se comparten entre dominios. Para ofrecer Swagger interactivo autenticado en esa variante se necesita configurar un proxy del mismo origen para `/api/docs...` y `/api/v1/...`, que conserve las cabeceras y cookies. **Esta variante de frontend aislado requiere su propio proxy. El despliegue conjunto de `vercel.json` sí incluye el gateway y los cuatro servicios internos; consultar Infraestructura de producción.** No resolverlo desactivando verificaciones ni cambiando `APP_URL` al dominio de Swagger. La receta completa del servidor anterior evita esa diferencia de origen.
 
 ## Comandos disponibles
 
@@ -652,7 +657,7 @@ git commit -m "feat: describir el cambio"
 git push -u origin feat/nombre-del-cambio
 ```
 
-Abrir un pull request hacia `develop` con descripción del comportamiento, migraciones y validación. GitHub exige `Quality Gate` para integrar; no forzar la subida ni desactivar la protección. Cuando el PR esté integrado, las demás computadoras reciben el cambio con el procedimiento anterior. El historial de Git permite recuperar versiones anteriores sin conservar reportes duplicados en el árbol del proyecto.
+Abrir un pull request hacia `main` con descripción del comportamiento, migraciones y validación. GitHub exige `Quality Gate` para integrar; no forzar la subida ni desactivar la protección. Cuando el PR esté integrado, las demás computadoras reciben el cambio con el procedimiento anterior. El historial de Git permite recuperar versiones anteriores sin conservar reportes duplicados en el árbol del proyecto.
 
 ### Ejemplo: subir una mejora del README a GitHub
 
@@ -762,6 +767,91 @@ El administrador puede consultar visitantes únicos estimados, materias consulta
 - Actividad semanal: acciones académicas registradas; iniciar sesión por sí solo no equivale a estudiar. La inactividad se basa en ausencia de actividad académica durante al menos 14 días considerando la matrícula.
 - La medición respeta exclusión voluntaria y señales DNT/GPC. No envía estos eventos a un proveedor externo.
 - `analytics:prune` elimina datos de medición y atribución anteriores a 190 días en lotes de hasta 10 000 por tabla. En un despliegue debe programarse y atender posibles lotes acumulados; no existe un cron automático dentro de la aplicación.
+
+## Centro de Datos administrativo
+
+El [informe de entrega y validación](docs/centro-datos-validacion.md) detalla los archivos, las comprobaciones realizadas y sus límites.
+
+El menú administrativo incorpora **Centro de Datos**, en `/portal/administrador/datos`. Conserva el Panel ejecutivo y el Análisis académico existentes. Usa los contratos compartidos, la consulta de progreso académico y la definición de actividad del panel; amplía el servicio de analítica de la arquitectura actual, sin otra base de datos ni nuevos procesos.
+
+### Vistas disponibles
+
+- **Resumen general:** cuentas registradas y aprobadas, estudiantes y docentes aprobados, estados de cursos, matrículas activas, solicitudes pendientes, avance, inactividad, entregas pendientes y prioridades administrativas.
+- **Estudiantes:** una fila por matrícula, estudiantes únicos, distribución y avance por materia, cobertura, solicitudes por estado, entregas y calificaciones. El expediente utiliza la ruta de seguimiento existente y comprueba nuevamente la autorización.
+- **Cursos:** estados, estudiantes únicos, matrículas, avance, lecciones publicadas y completadas, tareas, entregas y docentes habilitados. Incluye comparación por barras y tabla ordenable.
+- **Docentes:** cuentas aprobadas, materias asignadas con enlaces, pendientes en esas materias, calificaciones efectuadas, retroalimentaciones y sesiones iniciadas registradas. No se deducen horas, productividad ni desempeño.
+- **Actividad web:** visitantes únicos estimados, consultas de cursos, solicitudes atribuidas, conversiones con sus denominadores y evolución diaria. Se reutilizan `web_visits_daily`, `web_analytics_config` y las atribuciones opcionales existentes.
+- **Reportes y exportaciones:** consultas de estudiantes, cursos, docentes, solicitudes y tráfico diario, con CSV protegido para Excel.
+
+Las preferencias visuales, el tema claro/oscuro y la navegación móvil son los del portal. Los gráficos incluyen leyendas y valores textuales; la serie temporal ofrece una tabla accesible. Los estados de carga, error de filtros, ausencia de registros, sesión no autorizada y servicio no disponible están diferenciados.
+
+### Acceso y comunicación
+
+La API principal exige una sesión de cuenta aprobada, rol `administrador` o `administrador_general` y **ambos** permisos `dashboard.admin` y `academic.read`, tanto para consultar como para exportar. El servicio interno exige `InternalServiceGuard`; su token no se entrega al navegador. Las respuestas privadas y el proxy CSV utilizan `Cache-Control: private, no-store`.
+
+| Endpoint público, prefijo `/api/v1`     | Función                                                        |
+| --------------------------------------- | -------------------------------------------------------------- |
+| `GET /analytics/data-center`            | Indicadores, recomendaciones, columnas y página de resultados. |
+| `GET /analytics/data-center/export.csv` | Descarga CSV con los mismos filtros y orden.                   |
+
+La API principal delega en `GET /api/v1/analytics/data-center` y `GET /api/v1/analytics/data-center/export` del servicio interno de analítica. Este último devuelve un sobre privado con el CSV y sus límites; solo el archivo llega al navegador mediante `/api/analytics/data-center/export`. Swagger documenta los DTO, las respuestas y los requisitos de acceso en los procesos correspondientes. Un servicio caído produce `503`, sin ejecutar consultas alternativas en el núcleo.
+
+### Filtros y límites
+
+| Parámetro            | Valores / alcance                                                                                                            |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `days`               | `7`, `30` o `90`; por defecto `30`. Ventanas de días UTC completos, fin exclusivo, y comparación anterior de igual duración. |
+| `courseId`           | UUID de materia; omitido incluye todas.                                                                                      |
+| `state`              | `todos`, `activa`, `suspendida`, `abandonada`, `cancelada`; estado de matrícula ya registrado.                               |
+| `stage`              | `todos`, `sin_iniciar`, `en_curso`, `completado`, `sin_contenido`, `sin_actividad`, `sin_cobertura`.                         |
+| `courseState`        | `todos`, `publicado`, `borrador`, `revision`, `archivado`.                                                                   |
+| `requestState`       | `todos`, `pendiente`, `aprobada`, `rechazada`.                                                                               |
+| `indicator`          | `students`, `courses`, `teachers`, `requests`, `traffic`.                                                                    |
+| `page` / `pageSize`  | Página `1..10000`; tamaño `1..100` (predeterminados: `1`, `20`).                                                             |
+| `sort` / `direction` | `name`, `progress`, `students`, `pending`, `activity`; `asc` o `desc`, con desempate por ID.                                 |
+
+Los parámetros desconocidos, repetidos o inválidos se rechazan. Los filtros se aplican antes de agregar y paginar; el total se conserva incluso cuando una página queda vacía. La interfaz restablece la página al aplicar filtros. Los estados de matrícula, avance y curso delimitan las consultas académicas; las solicitudes intersectan ese ámbito cuando se selecciona un estado o nivel académico. El tráfico utiliza período y materia: no se atribuye un estado académico a un navegador. Los totales de cuentas aprobadas permanecen institucionales.
+
+El período afecta actividad, entregas, calificaciones, solicitudes listadas y tráfico. Cuentas, contenidos, matrículas y pendientes representan el **estado actual**; no se reconstruyen estados históricos. Los gráficos de materias identifican si representan la página actual o las primeras diez materias del ámbito completo. El selector incluye hasta 500 materias e informa cuando alcanza ese límite. La consulta API admite cualquier UUID válido autorizado.
+
+La exportación incluye las primeras **5000 filas de todas las páginas**, respetando filtros y orden. Las cabeceras `X-Export-Rows`, `X-Export-Total` y `X-Export-Truncated` informan su alcance; la interfaz avisa si hay truncamiento. CSV UTF-8 con BOM, comillas escapadas y neutralización de `=`, `+`, `-`, `@` incluso después de espacios o controles. No incluye contraseñas, hashes, correos, sesiones, textos de entregas ni identificadores de visitantes. Las fechas se exportan como ISO UTC; los registros de la interfaz usan la zona horaria de la cuenta y los días de tráfico se identifican expresamente como UTC.
+
+### Definiciones y recomendaciones
+
+| Indicador                 | Definición                                                                                                                                                                                                                                                      |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cuentas activas/aprobadas | Estado administrativo `aprobado`, con el rol correspondiente. No significa actividad reciente; la participación registrada se informa por separado.                                                                                                             |
+| Estudiantes únicos        | Personas distintas entre las matrículas filtradas. No sumar este dato entre materias para obtener el total institucional.                                                                                                                                       |
+| Avance                    | Lecciones completadas / lecciones publicadas de módulos publicados. Se reutiliza el porcentaje entero por matrícula del seguimiento. Sin lecciones: `null`.                                                                                                     |
+| Promedio                  | Media de porcentajes por matrícula activa con contenido; `progressDenominator` informa cuántas participan. Si el denominador es cero: `null`. El promedio por curso abarca las matrículas de su filtro.                                                         |
+| Cobertura vigente         | Existe al menos un acceso a módulo publicado, no revocado, con `desde <= ahora < hasta`. No garantiza acceso a todo el curso ni sustituye los requisitos del aula. Se informa por matrícula activa.                                                             |
+| Inactividad               | Estudiantes únicos aprobados con matrícula activa y al menos 14 días desde la última actividad o la matrícula: inicio/finalización de lecciones, entregas o asistencia confirmada a una clase iniciada. La tabla también identifica la situación por matrícula. |
+| Entregas y pendientes     | Último intento por tarea y matrícula. Pendientes: sin nota, incluyendo períodos anteriores. Entregas/calificadas del período: fechas de entrega/calificación respectivamente.                                                                                   |
+| Docente habilitado        | Cuenta aprobada con rol docente y asignación a la materia, igual que en el Panel ejecutivo. Los pendientes de una materia con varios docentes pueden aparecer en varias filas: no sumarlas.                                                                     |
+| Conversiones              | Visitantes estimados con una solicitud real posterior a su primera visita del período. Cuenta: visitantes convertidos / visitantes estimados. Inscripción: visitantes convertidos / visitantes que consultaron cursos. Sin denominador: sin datos.              |
+
+**Análisis y recomendaciones** aplica reglas determinísticas: valores positivos de pendientes, inactividad, cursos publicados sin docente o falta de cobertura generan sugerencias de revisión. Cada recomendación muestra su indicador y valor. Una reducción de participación compara estudiantes con actividad en ventanas de igual duración y muestra el cambio porcentual; no atribuye causas. Nunca cambia estados de abandono, califica docentes ni presenta correlaciones como causas.
+
+La medición web empieza en `web_analytics_config.enabled_at`, respeta las preferencias existentes y no reconstruye períodos anteriores. Los días previos aparecen sin medición, nunca como una serie reconstruida; el día de habilitación puede ser parcial. La comparación de tráfico se advierte como incompleta si falta todo el período previo. Visitantes estimados no son personas identificadas, las solicitudes no son matrículas y los visitantes únicos diarios no se suman para deducir los del período.
+
+No se añade una migración: las tablas, relaciones e índices existentes permiten las lecturas implementadas. No se editan migraciones aplicadas ni se escriben datos desde los informes. Para grandes volúmenes, revisar `EXPLAIN (ANALYZE, BUFFERS)` en un entorno apropiado antes de justificar nuevos índices; el timeout de PostgreSQL y el límite interno HTTP permanecen vigentes.
+
+### Comprobación
+
+Usar Node.js de `.node-version` y las dependencias del lockfile. Ejecutar desde la raíz:
+
+```powershell
+pnpm.cmd format:check
+pnpm.cmd lint
+pnpm.cmd typecheck
+pnpm.cmd test
+pnpm.cmd test:e2e
+pnpm.cmd build
+```
+
+Pruebas nuevas: `data-center.spec.ts` cubre porcentajes, recomendaciones, límite y neutralización CSV; `data-center.e2e-spec.ts` verifica HTTP, permisos reales, DTO, filtros, respuestas vacías y fallos controlados; `data-center.postgres.e2e-spec.ts` ejecuta las consultas reales con datos temporales dentro de una transacción y hace `ROLLBACK`. Esta última exige `APP_ENV=local/test`, PostgreSQL local y base `esapiens` o `esapiens_test`. Ninguna prueba requiere borrar o reinicializar la base; la suite completa también necesita Redis disponible. La revisión visual requiere un navegador conectado y una sesión administrativa autorizada.
+
+**Texto para el informe académico:** Se implementó un Centro de Datos administrativo integrado con la arquitectura de E-SAPIENS. Reúne indicadores académicos y de tráfico, consultas filtradas y paginadas, gráficos accesibles, recomendaciones basadas en reglas explícitas y exportaciones CSV seguras. Reutiliza la autorización, el seguimiento académico y la analítica existentes para apoyar decisiones institucionales con datos registrados, sin alterar los registros originales.
 
 ## Capturas de ejecución
 
@@ -896,6 +986,18 @@ Al ingresar a `/portal/{perfil}`, cada usuario elige entre dos opciones:
 | **Gestión académica** (`/gestion`) | Registro de materias, inscripciones, historial, pagos y herramientas administrativas según los permisos del perfil. |
 | **Aula virtual** (`/aula`)         | Materias para estudiar o impartir, contenidos, materiales, tareas, evaluaciones, progreso y biblioteca personal.    |
 
-Los menús y accesos móviles muestran únicamente las opciones del espacio actual. Las dos opciones permanecen visibles para cambiar sin cerrar sesión. **Materias inscritas** es una consulta académica; **Mis aulas** permite trabajar en las actividades. El calendario se muestra dentro del aula. El panel ejecutivo de administración se encuentra en Gestión académica.
+Los menús y accesos móviles muestran únicamente las opciones del espacio actual. Las dos opciones permanecen visibles para cambiar sin cerrar sesión. **Materias inscritas** es una consulta académica; **Mis aulas** permite trabajar en las actividades. El calendario se muestra dentro del aula. El panel ejecutivo de administración se encuentra en Gestión académica y concentra prioridades y operaciones pendientes. Los gráficos de evolución y comparación se consultan en el Centro de Datos, dentro del mismo espacio.
 
 La separación conserva la sesión, los permisos y los enlaces existentes. Los accesos directos a tareas o pagos seleccionan automáticamente el espacio correspondiente. Mi cuenta es una opción común. La configuración se encuentra en `apps/web/src/features/portal/spaces.ts` y las pantallas de entrada en `space-home.tsx`.
+
+## Estabilización final e integración
+
+La rama `feat/final-stabilization-ux` parte de `origin/main` (`d0cb345`), conserva los PR #10, #12 y #14 y adapta la implementación de `feat/admin-data-center` (PR #11) a los cinco procesos vigentes. El gateway conserva identidad remota y no abre conexiones SQL; las consultas del Centro de Datos se ejecutan en analítica. El cambio de rutas del PR #13 ya forma parte de `main`; no se aplica de nuevo. Los PR #11 y #13 permanecen abiertos para revisión.
+
+Usuarios y docentes permiten combinar búsqueda literal y estado de cuenta; usuarios también permite filtrar el perfil. La paginación conserva esos filtros. El Aula virtual muestra avance de lecciones y diferencia matrículas de solicitudes pendientes. El registro administrativo de materias lleva a la gestión de temarios. Las evaluaciones muestran duración, intentos restantes del estudiante, estado del último intento, plazo vigente y fechas de entrega por estudiante. La API sigue imponiendo acceso, vencimiento y cálculo de notas; las respuestas correctas no forman parte de esas consultas.
+
+Para rutas locales, usar los puertos 3000 (web), 4000 (gateway), 4001 (contenido), 4002 (analítica), 4003 (identidad) y 4004 (académico), salvo configuración explícita. En producción, la web usa `API_URL` del servidor y el gateway usa los cuatro enlaces privados `*_SERVICE_URL`; el navegador no recibe la clave ni las URLs internas. `/api/v1/health/ready` comprueba Redis y los cuatro servicios, que verifican PostgreSQL.
+
+Antes de desplegar: ejecutar las comprobaciones de calidad y `pnpm deploy:check -- --production` con las variables del entorno de destino, sin copiarlas al repositorio. Revisar el preview y promover solo tras comprobar login, catálogo, biblioteca y disponibilidad. Para recuperar una versión, volver al despliegue anterior desde Vercel, conservar la base y sus migraciones, y comprobar disponibilidad antes de promoverlo. No borrar tablas, reinicializar PostgreSQL ni eliminar volúmenes. Esta integración no incluye migraciones nuevas.
+
+Los resultados actuales y las limitaciones se registran en [la validación de estabilización](docs/estabilizacion-final.md). Las capturas y los resultados fechados de secciones anteriores son evidencia histórica y no acreditan este cambio ni su despliegue.

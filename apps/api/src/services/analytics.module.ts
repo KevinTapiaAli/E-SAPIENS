@@ -1,3 +1,5 @@
+import { DataCenterService } from '../modules/analytics/data-center.service';
+import { InternalDataCenterController } from './data-center.controller';
 import {
   Body,
   Controller,
@@ -70,9 +72,14 @@ class InternalAnalyticsController {
 
 @Module({
   imports: [RuntimeModule, DatabaseModule, RedisModule],
-  controllers: [InternalAnalyticsController, ServiceHealthController],
+  controllers: [
+    InternalAnalyticsController,
+    InternalDataCenterController,
+    ServiceHealthController,
+  ],
   providers: [
     AnalyticsService,
+    DataCenterService,
     { provide: APP_GUARD, useClass: InternalServiceGuard },
   ],
 })

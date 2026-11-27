@@ -1,3 +1,5 @@
+import { DataCenterController } from '../../modules/analytics/data-center.controller';
+import { DataCenterService } from '../../modules/analytics/data-center.service';
 import { Global, Module } from '@nestjs/common';
 import { CatalogController } from '../../modules/catalog/catalog.controller';
 import { CatalogService } from '../../modules/catalog/catalog.service';
@@ -13,6 +15,7 @@ import { DomainProxyController } from './domain-proxy.controller';
 import { ServiceClient } from './service-client';
 import {
   RemoteAnalyticsService,
+  RemoteDataCenterService,
   RemoteCatalogService,
   RemoteLibraryService,
 } from './remote-services';
@@ -25,11 +28,13 @@ import {
     LibraryController,
     AnalyticsController,
     DomainProxyController,
+    DataCenterController,
   ],
   providers: [
     ServiceClient,
     IdentitySecurityService,
     { provide: IdentityService, useClass: RemoteIdentityService },
+    { provide: DataCenterService, useClass: RemoteDataCenterService },
     { provide: CatalogService, useClass: RemoteCatalogService },
     { provide: LibraryService, useClass: RemoteLibraryService },
     { provide: AnalyticsService, useClass: RemoteAnalyticsService },

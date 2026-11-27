@@ -5,7 +5,6 @@ import { isAcademicPeople } from "@/features/portal/server";
 import {
   PortalHeading,
   PortalPagination,
-  PortalSearch,
   PortalUnavailable,
   StatusBadge,
 } from "@/features/portal/portal-ui";
@@ -13,17 +12,22 @@ import { CreateAccount, TeacherProfileReview } from "./account-controls";
 import { AcademicOperationForm } from "@/features/portal/academic-operation-form";
 import { StatePanel } from "@/shared/ui/state-panel";
 import { formatAccountDate } from "@/features/auth/format-date";
+import { PeopleSearch, peopleFilters } from "./people-filters";
 export async function TeachersSection({
   user,
   q,
   cursor,
+  state: requestedState,
 }: {
   user: SessionUser;
   q: string;
   cursor?: string;
+  state?: string;
 }) {
+  const { state } = peopleFilters(requestedState);
   const query = new URLSearchParams({
     kind: "docente",
+    state,
     q,
     ...(cursor ? { cursor } : {}),
   });
@@ -47,7 +51,7 @@ export async function TeachersSection({
       {user.permissions.includes("academic.assign") && (
         <AcademicOperationForm operation="assignments" />
       )}
-      <PortalSearch q={q} placeholder="Nombre o correo del docente" />
+      <PeopleSearch q={q} state={state} kind="docente" teacherOnly />
       {!result.data ? (
         <PortalUnavailable />
       ) : (
@@ -123,6 +127,7 @@ export async function TeachersSection({
             q={q}
             cursor={cursor}
             next={result.data.nextCursor}
+            filters={{ state }}
           />
         </>
       )}

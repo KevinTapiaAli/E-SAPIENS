@@ -5,6 +5,7 @@ import {
   ActionFeedback,
 } from "@/features/classroom/academic-action";
 import { isAttempt, type Attempt } from "./data";
+import { formatAccountDate } from "@/features/auth/format-date";
 export function EvaluationEditor({
   courseId,
   modules,
@@ -35,7 +36,11 @@ export function EvaluationEditor({
     });
   }
   return (
-    <form onSubmit={submit} className="ui-card mt-8 space-y-4 p-5">
+    <form
+      onSubmit={submit}
+      className="ui-card mt-8 space-y-4 p-5"
+      aria-busy={action.pending}
+    >
       <h2 className="text-xl font-semibold">Publicar evaluación</h2>
       <label className="form-label">
         Título
@@ -150,7 +155,7 @@ export function EvaluationEditor({
         conservar la integridad de los intentos.
       </label>
       <button disabled={action.pending} className="button button-primary">
-        Publicar evaluación
+        {action.pending ? "Publicando…" : "Publicar evaluación"}
       </button>
       <ActionFeedback feedback={action.feedback} />
     </form>
@@ -159,9 +164,13 @@ export function EvaluationEditor({
 export function TakeEvaluation({
   courseId,
   id,
+  timeZone,
+  exhausted,
 }: {
   courseId: string;
   id: string;
+  timeZone: string;
+  exhausted: boolean;
 }) {
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [score, setScore] = useState<number | null>(null);
@@ -211,19 +220,26 @@ export function TakeEvaluation({
             guardan.
           </p>
           <button
-            disabled={begin.pending}
+            disabled={begin.pending || exhausted}
             onClick={() => void start()}
             className="button button-primary"
           >
-            Comenzar / recuperar intento
+            {begin.pending
+              ? "Preparando intento…"
+              : exhausted
+                ? "Intentos agotados"
+                : "Comenzar / recuperar intento"}
           </button>
         </>
       ) : (
-        <form onSubmit={submit} className="space-y-4">
+        <form
+          onSubmit={submit}
+          className="space-y-4"
+          aria-busy={finish.pending}
+        >
           <p>
-            Entrega antes de{" "}
-            {new Date(attempt.expiresAt).toLocaleString("es-BO")}. Las preguntas
-            sin respuesta valen cero.
+            Entrega antes de {formatAccountDate(attempt.expiresAt, timeZone)}.
+            Las preguntas sin respuesta valen cero.
           </p>
           {attempt.questions.map((q, index) => (
             <fieldset
@@ -242,7 +258,7 @@ export function TakeEvaluation({
             </fieldset>
           ))}
           <button disabled={finish.pending} className="button button-primary">
-            Entregar y calificar
+            {finish.pending ? "Enviando respuestas…" : "Entregar y calificar"}
           </button>
         </form>
       )}

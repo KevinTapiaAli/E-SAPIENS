@@ -141,6 +141,18 @@ describe('LMS contra PostgreSQL: transacción aislada, sin HTTP ni cobros', () =
       method: 'transferencia',
       reference: marker,
     });
+    await commerce.report(student, orderId, {
+      method: 'transferencia',
+      reference: marker,
+    });
+    expect(
+      (
+        await client.query(
+          'SELECT count(*)::int AS n FROM lms.pagos WHERE orden_id=$1',
+          [orderId],
+        )
+      ).rows[0].n,
+    ).toBe(1);
     expect(
       (
         await client.query(
@@ -206,6 +218,23 @@ describe('LMS contra PostgreSQL: transacción aislada, sin HTTP ni cobros', () =
       attempt.id,
     );
     expect(JSON.stringify(attempt)).not.toMatch(/es_correcta|correctIndex/);
+    const ongoing = await evaluation.list(student, course, {
+      role: 'estudiante',
+      limit: 12,
+    });
+    expect(ongoing.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: exam.id,
+          usedAttempts: 1,
+          latestStatus: 'en_curso',
+          activeExpiresAt: expect.any(Date),
+        }),
+      ]),
+    );
+    expect(JSON.stringify(ongoing)).not.toMatch(
+      /es_correcta|correctIndex|opciones_pregunta/,
+    );
     const question = attempt.questions[0];
     const result = await evaluation.submit(
       student,
@@ -219,6 +248,21 @@ describe('LMS contra PostgreSQL: transacción aislada, sin HTTP ni cobros', () =
       },
     );
     expect(result.score).toBe(100);
+    const completed = await evaluation.list(student, course, {
+      role: 'estudiante',
+      limit: 12,
+    });
+    expect(completed.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: exam.id,
+          usedAttempts: 1,
+          latestStatus: 'calificado',
+          activeExpiresAt: null,
+          bestScore: 100,
+        }),
+      ]),
+    );
     expect(
       (
         await evaluation.submit(student, course, exam.id, attempt.id, {
@@ -252,6 +296,40 @@ describe('LMS contra PostgreSQL: transacción aislada, sin HTTP ni cobros', () =
     ).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: exam.id, bestScore: 100 }),
+      ]),
+    );
+    const expired = await evaluation.start(student, course, exam.id);
+    await client.query(
+      "UPDATE lms.intentos_evaluacion SET iniciado_en=now()-interval '31 minutes',vence_en=now()-interval '1 second' WHERE id=$1",
+      [expired.id],
+    );
+    const expiredList = await evaluation.list(student, course, {
+      role: 'estudiante',
+      limit: 12,
+    });
+    expect(expiredList.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: exam.id,
+          usedAttempts: 2,
+          latestStatus: 'vencido',
+          activeExpiresAt: null,
+          bestScore: 100,
+        }),
+      ]),
+    );
+    const expiredResults = await evaluation.results(teacher, course, exam.id, {
+      role: 'docente',
+      limit: 12,
+    });
+    expect(expiredResults.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: expired.id,
+          status: 'vencido',
+          submittedAt: null,
+          score: null,
+        }),
       ]),
     );
   });
